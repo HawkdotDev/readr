@@ -7,6 +7,7 @@ export interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  autoFocus?: boolean;
   style?: ViewStyle;
 }
 
@@ -14,6 +15,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   placeholder = 'Search library, authors, titles...',
+  autoFocus = false,
   style,
 }) => {
   const { colors } = useTheme();
@@ -39,6 +41,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         clearButtonMode="never"
         autoCapitalize="none"
         autoCorrect={false}
+        autoFocus={autoFocus}
       />
       {value.length > 0 && (
         <TouchableOpacity
@@ -52,6 +55,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     </View>
   );
 };
+
+import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {
@@ -67,6 +72,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
     height: '100%',
     padding: 0,

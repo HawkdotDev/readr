@@ -10,7 +10,7 @@ import { getAllBooks } from '../../src/db/queries/books';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { Book, BookStatus, BookFormat } from '../../src/types';
 import { useLibraryStore } from '../../src/store/libraryStore';
-import { Plus } from 'lucide-react-native';
+import { Plus, Search } from 'lucide-react-native';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -31,6 +31,8 @@ export default function LibraryScreen() {
     sortOption,
     setSortOption,
   } = useLibraryStore();
+
+  const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
 
   const loadBooks = async () => {
     try {
@@ -104,21 +106,41 @@ export default function LibraryScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Top Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Sanctuary</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {books.length} {books.length === 1 ? 'book' : 'books'} in personal library
-          </Text>
-        </View>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Library</Text>
 
-        <TouchableOpacity
-          onPress={handleImport}
-          style={[styles.importBtn, { backgroundColor: colors.accent }]}
-          accessible={true}
-          accessibilityLabel="Import Book"
-        >
-          <Plus size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => {
+              setIsSearchOpen((prev) => {
+                const next = !prev;
+                if (!next) {
+                  setSearchQuery('');
+                }
+                return next;
+              });
+            }}
+            style={[
+              styles.iconBtn,
+              {
+                backgroundColor: isSearchOpen ? colors.surface : 'transparent',
+                borderColor: isSearchOpen ? colors.border : 'transparent',
+              },
+            ]}
+            accessible={true}
+            accessibilityLabel="Search Library"
+          >
+            <Search size={21} color={colors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleImport}
+            style={[styles.importBtn, { backgroundColor: colors.accent }]}
+            accessible={true}
+            accessibilityLabel="Import Book"
+          >
+            <Plus size={20} color={colors.isDark ? '#000000' : '#FFFFFF'} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Main List */}
@@ -132,11 +154,16 @@ export default function LibraryScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         ListHeaderComponent={
           <View style={styles.listHeader}>
-            <SearchBar
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Search your library..."
-            />
+            {isSearchOpen && (
+              <View style={styles.searchContainer}>
+                <SearchBar
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholder="Search your library..."
+                  autoFocus={true}
+                />
+              </View>
+            )}
             <FilterBar
               selectedStatus={selectedStatus}
               onSelectStatus={setSelectedStatus}
@@ -173,6 +200,8 @@ export default function LibraryScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -187,13 +216,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.extraBold,
     fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
-  headerSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   importBtn: {
     width: 42,
@@ -215,6 +253,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
   },
+  searchContainer: {
+    marginBottom: 12,
+  },
   gridColumnWrapper: {
     justifyContent: 'space-between',
   },
@@ -223,6 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noResultsText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
   },
 });

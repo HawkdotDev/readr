@@ -99,6 +99,8 @@ export const Slider: React.FC<SliderProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     marginVertical: 8,
@@ -110,12 +112,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 14,
-    fontWeight: '500',
   },
   valueText: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 14,
-    fontWeight: '700',
   },
   controlRow: {
     flexDirection: 'row',

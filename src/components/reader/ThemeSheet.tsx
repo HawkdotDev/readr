@@ -95,6 +95,8 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
@@ -109,14 +111,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   systemRowText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   sectionLabel: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: 10,
+    textTransform: 'uppercase',
   },
   grid: {
     flexDirection: 'row',
@@ -141,11 +145,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   cardLabel: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 14,
-    fontWeight: '700',
     marginTop: 8,
+    letterSpacing: -0.2,
   },
   sampleText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 11,
     opacity: 0.7,
     marginTop: 4,

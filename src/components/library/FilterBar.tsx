@@ -86,6 +86,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -106,8 +108,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   rightActions: {
     marginLeft: 'auto',

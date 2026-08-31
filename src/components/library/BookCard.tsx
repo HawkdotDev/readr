@@ -155,6 +155,8 @@ export const BookCard: React.FC<BookCardProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   gridContainer: {
     marginBottom: 20,
@@ -182,8 +184,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridPlaceholderTitle: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 14,
-    fontWeight: '700',
     letterSpacing: -0.2,
     lineHeight: 18,
   },
@@ -209,11 +211,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   gridTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 14,
-    fontWeight: '600',
     lineHeight: 18,
+    letterSpacing: -0.2,
   },
   gridAuthor: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 12,
     marginTop: 2,
   },
@@ -224,8 +228,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   gridPercentText: {
+    fontFamily: FONTS.mono.semiBold,
     fontSize: 11,
-    fontWeight: '600',
   },
   listContainer: {
     flexDirection: 'row',
@@ -260,12 +264,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   listTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 15,
-    fontWeight: '600',
     flex: 1,
     marginRight: 8,
+    letterSpacing: -0.2,
   },
   listAuthor: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
     marginTop: 2,
   },
@@ -279,6 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listProgressText: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 12,
   },
   timeTag: {
@@ -286,6 +293,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
+    fontFamily: FONTS.mono.medium,
     fontSize: 11,
   },
 });

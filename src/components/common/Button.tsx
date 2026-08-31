@@ -2,6 +2,8 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from './ThemeProvider';
 
+import { FONTS } from '../../utils/typography';
+
 export interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -34,7 +36,7 @@ export const Button: React.FC<ButtonProps> = ({
       justifyContent: 'center',
       borderRadius: 12,
       paddingVertical: size === 'sm' ? 8 : size === 'lg' ? 16 : 12,
-      paddingHorizontal: size === 'sm' ? 12 : size === 'lg' ? 24 : 16,
+      paddingHorizontal: size === 'sm' ? 14 : size === 'lg' ? 24 : 18,
       opacity: disabled ? 0.5 : 1,
     };
 
@@ -54,8 +56,9 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getTextStyle = (): any => {
     const base: any = {
+      fontFamily: FONTS.mona.semiBold,
       fontSize: size === 'sm' ? 13 : size === 'lg' ? 17 : 15,
-      fontWeight: '600',
+      letterSpacing: -0.2,
     };
 
     switch (variant) {

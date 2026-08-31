@@ -48,6 +48,8 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'secondary', styl
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 8,
@@ -58,9 +60,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
 });

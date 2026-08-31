@@ -6,6 +6,8 @@ import { useTheme } from '../common/ThemeProvider';
 import { useReaderStore } from '../../store/readerStore';
 import { AlignLeft, AlignJustify } from 'lucide-react-native';
 
+import { FONTS, typography } from '../../utils/typography';
+
 export interface TypographySheetProps {
   visible: boolean;
   onClose: () => void;
@@ -27,21 +29,22 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
   } = useReaderStore();
 
   const fontOptions = [
-    { label: 'Literata', value: 'Literata' },
-    { label: 'Merriweather', value: 'Merriweather' },
-    { label: 'Atkinson', value: 'Atkinson Hyperlegible' },
-    { label: 'JetBrains Mono', value: 'JetBrains Mono' },
-    { label: 'System', value: 'System' },
+    { label: 'Mona Sans', value: 'MonaSans-Regular', familyName: FONTS.mona.regular },
+    { label: 'Hubot Sans', value: 'HubotSans-Regular', familyName: FONTS.hubot.regular },
+    { label: 'Mona Mono', value: 'MonaSansMono-Regular', familyName: FONTS.mono.regular },
+    { label: 'Literata', value: 'Literata', familyName: 'Literata' },
+    { label: 'Merriweather', value: 'Merriweather', familyName: 'Merriweather' },
+    { label: 'System', value: 'System', familyName: undefined },
   ];
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Typography & Layout">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/* Font Family Selector */}
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }] as any}>TYPEFACE</Text>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary, fontFamily: FONTS.mono.bold }] as any}>TYPEFACE</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>
           {fontOptions.map((f) => {
-            const isActive = fontFamily === f.value;
+            const isActive = fontFamily === f.value || fontFamily === f.label;
             return (
               <TouchableOpacity
                 key={f.value}
@@ -54,7 +57,15 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
                   },
                 ]}
               >
-                <Text style={[styles.fontChipText, { color: isActive ? '#FFFFFF' : colors.textPrimary }] as any}>
+                <Text
+                  style={[
+                    styles.fontChipText,
+                    {
+                      color: isActive ? '#FFFFFF' : colors.textPrimary,
+                      fontFamily: f.familyName || FONTS.mona.medium,
+                    },
+                  ] as any}
+                >
                   {f.label}
                 </Text>
               </TouchableOpacity>
@@ -63,7 +74,7 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
         </ScrollView>
 
         {/* Text Alignment */}
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16 }] as any}>ALIGNMENT</Text>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16, fontFamily: FONTS.mono.bold }] as any}>ALIGNMENT</Text>
         <View style={styles.alignRow}>
           <TouchableOpacity
             onPress={() => setTextAlign('left')}
@@ -76,7 +87,7 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
             ]}
           >
             <AlignLeft size={18} color={textAlign === 'left' ? '#FFFFFF' : colors.textPrimary} />
-            <Text style={[styles.alignBtnText, { color: textAlign === 'left' ? '#FFFFFF' : colors.textPrimary }] as any}>
+            <Text style={[styles.alignBtnText, { color: textAlign === 'left' ? '#FFFFFF' : colors.textPrimary, fontFamily: FONTS.mona.semiBold }] as any}>
               Left Aligned
             </Text>
           </TouchableOpacity>
@@ -92,7 +103,7 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
             ]}
           >
             <AlignJustify size={18} color={textAlign === 'justify' ? '#FFFFFF' : colors.textPrimary} />
-            <Text style={[styles.alignBtnText, { color: textAlign === 'justify' ? '#FFFFFF' : colors.textPrimary }] as any}>
+            <Text style={[styles.alignBtnText, { color: textAlign === 'justify' ? '#FFFFFF' : colors.textPrimary, fontFamily: FONTS.mona.semiBold }] as any}>
               Justified
             </Text>
           </TouchableOpacity>

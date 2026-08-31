@@ -108,6 +108,8 @@ export const DictionarySheet: React.FC<DictionarySheetProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
@@ -118,6 +120,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
   },
   headerRow: {
@@ -127,12 +130,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   wordTitle: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 24,
-    fontWeight: '700',
     letterSpacing: -0.4,
     textTransform: 'capitalize',
   },
   phonetic: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 14,
     marginTop: 2,
   },
@@ -153,11 +157,13 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   posText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.mono.bold,
+    fontSize: 11,
     textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   definitionText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 16,
@@ -169,6 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   exampleText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     fontStyle: 'italic',
     lineHeight: 20,
@@ -184,10 +191,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   highlightActionText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   notFoundText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
     textAlign: 'center',
     paddingVertical: 24,

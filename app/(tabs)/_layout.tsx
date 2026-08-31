@@ -3,6 +3,8 @@ import { Tabs } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { BookOpen, Compass, BarChart2, Settings } from 'lucide-react-native';
 
+import { FONTS } from '../../src/utils/typography';
+
 export default function TabLayout() {
   const { colors } = useTheme();
 
@@ -20,8 +22,9 @@ export default function TabLayout() {
           paddingTop: 8,
         },
         tabBarLabelStyle: {
+          fontFamily: FONTS.mona.semiBold,
           fontSize: 11,
-          fontWeight: '600',
+          letterSpacing: -0.1,
         },
       }}
     >

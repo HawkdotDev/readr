@@ -130,6 +130,8 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
@@ -144,16 +146,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   progressText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
   },
   timerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   timerText: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 12,
-    fontWeight: '700',
   },
   controlsRow: {
     flexDirection: 'row',
@@ -183,10 +185,11 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   sectionLabel: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: 10,
+    textTransform: 'uppercase',
   },
   timerRow: {
     flexDirection: 'row',
@@ -201,7 +204,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   timerChipText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
 });

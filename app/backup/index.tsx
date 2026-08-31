@@ -56,7 +56,7 @@ export default function BackupWizardScreen() {
           {
             text: 'Restore',
             onPress: () => {
-              Alert.alert('Sanctuary Restored', 'Your library and reading history have been successfully loaded.');
+              Alert.alert('Library Restored', 'Your library and reading history have been successfully loaded.');
               router.replace('/library');
             },
           },
@@ -92,7 +92,7 @@ export default function BackupWizardScreen() {
 
         {/* Action 1: Export */}
         <View style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.actionTitle, { color: colors.textPrimary }]}>Export Sanctuary Archive</Text>
+          <Text style={[styles.actionTitle, { color: colors.textPrimary }]}>Export Library Archive</Text>
           <Text style={[styles.actionDesc, { color: colors.textSecondary }]}>
             Create a unified `.readr` backup archive containing your entire local SQLite database, book collections, annotations, and reading stats.
           </Text>
@@ -143,6 +143,8 @@ export default function BackupWizardScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -160,8 +162,9 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 17,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   scrollContent: {
     padding: 20,
@@ -178,11 +181,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardTitle: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 17,
-    fontWeight: '700',
     marginBottom: 6,
+    letterSpacing: -0.2,
   },
   cardDesc: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
     lineHeight: 18,
     textAlign: 'center',
@@ -193,11 +198,13 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   actionTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 16,
-    fontWeight: '700',
     marginBottom: 6,
+    letterSpacing: -0.2,
   },
   actionDesc: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 16,
@@ -211,8 +218,9 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: '#FFFFFF',
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 15,
-    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   restoreBtn: {
     flexDirection: 'row',
@@ -223,8 +231,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   restoreBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 15,
-    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   exportedRow: {
     flexDirection: 'row',
@@ -233,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   exportedText: {
+    fontFamily: FONTS.mono.semiBold,
     fontSize: 12,
-    fontWeight: '600',
   },
 });

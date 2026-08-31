@@ -83,6 +83,8 @@ export const GoalProgressRing: React.FC<GoalProgressRingProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
@@ -106,8 +108,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: -0.2,
   },
   goalAchieved: {
@@ -118,8 +120,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   goalAchievedText: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   goalItem: {},
   goalLabelRow: {
@@ -128,12 +131,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   goalLabel: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 13,
-    fontWeight: '500',
   },
   goalValue: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 13,
-    fontWeight: '700',
   },
   track: {
     height: 8,

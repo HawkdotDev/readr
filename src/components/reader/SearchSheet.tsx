@@ -118,6 +118,8 @@ export const SearchSheet: React.FC<SearchSheetProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
@@ -134,12 +136,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
     padding: 0,
   },
   countText: {
+    fontFamily: FONTS.mono.semiBold,
     fontSize: 12,
-    fontWeight: '600',
     marginBottom: 8,
   },
   list: {
@@ -157,15 +160,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   chapterTitle: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 12,
-    fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   snippetText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     lineHeight: 20,
   },
   noMatches: {
+    fontFamily: FONTS.mona.regular,
     textAlign: 'center',
     paddingVertical: 24,
     fontSize: 14,

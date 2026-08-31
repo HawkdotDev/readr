@@ -1,3 +1,4 @@
+import '../global.css';
 import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -6,6 +7,8 @@ import { getDatabase } from '../src/db/client';
 import { ensureAppDirectories } from '../src/services/storage/fileManager';
 import { bootstrapSampleBooksIfEmpty } from '../src/services/storage/sampleBooks';
 import { ActivityIndicator, View } from 'react-native';
+import { useFonts } from 'expo-font';
+import { APP_FONTS } from '../src/utils/typography';
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
@@ -14,6 +17,7 @@ export const unstable_settings = {
 function RootNavigation() {
   const { colors, themeMode } = useTheme();
   const [isReady, setIsReady] = useState(false);
+  const [fontsLoaded, fontError] = useFonts(APP_FONTS);
 
   useEffect(() => {
     async function initialize() {
@@ -30,7 +34,7 @@ function RootNavigation() {
     initialize();
   }, []);
 
-  if (!isReady) {
+  if (!isReady || (!fontsLoaded && !fontError)) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color={colors.accent} />

@@ -108,6 +108,8 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
@@ -127,11 +129,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: -0.2,
   },
   subtitle: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 12,
     marginTop: 2,
   },
@@ -139,14 +142,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   streakNumber: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 22,
-    fontWeight: '800',
     letterSpacing: -0.5,
   },
   streakLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FONTS.mono.bold,
+    fontSize: 10,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   gridContent: {
     flexDirection: 'row',
@@ -170,6 +174,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   longestText: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 12,
   },
   legend: {
@@ -178,6 +183,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   legendText: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 10,
   },
   legendCell: {

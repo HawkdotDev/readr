@@ -226,6 +226,8 @@ export default function SettingsScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -240,13 +242,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.extraBold,
     fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
   headerSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
+    fontFamily: FONTS.mono.medium,
+    fontSize: 12,
+    marginTop: 3,
+    letterSpacing: 0.2,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -254,10 +258,11 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   sectionTitle: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: 10,
+    textTransform: 'uppercase',
   },
   card: {
     borderRadius: 16,
@@ -265,9 +270,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardLabel: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 14,
-    fontWeight: '600',
     marginBottom: 12,
+    letterSpacing: -0.2,
   },
   themeChipsRow: {
     flexDirection: 'row',
@@ -282,8 +288,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   themeChipText: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 12,
-    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -295,10 +302,12 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   toggleTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 15,
-    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   toggleDesc: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 12,
     marginTop: 2,
   },
@@ -308,10 +317,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   privacyTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 15,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   privacyDesc: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 16,
@@ -325,18 +336,21 @@ const styles = StyleSheet.create({
   },
   exportBackupBtnText: {
     color: '#FFFFFF',
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   aboutFooter: {
     marginTop: 32,
     alignItems: 'center',
   },
   aboutTitle: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 14,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   aboutSubtitle: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 11,
     marginTop: 4,
     textAlign: 'center',

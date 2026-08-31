@@ -44,6 +44,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -63,20 +65,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FONTS.mono.bold,
+    fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   iconBox: {
     opacity: 0.85,
   },
   value: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 22,
-    fontWeight: '800',
     letterSpacing: -0.5,
   },
   subtitle: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 11,
     marginTop: 4,
   },

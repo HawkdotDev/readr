@@ -329,6 +329,8 @@ export const AnnotationSheet: React.FC<AnnotationSheetProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
@@ -351,8 +353,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tabText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   list: {
     gap: 12,
@@ -368,8 +371,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   addBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   addForm: {
     padding: 14,
@@ -377,15 +381,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   formLabel: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     marginBottom: 6,
+    textTransform: 'uppercase',
   },
   textInput: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 10,
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     minHeight: 60,
   },
@@ -411,8 +417,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cancelBtnText: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 13,
-    fontWeight: '600',
   },
   saveBtn: {
     paddingHorizontal: 16,
@@ -420,8 +426,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   saveBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   hlCard: {
     padding: 14,
@@ -430,6 +437,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 5,
   },
   hlText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     fontStyle: 'italic',
     lineHeight: 20,
@@ -440,6 +448,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   noteContent: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
   },
   cardFooter: {
@@ -449,6 +458,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   dateText: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 11,
   },
   trashBtn: {
@@ -465,11 +475,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   bmTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 15,
-    fontWeight: '600',
     flex: 1,
+    letterSpacing: -0.2,
   },
   emptyText: {
+    fontFamily: FONTS.mona.regular,
     textAlign: 'center',
     paddingVertical: 24,
     fontSize: 14,
@@ -485,7 +497,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   exportBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
 });

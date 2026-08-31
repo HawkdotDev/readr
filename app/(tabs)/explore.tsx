@@ -152,6 +152,8 @@ export default function ExploreScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -166,13 +168,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.extraBold,
     fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
   headerSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
+    fontFamily: FONTS.mono.medium,
+    fontSize: 12,
+    marginTop: 3,
+    letterSpacing: 0.2,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -183,11 +187,12 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   sectionTitle: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginTop: 18,
-    marginBottom: 6,
+    marginBottom: 8,
+    textTransform: 'uppercase',
   },
   bookCard: {
     flexDirection: 'row',
@@ -220,15 +225,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: -0.2,
   },
   author: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 13,
     marginTop: 2,
   },
   summary: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 12,
     lineHeight: 16,
     marginTop: 4,
@@ -240,6 +247,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   pubDate: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 11,
   },
   downloadBtn: {
@@ -251,7 +259,8 @@ const styles = StyleSheet.create({
   },
   downloadBtnText: {
     color: '#FFFFFF',
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 12,
-    fontWeight: '700',
+    letterSpacing: -0.1,
   },
 });

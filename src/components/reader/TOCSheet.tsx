@@ -79,6 +79,8 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
@@ -98,9 +100,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chapterTitle: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 15,
+    letterSpacing: -0.2,
   },
   wordCount: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 12,
     marginTop: 2,
   },

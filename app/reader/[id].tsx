@@ -92,7 +92,7 @@ export default function ReaderScreen() {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.canvas }]}>
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Opening sanctuary...</Text>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Opening book...</Text>
       </View>
     );
   }

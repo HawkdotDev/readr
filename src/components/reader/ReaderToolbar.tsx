@@ -88,6 +88,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     height: 54,
@@ -104,8 +106,8 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
+    fontFamily: FONTS.mona.bold,
     fontSize: 15,
-    fontWeight: '700',
     marginHorizontal: 10,
     letterSpacing: -0.2,
   },

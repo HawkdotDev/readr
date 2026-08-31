@@ -151,12 +151,14 @@ export default function BookDetailsScreen() {
           style={[styles.deleteBtn, { borderColor: 'rgba(239, 68, 68, 0.3)' }]}
         >
           <Trash2 size={16} color="#EF4444" style={{ marginRight: 6 }} />
-          <Text style={styles.deleteBtnText}>Remove Book from Sanctuary</Text>
+          <Text style={styles.deleteBtnText}>Remove Book from Library</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
+
+import { FONTS } from '../../src/utils/typography';
 
 const styles = StyleSheet.create({
   container: {
@@ -178,8 +180,9 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 17,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -212,12 +215,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 22,
-    fontWeight: '800',
     textAlign: 'center',
     letterSpacing: -0.4,
   },
   author: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
     marginTop: 4,
     textAlign: 'center',
@@ -228,10 +232,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   sectionTitle: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
   statsCard: {
     borderRadius: 14,
@@ -243,12 +248,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statLabel: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 13,
     marginRight: 6,
   },
   statValue: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 13,
-    fontWeight: '700',
   },
   descCard: {
     borderRadius: 14,
@@ -256,6 +262,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   descText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     lineHeight: 22,
   },
@@ -271,7 +278,8 @@ const styles = StyleSheet.create({
   },
   deleteBtnText: {
     color: '#EF4444',
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
 });

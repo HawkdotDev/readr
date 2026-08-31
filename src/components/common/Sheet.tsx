@@ -62,6 +62,8 @@ export const Sheet: React.FC<SheetProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
@@ -97,8 +99,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 17,
-    fontWeight: '700',
     letterSpacing: -0.3,
   },
   closeBtn: {

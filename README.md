@@ -14,34 +14,32 @@
 
 <br />
 
-<p align="center">
-  <a href="#key-features">Key Features</a> &bull;
-  <a href="#the-monochromatic-sanctuary-design">Design System</a> &bull;
-  <a href="#architecture">Architecture</a> &bull;
-  <a href="#quick-start">Quick Start</a> &bull;
-  <a href="#contributing">Contributing</a> &bull;
-  <a href="#license">License</a>
-</p>
-
 </div>
 
 ## Overview
 
-**Readr** is an open-source mobile reading sanctuary built with Expo SDK 57, React Native 0.86, and Drizzle ORM. Unlike commercial reading apps that trap readers in walled gardens or collect reading telemetry, Readr is **100% local**:
+**Readr** is an open-source mobile reading application built with Expo SDK 57, React Native 0.86, and Drizzle ORM. Unlike commercial reading apps that trap readers in walled gardens or collect reading telemetry, Readr is **100% local**:
 
 - **Zero Cloud Databases**: All reading history, bookmarks, highlights, and preferences live strictly on your device in SQLite.
 - **Zero Mandatory Accounts**: No logins, no telemetry trackers, no remote analytics.
 - **Universal Multi-Format Support**: Reads EPUB, PDF, plain text, and Markdown files.
 - **2:3 Classic Book Proportions**: All book covers enforce classic 2:3 aspect ratios across grid and list views.
+- **Triple-Typeface Hierarchy**: Engineered with *Mona Sans*, *Hubot Sans*, and *Mona Sans Mono* for modern typography.
 - **Monochromatic Aesthetic**: Calibrated grey, white, and black palettes with an independent color-temperature warmth overlay.
 
 ## Key Features
+
+### Library & Organization
+- **Grid & List Views**: Switch between responsive 2-column cover grids and detailed reading list modes.
+- **Instant Toggle Search**: Quick header search button with an auto-focusing collapsible query bar and real-time title/author filtering.
+- **Multi-Criteria Filtering**: Filter by reading status (*Reading*, *Completed*, *Want to Read*) and file formats (*EPUB*, *PDF*, *MD*, *TXT*).
+- **1-Tap Import**: Fast file picker supporting single and batch imports with SHA-256 deduplication.
 
 ### Immersive Reading Engine
 - **Universal Format Parser**: Native support for EPUB 2/3, PDF, Markdown, and TXT files.
 - **The Fluid Folio Bar**: An unobtrusive bottom margin indicator displaying chapter title, mini-progress track, and velocity-calculated reading time estimates.
 - **Dynamic Theming**: 4 calibrated palettes (**Crisp White**, **Parchment Grey**, **Charcoal Dusk**, and **OLED Pure Black**) paired with a color-temperature warmth overlay.
-- **Granular Typography**: Custom controls for font family (*Literata*, *Atkinson Hyperlegible*, *Merriweather*, *JetBrains Mono*, *System*), font size stepper, line-height, text alignment, and margins.
+- **Granular Typography Picker**: Custom controls for reading typefaces (*Mona Sans*, *Hubot Sans*, *Mona Sans Mono*, *Literata*, *Atkinson Hyperlegible*, *Merriweather*, *JetBrains Mono*, *System*), font size stepper, line-height, text alignment, and margins.
 - **Debounced Progress Persistence**: Reading location auto-saves every 500ms and flushes atomically to SQLite whenever the app is backgrounded.
 
 ### Highlights, Notes & Dictionary
@@ -66,108 +64,6 @@
 
 ### Curated Open Catalogs
 - **1-Tap Classic Downloads**: Instant access to curated public-domain masterpieces (*Pride and Prejudice*, *Meditations*, *The Great Gatsby*, *Frankenstein*, *Walden*) stored directly in your local sandbox.
-
-## The Monochromatic Sanctuary Design
-
-Readr follows strict design principles that prioritize long-form eye comfort and distraction-free immersion:
-
-```
-    CRISP WHITE                PARCHMENT GREY              CHARCOAL DUSK               OLED PURE BLACK
-┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
-│ Canvas: #FFFFFF │        │ Canvas: #F5F5F0 │        │ Canvas: #18181B │        │ Canvas: #000000 │
-│ Text:   #18181B │        │ Text:   #262624 │        │ Text:   #FAFAFA │        │ Text:   #F4F4F5 │
-│ Accent: #18181B │        │ Accent: #262624 │        │ Accent: #FAFAFA │        │ Accent: #FFFFFF │
-└─────────────────┘        └─────────────────┘        └─────────────────┘        └─────────────────┘
-```
-
-- **True-Black OLED Mode**: Absolute `#000000` pitch background paired with muted `#F4F4F5` bone text to eliminate pixel halation and save battery.
-- **Warmth Temperature Slider**: Independent color temperature filter overlay.
-- **Tactile Micro-Interactions**: Subtle `expo-haptics` tactile pulses on page turns, filter chips, and bookmarking.
-
-## Tech Stack & Architecture
-
-```mermaid
-graph TD
-    subgraph UI_Layer ["UI Layer (Expo Router + NativeWind)"]
-        Tabs["Bottom Tabs (Library / Explore / Stats / Settings)"]
-        Reader["Universal Reader Viewport"]
-        Sheets["Modals (TOC / Typography / Theme / TTS / Dictionary / Annotations)"]
-    end
-
-    subgraph Service_Layer ["Domain Services"]
-        StorageSvc["Sandbox File Manager & SHA-256 Deduplication"]
-        TTSSvc["TTS Speech Coordinator & Sleep Timer"]
-        DictSvc["Offline Dictionary Engine"]
-        BackupSvc[".readr Export & Restore Manager"]
-        ProgressSvc["Debounced Progress Tracker"]
-    end
-
-    subgraph Persistence_Layer ["Local Persistence (100% Device Local)"]
-        SQLite[("Local SQLite Database (expo-sqlite + Drizzle ORM)")]
-        Sandbox["Local File Sandbox (/books/ & /covers/)"]
-    end
-
-    UI_Layer --> Service_Layer
-    Service_Layer --> Persistence_Layer
-```
-
-| Layer | Technology | Version / Specification |
-| :--- | :--- | :--- |
-| **Framework** | Expo SDK | `~57.0.18` (React Native 0.86.3, React 19.2.3) |
-| **Language** | TypeScript | `6.0.3` (Strict mode enabled) |
-| **Package Manager** | Bun | `^1.3.x` |
-| **Navigation** | Expo Router | `~57.0.17` (File-based typed routes) |
-| **Styling** | NativeWind / Tailwind CSS | `v4.x` (Monochromatic design tokens) |
-| **Database** | `expo-sqlite` + Drizzle ORM | SQLite WAL mode with relational schemas |
-| **Filesystem** | `expo-file-system/legacy` | App-scoped sandbox (`/books/`, `/covers/`) |
-| **Audio** | `expo-speech` | Platform-native speech synthesis |
-| **Haptics** | `expo-haptics` | Native tactile feedback |
-| **Iconography** | `lucide-react-native` | Minimalist vector icons |
-
-## Project Structure
-
-```
-readr/
-├── app/                      # Expo Router file-based routes
-│   ├── (tabs)/               # Bottom tab navigator
-│   │   ├── _layout.tsx       # Tab bar navigation shell
-│   │   ├── library.tsx       # Local library grid & filter bar
-│   │   ├── explore.tsx       # Public domain catalog & 1-tap downloader
-│   │   ├── stats.tsx         # Reading streak heatmap & goal insights
-│   │   └── settings.tsx      # Preferences & .readr backup manager
-│   ├── reader/               # Fullscreen reading stack
-│   │   └── [id].tsx          # Universal Reader container with sheets
-│   ├── book/
-│   │   └── [id].tsx          # Book details & session history
-│   ├── collection/
-│   │   └── [id].tsx          # Custom shelf collections view
-│   ├── backup/
-│   │   └── index.tsx         # .readr backup & restore wizard
-│   └── _layout.tsx           # Root layout (Database init, ThemeProvider)
-├── src/
-│   ├── components/           # Reusable UI components
-│   │   ├── common/           # ThemeProvider, Button, Sheet, Slider, Badge, SearchBar
-│   │   ├── reader/           # FolioBar, ReaderToolbar, EpubReader, sheets
-│   │   ├── library/          # BookCard (2:3 ratio), EmptyLibrary, FilterBar
-│   │   └── stats/            # StreakHeatmap, StatCard, GoalProgressRing
-│   ├── db/                   # Local database configuration
-│   │   ├── schema/           # Drizzle ORM typed table definitions
-│   │   ├── queries/          # Type-safe repository methods (books, settings, stats, collections)
-│   │   └── client.ts         # expo-sqlite connection with WAL mode
-│   ├── services/             # Core business logic
-│   │   ├── storage/          # Sandbox file manager & sample book bootstrap
-│   │   ├── reader/           # EPUB parser & debounced progress tracker
-│   │   ├── tts/              # Text-to-Speech audio queue & sleep timer
-│   │   ├── dictionary/       # Offline dictionary lookup engine
-│   │   ├── backup/           # .readr portable archive export & restore
-│   │   └── opds/             # Public domain OPDS catalog fetcher
-│   ├── store/                # Zustand transient reader & library state
-│   ├── utils/                # Theme tokens & date formatters
-│   └── types/                # Shared domain TypeScript models
-├── tests/                    # Unit test suites (Bun test runner)
-├── assets/                   # App icons and graphics
-└── package.json
-```
 
 ## Quick Start
 
@@ -203,7 +99,7 @@ bun test           # Run 15 automated unit test suites (100% pass)
 
 ## Contributing
 
-Contributions are warmly welcomed. To contribute:
+Contributions are warmly welcomed! Please read our [**Contributing Guide**](CONTRIBUTING.md) for full details on our development workflow, coding standards, typography conventions, and pull request process.
 
 1. **Fork the repository**.
 2. **Create a feature branch**: `git checkout -b feature/amazing-feature`.

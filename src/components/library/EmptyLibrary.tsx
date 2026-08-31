@@ -18,7 +18,7 @@ export const EmptyLibrary: React.FC<EmptyLibraryProps> = ({ onImportPress, onExp
         <BookOpen size={48} color={colors.accent} />
       </View>
 
-      <Text style={[styles.title, { color: colors.textPrimary }] as any}>Your Quiet Sanctuary</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }] as any}>Your Library is Empty</Text>
 
       <Text style={[styles.description, { color: colors.textSecondary }] as any}>
         Your library is empty. Import an EPUB, PDF, or Markdown file from your device, or browse free public domain classics in Explore.
@@ -44,6 +44,8 @@ export const EmptyLibrary: React.FC<EmptyLibraryProps> = ({ onImportPress, onExp
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -67,13 +69,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   title: {
+    fontFamily: FONTS.hubot.bold,
     fontSize: 22,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 10,
     letterSpacing: -0.4,
   },
   description: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',

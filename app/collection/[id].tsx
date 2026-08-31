@@ -60,6 +60,8 @@ export default function CollectionScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -77,8 +79,9 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 17,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   listContent: {
     padding: 16,
@@ -88,6 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
     textAlign: 'center',
   },

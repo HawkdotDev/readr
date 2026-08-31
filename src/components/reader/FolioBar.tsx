@@ -60,6 +60,8 @@ export const FolioBar: React.FC<FolioBarProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     height: 48,
@@ -78,8 +80,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   chapterText: {
+    fontFamily: FONTS.mona.medium,
     fontSize: 12,
-    fontWeight: '500',
     maxWidth: '35%',
   },
   scrubberContainer: {
@@ -98,8 +100,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   statText: {
+    fontFamily: FONTS.mono.semiBold,
     fontSize: 12,
-    fontWeight: '600',
     textAlign: 'right',
   },
 });

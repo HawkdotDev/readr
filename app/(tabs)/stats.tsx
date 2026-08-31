@@ -180,6 +180,8 @@ export default function StatsScreen() {
   );
 }
 
+import { FONTS } from '../../src/utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -194,13 +196,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
+    fontFamily: FONTS.mona.extraBold,
     fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
   headerSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
+    fontFamily: FONTS.mono.medium,
+    fontSize: 12,
+    marginTop: 3,
+    letterSpacing: 0.2,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -208,10 +212,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   sectionTitle: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: 10,
+    textTransform: 'uppercase',
   },
   metricsGrid: {
     gap: 12,
@@ -236,13 +241,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sessionDuration: {
+    fontFamily: FONTS.mona.bold,
     fontSize: 14,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   sessionDate: {
+    fontFamily: FONTS.mono.medium,
     fontSize: 12,
   },
   sessionPages: {
+    fontFamily: FONTS.mono.regular,
     fontSize: 12,
     marginTop: 4,
   },
@@ -253,6 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
+    fontFamily: FONTS.mona.regular,
     fontSize: 14,
   },
 });

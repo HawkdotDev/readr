@@ -227,6 +227,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   );
 };
 
+import { FONTS } from '../../utils/typography';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -239,12 +241,12 @@ const styles = StyleSheet.create({
     minHeight: SCREEN_HEIGHT * 0.7,
   },
   chapterHeading: {
-    fontWeight: '800',
+    fontFamily: FONTS.hubot.bold,
     marginBottom: 24,
     letterSpacing: -0.5,
   },
   subHeading: {
-    fontWeight: '700',
+    fontFamily: FONTS.mona.bold,
     marginTop: 18,
     marginBottom: 12,
   },
@@ -270,11 +272,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   navBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   chapterCounter: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 12,
-    fontWeight: '600',
   },
 });
