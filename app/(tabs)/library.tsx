@@ -7,8 +7,10 @@ import { FilterBar } from '../../src/components/library/FilterBar';
 import { EmptyLibrary } from '../../src/components/library/EmptyLibrary';
 import { SearchBar } from '../../src/components/common/SearchBar';
 import { RadialOptionsMenu } from '../../src/components/library/RadialOptionsMenu';
+import { YouMightLikeSection } from '../../src/components/library/YouMightLikeSection';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { useLibrary } from '../../src/hooks/useLibrary';
+import { downloadRecommendedBook, RecommendedBook } from '../../src/services/recommendations/recommendationService';
 import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book } from '../../src/types';
 import { Plus, Search } from 'lucide-react-native';
@@ -39,12 +41,41 @@ export default function LibraryScreen() {
 
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
   const [selectedWheelBook, setSelectedWheelBook] = useState<Book | null>(null);
+  const [loadingRecId, setLoadingRecId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadBooks();
     }, [loadBooks])
   );
+
+  const handleRecommendedBookPress = async (rec: RecommendedBook) => {
+    // Check if the user already has this book
+    const existing = books.find(
+      (b) => b.title.toLowerCase().trim() === rec.title.toLowerCase().trim()
+    );
+    if (existing) {
+      router.push(`/reader/${existing.id}` as any);
+      return;
+    }
+
+    try {
+      setLoadingRecId(rec.id);
+      const res = await downloadRecommendedBook(rec);
+      if (res.success && res.bookId) {
+        await loadBooks();
+        router.push(`/reader/${res.bookId}` as any);
+      } else if (res.isDuplicate && res.bookId) {
+        router.push(`/reader/${res.bookId}` as any);
+      } else if (res.error) {
+        Alert.alert('Download notice', res.error);
+      }
+    } catch (err: any) {
+      Alert.alert('Notice', err?.message || 'Failed to download recommendation.');
+    } finally {
+      setLoadingRecId(null);
+    }
+  };
 
   const handleImport = async () => {
     const res = await pickAndImportBook();
@@ -146,6 +177,15 @@ export default function LibraryScreen() {
                   onOptionsPress={() => setSelectedWheelBook(featuredBook)}
                 />
               </View>
+            )}
+
+            {/* You Might Like Side-Scrolling Section */}
+            {!searchQuery.trim() && (
+              <YouMightLikeSection
+                existingBooks={books}
+                onBookPress={handleRecommendedBookPress}
+                loadingBookId={loadingRecId}
+              />
             )}
 
             {/* Recent Books Section Header */}
