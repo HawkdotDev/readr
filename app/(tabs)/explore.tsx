@@ -52,13 +52,8 @@ export default function ExploreScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explore Catalogs</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Standard Ebooks & Project Gutenberg
-          </Text>
-        </View>
-        <Compass size={28} color={colors.accent} />
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explore</Text>
+        <Compass size={24} color={colors.accent} />
       </View>
 
       {/* Catalog List */}
@@ -134,11 +129,11 @@ export default function ExploreScreen() {
                     ]}
                   >
                     {isDownloading ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
+                      <ActivityIndicator size="small" color={colors.isDark ? '#000000' : '#FFFFFF'} />
                     ) : (
                       <>
-                        <Download size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                        <Text style={styles.downloadBtnText}>Get</Text>
+                        <Download size={14} color={colors.isDark ? '#000000' : '#FFFFFF'} style={{ marginRight: 4 }} />
+                        <Text style={[styles.downloadBtnText, { color: colors.isDark ? '#000000' : '#FFFFFF' }]}>Get</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -180,7 +175,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   searchHeader: {
     paddingTop: 16,

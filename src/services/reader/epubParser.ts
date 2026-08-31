@@ -136,3 +136,9 @@ export function createSampleBookContent(title: string): ParsedBookContent {
     totalWords: 360,
   };
 }
+
+export const epubParser = {
+  parseBookFile,
+  parseTextContent,
+  createSampleBookContent,
+};

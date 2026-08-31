@@ -3,6 +3,7 @@ import * as Crypto from 'expo-crypto';
 import * as DocumentPicker from 'expo-document-picker';
 import { BookFormat } from '../../types';
 import { getBookByHash, insertBook } from '../../db/queries/books';
+import { fetchBookMetadataOnline } from '../metadata/metadataService';
 
 export const BOOKS_DIR = `${(FileSystem as any).documentDirectory || ''}books/`;
 export const COVERS_DIR = `${(FileSystem as any).documentDirectory || ''}covers/`;
@@ -62,7 +63,8 @@ export async function importBookFromUri(
   sourceUri: string,
   filename: string,
   providedTitle?: string,
-  providedAuthor?: string
+  providedAuthor?: string,
+  providedCoverUrl?: string
 ): Promise<ImportResult> {
   try {
     await ensureAppDirectories();
@@ -94,6 +96,17 @@ export async function importBookFromUri(
     const cleanTitle = providedTitle || filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     const authorName = providedAuthor || 'Unknown Author';
 
+    // Auto-fetch public metadata and cover art if not explicitly provided
+    let coverImagePath: string | undefined = providedCoverUrl;
+    if (!coverImagePath) {
+      try {
+        const meta = await fetchBookMetadataOnline(cleanTitle, authorName !== 'Unknown Author' ? authorName : undefined);
+        if (meta && meta.coverUrl) {
+          coverImagePath = meta.coverUrl;
+        }
+      } catch {}
+    }
+
     // Insert Book into SQLite
     await insertBook(
       {
@@ -102,6 +115,7 @@ export async function importBookFromUri(
         title: cleanTitle,
         originalFilename: filename,
         filePath: destinationPath,
+        coverImagePath,
         fileFormat: format,
         fileSizeBytes,
         pageCount: 1,

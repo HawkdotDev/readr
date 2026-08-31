@@ -3,10 +3,12 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Nativ
 import { useTheme } from '../common/ThemeProvider';
 import { useReaderStore } from '../../store/readerStore';
 import { ParsedChapter } from '../../services/reader/epubParser';
+import { parseChapterContent } from '../../services/reader/epubBridge';
 import { progressTracker } from '../../services/reader/progressTracker';
-import { ChevronLeft, ChevronRight, BookOpen, Highlighter } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface EpubReaderProps {
   bookId: string;
@@ -14,6 +16,7 @@ export interface EpubReaderProps {
   initialChapterIndex?: number;
   onToggleChrome: () => void;
   onSelectWordForDictionary: (word: string) => void;
+  onOpenAnnotations?: () => void;
 }
 
 export const EpubReader: React.FC<EpubReaderProps> = ({
@@ -22,6 +25,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   initialChapterIndex = 0,
   onToggleChrome,
   onSelectWordForDictionary,
+  onOpenAnnotations,
 }) => {
   const { colors } = useTheme();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIndex);
@@ -64,90 +68,102 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   };
 
+  // Extract clean display title
+  const displayTitle = useMemo(() => {
+    if (!currentChapter) return 'Beginning';
+    const raw = currentChapter.title || `Chapter ${currentChapterIdx + 1}`;
+    return raw.replace(/^chapter\s*\d+[:.\s-]*/i, '').trim() || raw;
+  }, [currentChapter, currentChapterIdx]);
+
   // Convert HTML / Paragraph content into formatted interactive text blocks
   const renderChapterContent = useMemo(() => {
     if (!currentChapter) return null;
 
-    const rawParagraphs = currentChapter.content
-      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '###H1###$1###END###\n')
-      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '###H2###$1###END###\n')
-      .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
-      .replace(/<br\s*[\/]?>/gi, '\n')
-      .split('\n\n')
-      .map((p) => p.trim())
-      .filter(Boolean);
+    const blocks = parseChapterContent(currentChapter.content);
 
-    return rawParagraphs.map((para, pIdx) => {
-      if (para.startsWith('###H1###')) {
-        const text = para.replace('###H1###', '').replace('###END###', '').trim();
+    return blocks.map((block, bIdx) => {
+      if (block.type === 'h1') {
         return (
           <Text
-            key={`h1_${pIdx}`}
-            style={[
-              styles.chapterHeading,
-              {
-                color: colors.textPrimary,
-                fontSize: fontSize * 1.45,
-                lineHeight: fontSize * 1.8,
-                textAlign,
-              },
-            ] as any}
-          >
-            {text}
-          </Text>
-        );
-      }
-
-      if (para.startsWith('###H2###')) {
-        const text = para.replace('###H2###', '').replace('###END###', '').trim();
-        return (
-          <Text
-            key={`h2_${pIdx}`}
+            key={`h1_${bIdx}`}
             style={[
               styles.subHeading,
               {
                 color: colors.textPrimary,
-                fontSize: fontSize * 1.2,
-                lineHeight: fontSize * 1.5,
+                fontSize: fontSize * 1.35,
+                lineHeight: fontSize * 1.7,
                 textAlign,
+                fontFamily: fontFamily === 'System' ? undefined : fontFamily,
               },
-            ] as any}
+            ]}
           >
-            {text}
+            {block.text}
           </Text>
         );
       }
 
-      // Render paragraph words with tap/long-press dictionary triggers
-      const words = para.split(/\s+/);
+      if (block.type === 'h2') {
+        return (
+          <Text
+            key={`h2_${bIdx}`}
+            style={[
+              styles.subHeading,
+              {
+                color: colors.textPrimary,
+                fontSize: fontSize * 1.18,
+                lineHeight: fontSize * 1.5,
+                textAlign,
+                fontFamily: fontFamily === 'System' ? undefined : fontFamily,
+              },
+            ]}
+          >
+            {block.text}
+          </Text>
+        );
+      }
+
+      const words = block.words || block.text.split(/\s+/);
+
+      // Check if block has highlighted style (e.g. quote / first paragraph block)
+      const isQuoteHighlight = bIdx === 0 && block.text.length > 20 && block.text.length < 240;
 
       return (
-        <Text
-          key={`p_${pIdx}`}
+        <View
+          key={`p_${bIdx}`}
           style={[
-            styles.paragraph,
-            {
-              color: colors.textPrimary,
-              fontSize,
-              lineHeight: fontSize * lineHeight,
-              textAlign,
-              fontFamily: fontFamily === 'System' ? undefined : fontFamily,
-            },
-          ] as any}
+            styles.paragraphWrapper,
+            isQuoteHighlight && [
+              styles.highlightQuoteBox,
+              { backgroundColor: colors.isDark ? 'rgba(234, 179, 8, 0.16)' : 'rgba(254, 240, 138, 0.45)' },
+            ],
+          ]}
         >
-          {words.map((w, wIdx) => (
-            <Text
-              key={`w_${pIdx}_${wIdx}`}
-              onLongPress={() => onSelectWordForDictionary(w)}
-              suppressHighlighting={true}
-            >
-              {w}{' '}
-            </Text>
-          ))}
-        </Text>
+          <Text
+            style={[
+              styles.paragraph,
+              {
+                color: colors.textPrimary,
+                fontSize,
+                lineHeight: fontSize * lineHeight,
+                textAlign,
+                fontFamily: fontFamily === 'System' ? undefined : fontFamily,
+              },
+            ]}
+          >
+            {words.map((w, wIdx) => (
+              <Text
+                key={`w_${bIdx}_${wIdx}`}
+                onLongPress={() => onSelectWordForDictionary(w)}
+                suppressHighlighting={true}
+              >
+                {w}{' '}
+              </Text>
+            ))}
+          </Text>
+        </View>
       );
     });
-  }, [currentChapter, fontSize, lineHeight, textAlign, fontFamily, colors]);
+  }, [currentChapter, fontSize, lineHeight, textAlign, fontFamily, colors, onSelectWordForDictionary]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -162,7 +178,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.canvas }] as any}>
+    <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -175,17 +191,57 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         onScroll={handleScroll}
         scrollEventThrottle={200}
       >
+        {/* Editorial Chapter Header (CHAPTER X | Title | Divider) */}
+        <View style={styles.headerBlock}>
+          <Text style={[styles.chapterKicker, { color: colors.textSecondary }]}>
+            CHAPTER {currentChapterIdx + 1}
+          </Text>
+          <Text
+            style={[
+              styles.chapterHeroTitle,
+              {
+                color: colors.textPrimary,
+                fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+              },
+            ]}
+          >
+            {displayTitle}
+          </Text>
+          <View style={[styles.dividerBar, { backgroundColor: colors.border }]} />
+        </View>
+
         {/* Center Tap Target for chrome toggle */}
         <TouchableOpacity
           activeOpacity={1}
           onPress={onToggleChrome}
-          style={styles.tapArea as any}
+          style={styles.tapArea}
         >
           {renderChapterContent}
+
+          {/* Floating Highlights Action Pill */}
+          {onOpenAnnotations && (
+            <TouchableOpacity
+              onPress={onOpenAnnotations}
+              style={[
+                styles.highlightsPill,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+              accessible={true}
+              accessibilityLabel="View Highlights and Notes"
+            >
+              <Sparkles size={13} color={colors.accent} style={{ marginRight: 4 }} />
+              <Text style={[styles.highlightsPillText, { color: colors.textSecondary }]}>
+                Highlights
+              </Text>
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
 
         {/* Chapter Navigation Buttons */}
-        <View style={[styles.navRow, { borderTopColor: colors.border }] as any}>
+        <View style={[styles.navRow, { borderTopColor: colors.border }]}>
           <TouchableOpacity
             onPress={handlePrevChapter}
             disabled={currentChapterIdx === 0}
@@ -196,14 +252,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 borderColor: colors.border,
                 opacity: currentChapterIdx === 0 ? 0.3 : 1,
               },
-            ] as any}
+            ]}
           >
             <ChevronLeft size={18} color={colors.textPrimary} />
-            <Text style={[styles.navBtnText, { color: colors.textPrimary }] as any}>Prev Chapter</Text>
+            <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>Prev Chapter</Text>
           </TouchableOpacity>
 
-          <Text style={[styles.chapterCounter, { color: colors.textSecondary }] as any}>
-            {currentChapterIdx + 1} of {chapters.length}
+          <Text style={[styles.chapterCounter, { color: colors.textSecondary }]}>
+            {currentChapterIdx + 1} of {chapters.length || 1}
           </Text>
 
           <TouchableOpacity
@@ -216,9 +272,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 borderColor: colors.border,
                 opacity: currentChapterIdx >= chapters.length - 1 ? 0.3 : 1,
               },
-            ] as any}
+            ]}
           >
-            <Text style={[styles.navBtnText, { color: colors.textPrimary }] as any}>Next Chapter</Text>
+            <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>Next Chapter</Text>
             <ChevronRight size={18} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
@@ -227,23 +283,49 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   );
 };
 
-import { FONTS } from '../../utils/typography';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   scrollContainer: {
-    paddingTop: 28,
-    paddingBottom: 80,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  headerBlock: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingTop: 8,
+  },
+  chapterKicker: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 11,
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  chapterHeroTitle: {
+    fontSize: 28,
+    lineHeight: 36,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  dividerBar: {
+    width: 28,
+    height: 2,
+    borderRadius: 1,
+    marginTop: 14,
+    marginBottom: 10,
   },
   tapArea: {
-    minHeight: SCREEN_HEIGHT * 0.7,
+    minHeight: SCREEN_HEIGHT * 0.65,
   },
-  chapterHeading: {
-    fontFamily: FONTS.hubot.bold,
-    marginBottom: 24,
-    letterSpacing: -0.5,
+  paragraphWrapper: {
+    marginBottom: 16,
+  },
+  highlightQuoteBox: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   subHeading: {
     fontFamily: FONTS.mona.bold,
@@ -251,14 +333,34 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   paragraph: {
-    marginBottom: 18,
+    letterSpacing: -0.1,
+  },
+  highlightsPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  highlightsPillText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 12,
     letterSpacing: -0.1,
   },
   navRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 40,
+    marginTop: 32,
     paddingTop: 20,
     borderTopWidth: 1,
   },

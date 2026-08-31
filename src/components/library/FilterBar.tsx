@@ -58,7 +58,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <Text
                 style={[
                   styles.chipText,
-                  { color: isActive ? '#FFFFFF' : colors.textSecondary },
+                  {
+                    color: isActive
+                      ? (colors.isDark ? '#000000' : '#FFFFFF')
+                      : colors.textSecondary,
+                  },
                 ] as any}
               >
                 {s.label}
@@ -92,7 +96,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingTop: 2.5,
+    paddingBottom: 8,
   },
   scrollContent: {
     flexDirection: 'row',

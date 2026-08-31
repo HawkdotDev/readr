@@ -19,7 +19,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const systemScheme = useColorScheme();
   const systemIsDark = systemScheme === 'dark';
 
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
   const [warmthLevel, setWarmthLevelState] = useState<number>(0.0);
 
   const readerStoreTheme = useReaderStore((s) => s.activeTheme);

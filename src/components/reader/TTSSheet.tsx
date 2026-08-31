@@ -118,7 +118,7 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
                   },
                 ] as any}
               >
-                <Text style={[styles.timerChipText, { color: isSelected ? '#FFFFFF' : colors.textPrimary }] as any}>
+                <Text style={[styles.timerChipText, { color: isSelected ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary }] as any}>
                   {st.label}
                 </Text>
               </TouchableOpacity>

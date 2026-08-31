@@ -1,15 +1,34 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import { getAllBooks, insertBook } from '../../db/queries/books';
+import { getAllBooks, insertBook, updateBookCover } from '../../db/queries/books';
 import { BOOKS_DIR } from './fileManager';
 
 export async function bootstrapSampleBooksIfEmpty(): Promise<void> {
   try {
     const existing = await getAllBooks();
-    if (existing.length > 0) return;
+    
+    // Ensure all existing books have accurate high-resolution covers
+    if (existing.length > 0) {
+      for (const b of existing) {
+        const titleLower = b.title.toLowerCase();
+        if (titleLower.includes('meditations')) {
+          await updateBookCover(b.id, 'https://covers.openlibrary.org/b/isbn/9780140449334-L.jpg');
+        } else if (titleLower.includes('pride and prejudice')) {
+          await updateBookCover(b.id, 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg');
+        } else if (titleLower.includes('great gatsby')) {
+          await updateBookCover(b.id, 'https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg');
+        } else if (titleLower.includes('frankenstein')) {
+          await updateBookCover(b.id, 'https://covers.openlibrary.org/b/isbn/9780141439471-L.jpg');
+        } else if (titleLower.includes('walden')) {
+          await updateBookCover(b.id, 'https://covers.openlibrary.org/b/isbn/9780140390445-L.jpg');
+        }
+      }
+      return;
+    }
 
     // 1. Starter Book 1: Meditations by Marcus Aurelius
     const sample1Id = 'book_meditations_sample';
     const sample1Path = `${BOOKS_DIR}meditations_sample.txt`;
+    const sample1Cover = 'https://covers.openlibrary.org/b/isbn/9780140449334-L.jpg';
     const sample1Content = `# Meditations
 By Marcus Aurelius
 
@@ -35,6 +54,7 @@ Never esteem anything as of advantage to you that will make you break your word 
         title: 'Meditations',
         originalFilename: 'meditations.epub',
         filePath: sample1Path,
+        coverImagePath: sample1Cover,
         fileFormat: 'epub',
         fileSizeBytes: 24500,
         pageCount: 160,
@@ -54,6 +74,7 @@ Never esteem anything as of advantage to you that will make you break your word 
     // 2. Starter Book 2: Pride and Prejudice by Jane Austen
     const sample2Id = 'book_pride_prejudice_sample';
     const sample2Path = `${BOOKS_DIR}pride_prejudice_sample.txt`;
+    const sample2Cover = 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg';
     const sample2Content = `# Pride and Prejudice
 By Jane Austen
 
@@ -79,6 +100,7 @@ Not all that Mrs. Bennet, however, with the assistance of her five daughters, co
         title: 'Pride and Prejudice',
         originalFilename: 'pride_and_prejudice.epub',
         filePath: sample2Path,
+        coverImagePath: sample2Cover,
         fileFormat: 'epub',
         fileSizeBytes: 32000,
         pageCount: 340,

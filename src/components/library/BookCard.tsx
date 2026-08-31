@@ -33,6 +33,7 @@ export const BookCard: React.FC<BookCardProps> = ({
         activeOpacity={0.8}
         onPress={onPress}
         onLongPress={onLongPress}
+        delayLongPress={280}
         style={[
           styles.listContainer,
           {
@@ -92,6 +93,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       activeOpacity={0.8}
       onPress={onPress}
       onLongPress={onLongPress}
+      delayLongPress={280}
       style={[styles.gridContainer, { width: GRID_CARD_WIDTH }] as any}
     >
       {/* 2:3 Aspect Ratio Elevation Cover */}
@@ -159,20 +161,20 @@ import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   gridContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   gridCoverWrapper: {
     width: '100%',
-    aspectRatio: 2 / 3,
+    aspectRatio: 2 / 2.75,
     borderRadius: 12,
     borderWidth: 1,
     overflow: 'hidden',
     position: 'relative',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   gridCoverImage: {
     width: '100%',
@@ -180,69 +182,69 @@ const styles = StyleSheet.create({
   },
   gridPlaceholderCover: {
     flex: 1,
-    padding: 16,
+    padding: 13,
     justifyContent: 'space-between',
   },
   gridPlaceholderTitle: {
     fontFamily: FONTS.hubot.bold,
-    fontSize: 14,
+    fontSize: 13,
     letterSpacing: -0.2,
-    lineHeight: 18,
+    lineHeight: 16,
   },
   favoriteBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    borderRadius: 12,
-    padding: 5,
+    top: 7,
+    right: 7,
+    borderRadius: 10,
+    padding: 4,
   },
   coverProgressBarBackground: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 4,
+    height: 3.5,
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   coverProgressBarFill: {
     height: '100%',
   },
   gridInfo: {
-    marginTop: 8,
+    marginTop: 6,
   },
   gridTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 13.5,
+    lineHeight: 17,
     letterSpacing: -0.2,
   },
   gridAuthor: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11.5,
+    marginTop: 1.5,
   },
   gridFooterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    marginTop: 4,
   },
   gridPercentText: {
     fontFamily: FONTS.mono.semiBold,
-    fontSize: 11,
+    fontSize: 10.5,
   },
   listContainer: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 11,
     borderWidth: 1,
-    padding: 10,
-    marginBottom: 12,
+    padding: 8,
+    marginBottom: 10,
     alignItems: 'center',
   },
   listCoverWrapper: {
-    width: 50,
+    width: 44,
     aspectRatio: 2 / 3,
-    borderRadius: 6,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   listCoverImage: {
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
   },
   listDetails: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 10,
   },
   listHeaderRow: {
     flexDirection: 'row',
@@ -265,28 +267,28 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 15,
+    fontSize: 14,
     flex: 1,
-    marginRight: 8,
+    marginRight: 6,
     letterSpacing: -0.2,
   },
   listAuthor: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 12,
+    marginTop: 1.5,
   },
   listFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
-    gap: 8,
+    marginTop: 5,
+    gap: 6,
   },
   listProgressWrapper: {
     flex: 1,
   },
   listProgressText: {
     fontFamily: FONTS.mono.regular,
-    fontSize: 12,
+    fontSize: 11,
   },
   timeTag: {
     flexDirection: 'row',
@@ -294,6 +296,6 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontFamily: FONTS.mono.medium,
-    fontSize: 11,
+    fontSize: 10.5,
   },
 });

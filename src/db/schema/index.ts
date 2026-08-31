@@ -150,7 +150,7 @@ export const bookTags = sqliteTable('book_tags', {
 // 8. User Settings & Reading Goals
 export const userSettings = sqliteTable('user_settings', {
   id: text('id').primaryKey(),
-  activeTheme: text('active_theme', { enum: ['light', 'sepia', 'dark', 'oled', 'system'] }).default('system').notNull(),
+  activeTheme: text('active_theme', { enum: ['light', 'sepia', 'dark', 'oled', 'system'] }).default('light').notNull(),
   warmthLevel: real('warmth_level').default(0.0).notNull(),
   fontFamily: text('font_family').default('Literata').notNull(),
   fontSize: integer('font_size').default(18).notNull(),

@@ -7,7 +7,7 @@ export async function getUserSettings(): Promise<UserSettings> {
   const { db, sqlite } = await getDatabase();
   const defaultSettings: UserSettings = {
     id: 'default_user',
-    activeTheme: 'system',
+    activeTheme: 'light',
     warmthLevel: 0.0,
     fontFamily: 'Literata',
     fontSize: 18,
@@ -52,18 +52,18 @@ export async function updateUserSettings(partial: Partial<UserSettings>): Promis
       id, active_theme, warmth_level, font_family, font_size, line_height, margin_horizontal, text_align, keep_awake, haptic_feedback, tts_voice, tts_rate, tts_pitch, online_metadata_enabled
     ) VALUES ('default_user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
-      next.activeTheme,
-      next.warmthLevel,
-      next.fontFamily,
-      next.fontSize,
-      next.lineHeight,
-      next.marginHorizontal,
-      next.textAlign,
+      next.activeTheme ?? 'light',
+      next.warmthLevel ?? 0.0,
+      next.fontFamily ?? 'Literata',
+      next.fontSize ?? 18,
+      next.lineHeight ?? 1.5,
+      next.marginHorizontal ?? 20,
+      next.textAlign ?? 'left',
       next.keepAwake ? 1 : 0,
       next.hapticFeedback ? 1 : 0,
       next.ttsVoice || null,
-      next.ttsRate,
-      next.ttsPitch,
+      next.ttsRate ?? 1.0,
+      next.ttsPitch ?? 1.0,
       next.onlineMetadataEnabled ? 1 : 0,
     ]
   );
@@ -103,11 +103,11 @@ export async function updateReadingGoals(partial: Partial<ReadingGoal>): Promise
       id, target_daily_minutes, target_daily_pages, current_streak_days, longest_streak_days, last_active_date
     ) VALUES ('default_user', ?, ?, ?, ?, ?);`,
     [
-      next.targetDailyMinutes,
-      next.targetDailyPages,
-      next.currentStreakDays,
-      next.longestStreakDays,
-      next.lastActiveDate || null,
+      next.targetDailyMinutes ?? 30,
+      next.targetDailyPages ?? 20,
+      next.currentStreakDays ?? 0,
+      next.longestStreakDays ?? 0,
+      next.lastActiveDate ?? null,
     ]
   );
 }

@@ -2,14 +2,14 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import {
-  ArrowLeft,
+  ChevronLeft,
   List,
-  Type,
-  Palette,
-  Volume2,
   Bookmark,
   Search,
+  Volume2,
+  Sliders,
 } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface ReaderToolbarProps {
   title: string;
@@ -35,86 +35,117 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   const { colors } = useTheme();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.surface,
-          borderBottomColor: colors.border,
-        },
-      ] as any}
-    >
-      {/* Back Button */}
+    <View style={styles.container}>
+      {/* Back Button (Circular Pill like image) */}
       <TouchableOpacity
         onPress={onBack}
-        style={styles.iconBtn}
+        style={[
+          styles.backCircleBtn,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessible={true}
+        accessibilityLabel="Go back to library"
       >
-        <ArrowLeft size={22} color={colors.textPrimary} />
+        <ChevronLeft size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      {/* Book Title */}
-      <Text style={[styles.title, { color: colors.textPrimary }] as any} numberOfLines={1}>
-        {title}
-      </Text>
-
-      {/* Actions */}
+      {/* Action Group */}
       <View style={styles.actionGroup}>
-        <TouchableOpacity onPress={onOpenSearch} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Search size={20} color={colors.textPrimary} />
+        {/* Typography & Format (Aa) */}
+        <TouchableOpacity
+          onPress={onOpenTypography}
+          style={styles.iconBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+          accessible={true}
+          accessibilityLabel="Typography and layout"
+        >
+          <Text
+            style={[
+              styles.aaText,
+              { color: colors.textPrimary },
+            ]}
+          >
+            Aa
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onOpenTTS} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Volume2 size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={onOpenTypography} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Type size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={onOpenTheme} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Palette size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={onOpenAnnotations} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Bookmark size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={onOpenTOC} style={styles.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        {/* Table of Contents (List :=) */}
+        <TouchableOpacity
+          onPress={onOpenTOC}
+          style={styles.iconBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+          accessible={true}
+          accessibilityLabel="Table of Contents"
+        >
           <List size={20} color={colors.textPrimary} />
+        </TouchableOpacity>
+
+        {/* Bookmarks & Annotations */}
+        <TouchableOpacity
+          onPress={onOpenAnnotations}
+          style={styles.iconBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+          accessible={true}
+          accessibilityLabel="Bookmarks and Highlights"
+        >
+          <Bookmark size={19} color={colors.textPrimary} />
+        </TouchableOpacity>
+
+        {/* Audio TTS */}
+        <TouchableOpacity
+          onPress={onOpenTTS}
+          style={styles.iconBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+          accessible={true}
+          accessibilityLabel="Audio Narration"
+        >
+          <Volume2 size={19} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* In-Book Search */}
+        <TouchableOpacity
+          onPress={onOpenSearch}
+          style={styles.iconBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+          accessible={true}
+          accessibilityLabel="Search in book"
+        >
+          <Search size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-import { FONTS } from '../../utils/typography';
-
 const styles = StyleSheet.create({
   container: {
-    height: 54,
-    borderBottomWidth: 1,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 4,
   },
-  title: {
-    flex: 1,
-    fontFamily: FONTS.mona.bold,
-    fontSize: 15,
-    marginHorizontal: 10,
-    letterSpacing: -0.2,
+  backCircleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   actionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
   iconBtn: {
     width: 36,
@@ -122,5 +153,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  aaText: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 16,
+    letterSpacing: -0.4,
   },
 });

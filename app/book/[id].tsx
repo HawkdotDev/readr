@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { getBookById, toggleBookFavorite, deleteBook } from '../../src/db/queries/books';
-import { Book } from '../../src/types';
+import { useBook } from '../../src/hooks/useBook';
 import { formatDurationSeconds, formatRelativeDate } from '../../src/utils/time';
 import { Badge } from '../../src/components/common/Badge';
 import { Button } from '../../src/components/common/Button';
@@ -22,23 +21,7 @@ export default function BookDetailsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  const [book, setBook] = useState<Book | null>(null);
-
-  const loadBook = async () => {
-    if (!id) return;
-    const b = await getBookById(id);
-    setBook(b);
-  };
-
-  useEffect(() => {
-    loadBook();
-  }, [id]);
-
-  const handleToggleFavorite = async () => {
-    if (!book) return;
-    const next = await toggleBookFavorite(book.id, book.isFavorite);
-    setBook({ ...book, isFavorite: next });
-  };
+  const { book, toggleBookFavorite, removeBook } = useBook(id || '');
 
   const handleDelete = () => {
     if (!book) return;
@@ -51,8 +34,10 @@ export default function BookDetailsScreen() {
           text: 'Remove',
           style: 'destructive',
           onPress: async () => {
-            await deleteBook(book.id);
-            router.replace('/library');
+            const success = await removeBook();
+            if (success) {
+              router.replace('/library');
+            }
           },
         },
       ]
@@ -73,7 +58,7 @@ export default function BookDetailsScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
           Book Details
         </Text>
-        <TouchableOpacity onPress={handleToggleFavorite} style={styles.favBtn}>
+        <TouchableOpacity onPress={toggleBookFavorite} style={styles.favBtn}>
           <Heart
             size={22}
             color={book.isFavorite ? '#EF4444' : colors.textSecondary}

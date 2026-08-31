@@ -113,7 +113,7 @@ export default function SettingsScreen() {
                   <Text
                     style={[
                       styles.themeChipText,
-                      { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                      { color: isSelected ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary },
                     ]}
                   >
                     {t.label}
@@ -183,6 +183,20 @@ export default function SettingsScreen() {
               trackColor={{ false: colors.border, true: colors.accent }}
             />
           </View>
+
+          <View style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 12, paddingTop: 12 }]}>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Online Book Search</Text>
+              <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                Fetch covers and metadata via Open Library
+              </Text>
+            </View>
+            <Switch
+              value={settings?.onlineMetadataEnabled ?? false}
+              onValueChange={handleToggleOnlineMetadata}
+              trackColor={{ false: colors.border, true: colors.accent }}
+            />
+          </View>
         </View>
 
         {/* Data Ownership & .readr Backup */}
@@ -204,11 +218,11 @@ export default function SettingsScreen() {
             style={[styles.exportBackupBtn, { backgroundColor: colors.accent }]}
           >
             {isExporting ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={colors.isDark ? '#000000' : '#FFFFFF'} size="small" />
             ) : (
               <>
-                <DownloadCloud size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.exportBackupBtnText}>Create .readr Backup Archive</Text>
+                <DownloadCloud size={18} color={colors.isDark ? '#000000' : '#FFFFFF'} style={{ marginRight: 8 }} />
+                <Text style={[styles.exportBackupBtnText, { color: colors.isDark ? '#000000' : '#FFFFFF' }]}>Create .readr Backup Archive</Text>
               </>
             )}
           </TouchableOpacity>
@@ -255,7 +269,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 48,
+    paddingBottom: 110,
   },
   sectionTitle: {
     fontFamily: FONTS.mono.bold,

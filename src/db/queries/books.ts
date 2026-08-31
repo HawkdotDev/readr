@@ -4,13 +4,51 @@ import * as schema from '../schema';
 import { Book, Bookmark, Highlight, Note, TOCEntry, Author, HighlightColor } from '../../types';
 
 export async function getAllBooks(): Promise<Book[]> {
-  const { db } = await getDatabase();
-  if (!db) return [];
+  try {
+    const { db } = await getDatabase();
+    if (!db) return [];
 
-  const rawBooks = await db.select().from(schema.books).orderBy(desc(schema.books.lastReadAt), desc(schema.books.createdAt));
+    const rawBooks = await db.select().from(schema.books).orderBy(desc(schema.books.lastReadAt), desc(schema.books.createdAt));
 
-  const result: Book[] = [];
-  for (const b of rawBooks) {
+    const result: Book[] = [];
+    for (const b of rawBooks) {
+      const bookAuthorsList = await db
+        .select({
+          id: schema.authors.id,
+          name: schema.authors.name,
+          sortName: schema.authors.sortName,
+        })
+        .from(schema.bookAuthors)
+        .innerJoin(schema.authors, eq(schema.bookAuthors.authorId, schema.authors.id))
+        .where(eq(schema.bookAuthors.bookId, b.id))
+        .orderBy(asc(schema.bookAuthors.orderIndex));
+
+      result.push({
+        ...b,
+        progressPercentage: b.progressPercentage ?? 0,
+        pageCount: b.pageCount ?? 0,
+        totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
+        isFavorite: Boolean(b.isFavorite),
+        authors: bookAuthorsList,
+      });
+    }
+
+    return result;
+  } catch (error) {
+    console.warn('Failed to get all books:', error);
+    return [];
+  }
+}
+
+export async function getBookById(id: string): Promise<Book | null> {
+  try {
+    const { db } = await getDatabase();
+    if (!db) return null;
+
+    const rows = await db.select().from(schema.books).where(eq(schema.books.id, id)).limit(1);
+    if (rows.length === 0) return null;
+
+    const b = rows[0];
     const bookAuthorsList = await db
       .select({
         id: schema.authors.id,
@@ -22,46 +60,18 @@ export async function getAllBooks(): Promise<Book[]> {
       .where(eq(schema.bookAuthors.bookId, b.id))
       .orderBy(asc(schema.bookAuthors.orderIndex));
 
-    result.push({
+    return {
       ...b,
       progressPercentage: b.progressPercentage ?? 0,
       pageCount: b.pageCount ?? 0,
       totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
       isFavorite: Boolean(b.isFavorite),
       authors: bookAuthorsList,
-    });
+    };
+  } catch (error) {
+    console.warn('Failed to get book by id:', error);
+    return null;
   }
-
-  return result;
-}
-
-export async function getBookById(id: string): Promise<Book | null> {
-  const { db } = await getDatabase();
-  if (!db) return null;
-
-  const rows = await db.select().from(schema.books).where(eq(schema.books.id, id)).limit(1);
-  if (rows.length === 0) return null;
-
-  const b = rows[0];
-  const bookAuthorsList = await db
-    .select({
-      id: schema.authors.id,
-      name: schema.authors.name,
-      sortName: schema.authors.sortName,
-    })
-    .from(schema.bookAuthors)
-    .innerJoin(schema.authors, eq(schema.bookAuthors.authorId, schema.authors.id))
-    .where(eq(schema.bookAuthors.bookId, b.id))
-    .orderBy(asc(schema.bookAuthors.orderIndex));
-
-  return {
-    ...b,
-    progressPercentage: b.progressPercentage ?? 0,
-    pageCount: b.pageCount ?? 0,
-    totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
-    isFavorite: Boolean(b.isFavorite),
-    authors: bookAuthorsList,
-  };
 }
 
 export async function getBookByHash(fileHash: string): Promise<Book | null> {
@@ -150,6 +160,16 @@ export async function deleteBook(id: string): Promise<void> {
   const { sqlite } = await getDatabase();
   if (!sqlite) return;
   await sqlite.runAsync(`DELETE FROM books WHERE id = ?;`, [id]);
+}
+
+export async function updateBookStatus(id: string, status: 'unread' | 'reading' | 'finished'): Promise<void> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return;
+  const progress = status === 'finished' ? 100 : (status === 'unread' ? 0 : 50);
+  await sqlite.runAsync(
+    `UPDATE books SET status = ?, progress_percentage = ?, updated_at = strftime('%s', 'now') WHERE id = ?;`,
+    [status, progress, id]
+  );
 }
 
 export async function getBookTOC(bookId: string): Promise<TOCEntry[]> {
@@ -278,3 +298,14 @@ export async function deleteHighlight(id: string): Promise<void> {
     await sqlite.runAsync(`DELETE FROM highlights WHERE id = ?;`, [id]);
   }
 }
+
+export async function updateBookCover(id: string, coverImagePath: string): Promise<void> {
+  const { sqlite } = await getDatabase();
+  if (sqlite) {
+    await sqlite.runAsync(
+      `UPDATE books SET cover_image_path = ?, updated_at = strftime('%s', 'now') WHERE id = ?;`,
+      [coverImagePath, id]
+    );
+  }
+}
+

@@ -26,7 +26,15 @@ export const Sheet: React.FC<SheetProps> = ({
 
   return (
     <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop as any} onPress={onClose}>
+      <Pressable
+        style={[
+          styles.backdrop,
+          {
+            backgroundColor: colors.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.14)',
+          },
+        ]}
+        onPress={onClose}
+      >
         <Pressable
           style={[
             styles.sheetContainer,
@@ -36,18 +44,18 @@ export const Sheet: React.FC<SheetProps> = ({
               maxHeight: SCREEN_HEIGHT * maxHeightRatio,
             },
             style,
-          ] as any}
+          ]}
           onPress={(e) => e.stopPropagation()}
         >
           {/* Grab handle */}
           <View style={styles.handleContainer}>
-            <View style={[styles.handle, { backgroundColor: colors.border }] as any} />
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
           </View>
 
           {/* Header */}
           {title ? (
-            <View style={[styles.header, { borderBottomColor: colors.border }] as any}>
-              <Text style={[styles.headerTitle, { color: colors.textPrimary }] as any}>{title}</Text>
+            <View style={[styles.header, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{title}</Text>
               <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.closeBtn}>
                 <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -67,7 +75,6 @@ import { FONTS } from '../../utils/typography';
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
@@ -77,9 +84,9 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 20,
+    elevation: 12,
   },
   handleContainer: {
     alignItems: 'center',

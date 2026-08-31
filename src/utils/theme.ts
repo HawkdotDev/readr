@@ -12,21 +12,21 @@ export interface ThemeColors {
 
 export const THEME_PALETTES: Record<'light' | 'sepia' | 'dark' | 'oled', ThemeColors> = {
   light: {
-    canvas: '#FFFFFF',
-    surface: '#F4F4F5',
-    border: '#E4E4E7',
-    textPrimary: '#18181B',
-    textSecondary: '#71717A',
-    accent: '#18181B',
+    canvas: '#FAF7F2',
+    surface: '#F1EFEA',
+    border: '#E3DFD5',
+    textPrimary: '#1A1918',
+    textSecondary: '#7A766D',
+    accent: '#1A1918',
     isDark: false,
   },
   sepia: {
-    canvas: '#F5F5F0',
-    surface: '#ECECE6',
-    border: '#DDDDD5',
-    textPrimary: '#262624',
-    textSecondary: '#73736E',
-    accent: '#262624',
+    canvas: '#F4EFE6',
+    surface: '#FAF6EE',
+    border: '#DFD8CA',
+    textPrimary: '#262421',
+    textSecondary: '#7A756D',
+    accent: '#262421',
     isDark: false,
   },
   dark: {

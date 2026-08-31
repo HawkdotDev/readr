@@ -58,7 +58,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   lineHeight: 1.5,
   marginHorizontal: 20,
   textAlign: 'left',
-  activeTheme: 'system',
+  activeTheme: 'light',
   warmthLevel: 0.0,
 
   setCurrentBook: (book) =>

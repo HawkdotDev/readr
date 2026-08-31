@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, StyleSheet, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -6,20 +6,23 @@ import { BookCard } from '../../src/components/library/BookCard';
 import { FilterBar } from '../../src/components/library/FilterBar';
 import { EmptyLibrary } from '../../src/components/library/EmptyLibrary';
 import { SearchBar } from '../../src/components/common/SearchBar';
-import { getAllBooks } from '../../src/db/queries/books';
+import { RadialOptionsMenu } from '../../src/components/library/RadialOptionsMenu';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
-import { Book, BookStatus, BookFormat } from '../../src/types';
-import { useLibraryStore } from '../../src/store/libraryStore';
+import { useLibrary } from '../../src/hooks/useLibrary';
+import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/queries/books';
+import { Book } from '../../src/types';
 import { Plus, Search } from 'lucide-react-native';
+import { ContinueReadingCard } from '../../src/components/library/ContinueReadingCard';
 
 export default function LibraryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  const [books, setBooks] = useState<Book[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-
   const {
+    books,
+    filteredBooks,
+    featuredBook,
+    refreshing,
     searchQuery,
     setSearchQuery,
     selectedStatus,
@@ -30,30 +33,18 @@ export default function LibraryScreen() {
     setViewMode,
     sortOption,
     setSortOption,
-  } = useLibraryStore();
+    loadBooks,
+    onRefresh,
+  } = useLibrary();
 
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
-
-  const loadBooks = async () => {
-    try {
-      const data = await getAllBooks();
-      setBooks(data);
-    } catch (e) {
-      console.warn('Failed to load books:', e);
-    }
-  };
+  const [selectedWheelBook, setSelectedWheelBook] = useState<Book | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadBooks();
-    }, [])
+    }, [loadBooks])
   );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadBooks();
-    setRefreshing(false);
-  };
 
   const handleImport = async () => {
     const res = await pickAndImportBook();
@@ -79,29 +70,6 @@ export default function LibraryScreen() {
     }
   };
 
-  // Filter & Sort Logic
-  const filteredBooks = books.filter((b) => {
-    // 1. Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const matchTitle = b.title.toLowerCase().includes(q);
-      const matchAuthor = b.authors?.some((a) => a.name.toLowerCase().includes(q)) ?? false;
-      if (!matchTitle && !matchAuthor) return false;
-    }
-
-    // 2. Reading Status
-    if (selectedStatus !== 'all' && b.status !== selectedStatus) {
-      return false;
-    }
-
-    // 3. Format
-    if (selectedFormat !== 'all' && b.fileFormat !== selectedFormat) {
-      return false;
-    }
-
-    return true;
-  });
-
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Top Header */}
@@ -122,14 +90,14 @@ export default function LibraryScreen() {
             style={[
               styles.iconBtn,
               {
-                backgroundColor: isSearchOpen ? colors.surface : 'transparent',
-                borderColor: isSearchOpen ? colors.border : 'transparent',
+                backgroundColor: isSearchOpen ? colors.surface : colors.canvas,
+                borderColor: isSearchOpen ? colors.accent : colors.border,
               },
             ]}
             accessible={true}
             accessibilityLabel="Search Library"
           >
-            <Search size={21} color={colors.textPrimary} />
+            <Search size={20} color={isSearchOpen ? colors.accent : colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -164,6 +132,37 @@ export default function LibraryScreen() {
                 />
               </View>
             )}
+
+            {/* Pick Up Where You Left Off Section Header & Hero Card */}
+            {featuredBook && !searchQuery.trim() && (
+              <View style={styles.heroSection}>
+                <Text style={[styles.heroSectionTitle, { color: colors.textSecondary }]}>
+                  Pick up where you left off
+                </Text>
+                <ContinueReadingCard
+                  book={featuredBook}
+                  onPress={() => router.push(`/reader/${featuredBook.id}` as any)}
+                  onLongPress={() => setSelectedWheelBook(featuredBook)}
+                  onOptionsPress={() => setSelectedWheelBook(featuredBook)}
+                />
+              </View>
+            )}
+
+            {/* Recent Books Section Header */}
+            {books.length > 0 && (
+              <View style={styles.sectionHeaderRow}>
+                <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Recent</Text>
+                <TouchableOpacity
+                  onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                  style={styles.viewModeToggle}
+                >
+                  <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
+                    {viewMode === 'grid' ? 'View list' : 'View grid'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <FilterBar
               selectedStatus={selectedStatus}
               onSelectStatus={setSelectedStatus}
@@ -192,9 +191,40 @@ export default function LibraryScreen() {
             book={item}
             viewMode={viewMode}
             onPress={() => router.push(`/reader/${item.id}` as any)}
-            onLongPress={() => router.push(`/book/${item.id}` as any)}
+            onLongPress={() => setSelectedWheelBook(item)}
           />
         )}
+      />
+
+      {/* Pinterest-like Wheel of Options */}
+      <RadialOptionsMenu
+        visible={Boolean(selectedWheelBook)}
+        book={selectedWheelBook}
+        onClose={() => setSelectedWheelBook(null)}
+        onOpenReader={(b) => {
+          setSelectedWheelBook(null);
+          router.push(`/reader/${b.id}` as any);
+        }}
+        onOpenDetails={(b) => {
+          setSelectedWheelBook(null);
+          router.push(`/book/${b.id}` as any);
+        }}
+        onToggleFavorite={async (b) => {
+          await toggleBookFavorite(b.id, b.isFavorite);
+          await loadBooks();
+          setSelectedWheelBook(null);
+        }}
+        onToggleStatus={async (b) => {
+          const nextStatus = b.status === 'finished' ? 'reading' : 'finished';
+          await updateBookStatus(b.id, nextStatus);
+          await loadBooks();
+          setSelectedWheelBook(null);
+        }}
+        onDeleteBook={async (b) => {
+          await deleteBook(b.id);
+          await loadBooks();
+          setSelectedWheelBook(null);
+        }}
       />
     </View>
   );
@@ -220,23 +250,33 @@ const styles = StyleSheet.create({
     fontSize: 28,
     letterSpacing: -0.8,
   },
+  heroSection: {
+    marginBottom: 0,
+  },
+  heroSectionTitle: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 13,
+    marginBottom: 8,
+    letterSpacing: -0.1,
+    opacity: 0.85,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   importBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -247,14 +287,34 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   listHeader: {
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   searchContainer: {
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    marginTop: 2,
+  },
+  sectionHeading: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 18,
+    letterSpacing: -0.3,
+  },
+  viewModeToggle: {
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  viewAllText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 13,
   },
   gridColumnWrapper: {
     justifyContent: 'space-between',

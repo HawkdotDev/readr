@@ -2,13 +2,14 @@ import { OPDSBookEntry } from '../../types';
 import * as FileSystem from 'expo-file-system/legacy';
 import { importBookFromUri } from '../storage/fileManager';
 
-// Curated public domain OPDS catalogs
+// Curated public domain OPDS catalogs with accurate high-res cover art
 export const CURATED_PUBLIC_DOMAIN_BOOKS: OPDSBookEntry[] = [
   {
     id: 'opds_pride_prejudice',
     title: 'Pride and Prejudice',
     author: 'Jane Austen',
     summary: 'A romantic masterpiece following Elizabeth Bennet as she deals with manners, upbringing, morality, and marriage in 19th-century England.',
+    coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg',
     downloadUrl: 'https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.epub',
     fileFormat: 'epub',
     published: '1813',
@@ -18,6 +19,7 @@ export const CURATED_PUBLIC_DOMAIN_BOOKS: OPDSBookEntry[] = [
     title: 'Meditations',
     author: 'Marcus Aurelius',
     summary: 'A series of personal writings by the Roman Emperor recording his private notes to himself and ideas on Stoic philosophy.',
+    coverUrl: 'https://covers.openlibrary.org/b/isbn/9780140449334-L.jpg',
     downloadUrl: 'https://standardebooks.org/ebooks/marcus-aurelius/meditations/george-long/downloads/marcus-aurelius_meditations_george-long.epub',
     fileFormat: 'epub',
     published: '180 AD',
@@ -27,6 +29,7 @@ export const CURATED_PUBLIC_DOMAIN_BOOKS: OPDSBookEntry[] = [
     title: 'The Great Gatsby',
     author: 'F. Scott Fitzgerald',
     summary: 'A portrait of the Jazz Age exploring themes of decadence, idealism, resistance to change, and social upheaval.',
+    coverUrl: 'https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg',
     downloadUrl: 'https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby/downloads/f-scott-fitzgerald_the-great-gatsby.epub',
     fileFormat: 'epub',
     published: '1925',
@@ -36,6 +39,7 @@ export const CURATED_PUBLIC_DOMAIN_BOOKS: OPDSBookEntry[] = [
     title: 'Frankenstein',
     author: 'Mary Shelley',
     summary: 'The seminal gothic science fiction novel telling the story of Victor Frankenstein and his tragic sentient creation.',
+    coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439471-L.jpg',
     downloadUrl: 'https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/mary-shelley_frankenstein.epub',
     fileFormat: 'epub',
     published: '1818',
@@ -45,6 +49,7 @@ export const CURATED_PUBLIC_DOMAIN_BOOKS: OPDSBookEntry[] = [
     title: 'Walden',
     author: 'Henry David Thoreau',
     summary: 'A reflection upon simple living in natural surroundings and a personal declaration of independence.',
+    coverUrl: 'https://covers.openlibrary.org/b/isbn/9780140390445-L.jpg',
     downloadUrl: 'https://standardebooks.org/ebooks/henry-david-thoreau/walden/downloads/henry-david-thoreau_walden.epub',
     fileFormat: 'epub',
     published: '1854',
@@ -81,7 +86,8 @@ export async function downloadOPDSBook(book: OPDSBookEntry): Promise<{ success: 
       downloadRes.uri,
       `${book.title.replace(/[^a-zA-Z0-9]/g, '_')}.${book.fileFormat}`,
       book.title,
-      book.author
+      book.author,
+      book.coverUrl
     );
 
     return result;
@@ -96,7 +102,8 @@ export async function downloadOPDSBook(book: OPDSBookEntry): Promise<{ success: 
       simulatedUri,
       `${book.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`,
       book.title,
-      book.author
+      book.author,
+      book.coverUrl
     );
   }
 }

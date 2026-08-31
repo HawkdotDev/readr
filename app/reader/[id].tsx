@@ -13,6 +13,7 @@ import { useReaderStore } from '../../src/store/readerStore';
 // Reader Components
 import { ReaderToolbar } from '../../src/components/reader/ReaderToolbar';
 import { FolioBar } from '../../src/components/reader/FolioBar';
+import { ReaderBottomCapsule } from '../../src/components/reader/ReaderBottomCapsule';
 import { EpubReader } from '../../src/components/reader/EpubReader';
 
 // Modal Sheets
@@ -131,17 +132,28 @@ export default function ReaderScreen() {
           initialChapterIndex={0}
           onToggleChrome={toggleChrome}
           onSelectWordForDictionary={openDictionary}
+          onOpenAnnotations={() => setActiveSheet('annotations')}
         />
       </View>
 
-      {/* Auto-Hiding Signature Fluid Folio Bar */}
+      {/* Auto-Hiding Signature Fluid Folio Bar & Bottom Control Capsule */}
       {chromeVisible && (
-        <FolioBar
-          chapterTitle={currentChapterTitle}
-          progressPercentage={progressPercentage}
-          minutesLeft={minutesLeftInChapter}
-          onPress={toggleChrome}
-        />
+        <View style={styles.bottomChromeWrapper}>
+          <FolioBar
+            chapterTitle={currentChapterTitle}
+            currentChapterNumber={currentChapterIndex + 1}
+            totalChapters={chapters.length || 1}
+            progressPercentage={progressPercentage}
+            minutesLeft={minutesLeftInChapter}
+            onPress={toggleChrome}
+          />
+
+          <ReaderBottomCapsule
+            onOpenTypography={() => setActiveSheet('typography')}
+            onOpenTOC={() => setActiveSheet('toc')}
+            onOpenAnnotations={() => setActiveSheet('annotations')}
+          />
+        </View>
       )}
 
       {/* Modal Sheets */}
@@ -208,9 +220,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   topToolbarWrapper: {
-    paddingTop: 44,
+    paddingTop: 48,
   },
   readerArea: {
     flex: 1,
+  },
+  bottomChromeWrapper: {
+    paddingBottom: 4,
   },
 });

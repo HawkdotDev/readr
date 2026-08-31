@@ -1,17 +1,21 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
+import { FONTS } from '../../utils/typography';
 
 export interface FolioBarProps {
-  chapterTitle: string;
+  chapterTitle?: string;
+  currentChapterNumber?: number;
+  totalChapters?: number;
   progressPercentage: number;
   minutesLeft: number;
-  onScrub?: (nextProgress: number) => void;
   onPress: () => void;
 }
 
 export const FolioBar: React.FC<FolioBarProps> = ({
   chapterTitle,
+  currentChapterNumber = 1,
+  totalChapters = 1,
   progressPercentage,
   minutesLeft,
   onPress,
@@ -19,89 +23,89 @@ export const FolioBar: React.FC<FolioBarProps> = ({
   const { colors } = useTheme();
   const clampedProgress = Math.max(0, Math.min(100, Math.round(progressPercentage)));
 
+  const chapterLabel = totalChapters > 1
+    ? `Chapter ${currentChapterNumber} of ${totalChapters}`
+    : (chapterTitle || 'Chapter 1');
+
+  const timeLabel = minutesLeft > 0 ? `${minutesLeft} min left` : 'Finished';
+
   return (
     <Pressable
       onPress={onPress}
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-        },
-      ] as any}
+      style={styles.container}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={`Reading progress: ${clampedProgress} percent, ${chapterLabel}, ${timeLabel}`}
     >
-      <View style={styles.contentRow}>
-        {/* Left: Chapter Title */}
-        <Text style={[styles.chapterText, { color: colors.textSecondary }] as any} numberOfLines={1}>
-          {chapterTitle || 'Chapter'}
+      {/* Progress Track Line */}
+      <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+        <View
+          style={[
+            styles.progressFill,
+            {
+              width: `${clampedProgress}%`,
+              backgroundColor: colors.textPrimary,
+            },
+          ]}
+        />
+      </View>
+
+      {/* 3-Column Metadata Row (65% | Chapter 5 of 12 | 14 min left) */}
+      <View style={styles.metaRow}>
+        <Text style={[styles.leftText, { color: colors.textSecondary }]}>
+          {clampedProgress}%
         </Text>
 
-        {/* Center: Mini Progress Scrubber */}
-        <View style={styles.scrubberContainer}>
-          <View style={[styles.track, { backgroundColor: colors.border }] as any}>
-            <View
-              style={[
-                styles.trackFill,
-                {
-                  width: `${clampedProgress}%`,
-                  backgroundColor: colors.accent,
-                },
-              ] as any}
-            />
-          </View>
-        </View>
+        <Text style={[styles.centerText, { color: colors.textSecondary }]} numberOfLines={1}>
+          {chapterLabel}
+        </Text>
 
-        {/* Right: Time remaining + Progress */}
-        <Text style={[styles.statText, { color: colors.textSecondary }] as any}>
-          {minutesLeft > 0 ? `${minutesLeft}m left (${clampedProgress}%)` : `${clampedProgress}%`}
+        <Text style={[styles.rightText, { color: colors.textSecondary }]}>
+          {timeLabel}
         </Text>
       </View>
     </Pressable>
   );
 };
 
-import { FONTS } from '../../utils/typography';
-
 const styles = StyleSheet.create({
   container: {
-    height: 48,
-    borderTopWidth: 1,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 4,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
-  contentRow: {
+  progressTrack: {
+    width: '100%',
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 10,
   },
-  chapterText: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 12,
-    maxWidth: '35%',
+  leftText: {
+    fontFamily: FONTS.mono.medium,
+    fontSize: 11,
+    minWidth: 40,
   },
-  scrubberContainer: {
+  centerText: {
+    fontFamily: FONTS.mono.medium,
+    fontSize: 11,
+    textAlign: 'center',
     flex: 1,
-    paddingHorizontal: 14,
-    alignItems: 'center',
+    paddingHorizontal: 8,
   },
-  track: {
-    width: '100%',
-    height: 3,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  trackFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  statText: {
-    fontFamily: FONTS.mono.semiBold,
-    fontSize: 12,
+  rightText: {
+    fontFamily: FONTS.mono.medium,
+    fontSize: 11,
     textAlign: 'right',
+    minWidth: 65,
   },
 });
