@@ -241,8 +241,6 @@ export default function LibraryScreen() {
           onSelectStatus={setSelectedStatus}
           selectedFormat={selectedFormat}
           onSelectFormat={setSelectedFormat}
-          viewMode={viewMode}
-          onToggleViewMode={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
           sortOption={sortOption}
           onSelectSort={setSortOption}
         />
