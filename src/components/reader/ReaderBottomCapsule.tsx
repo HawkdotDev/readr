@@ -9,21 +9,27 @@ export interface ReaderBottomCapsuleProps {
   onOpenTypography: () => void;
   onOpenTOC: () => void;
   onOpenAnnotations?: () => void;
+  onOpenTheme?: () => void;
 }
 
 export function ReaderBottomCapsule({
   onOpenTypography,
   onOpenTOC,
   onOpenAnnotations,
+  onOpenTheme,
 }: ReaderBottomCapsuleProps) {
   const { colors, themeMode, setThemeMode } = useTheme();
 
-  const handleThemeToggle = async () => {
+  const handleThemePress = async () => {
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {}
-    const nextMode = colors.isDark ? 'light' : 'dark';
-    setThemeMode(nextMode);
+    if (onOpenTheme) {
+      onOpenTheme();
+    } else {
+      const nextMode = colors.isDark ? 'light' : 'dark';
+      setThemeMode(nextMode);
+    }
   };
 
   const handleTypographyOpen = async () => {
@@ -59,13 +65,13 @@ export function ReaderBottomCapsule({
           },
         ]}
       >
-        {/* 1. Theme Toggle */}
+        {/* 1. Theme Toggle / Picker */}
         <TouchableOpacity
-          onPress={handleThemeToggle}
+          onPress={handleThemePress}
           style={styles.tabItem}
           activeOpacity={0.7}
           accessible={true}
-          accessibilityLabel={colors.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          accessibilityLabel="Open Theme and Reading Palette Sheet"
         >
           {colors.isDark ? (
             <Sun size={20} color={colors.textSecondary} strokeWidth={1.8} />

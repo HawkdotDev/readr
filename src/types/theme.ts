@@ -1,8 +1,24 @@
-export type ThemeMode = 'light' | 'sepia' | 'dark' | 'oled' | 'system';
+export type ThemeMode =
+  | 'light'
+  | 'sepia'
+  | 'dark'
+  | 'oled'
+  | 'system'
+  | 'forest'
+  | 'slate'
+  | 'solarizedDark'
+  | 'solarizedLight'
+  | 'rosePine'
+  | 'nord'
+  | 'parchment'
+  | 'amberGlow';
+
 export type TextAlign = 'left' | 'justify';
 export type ReadingDirection = 'horizontal' | 'vertical';
 export type PageTurnStyle = 'slide' | 'curl' | 'fade' | 'none';
 export type NavigationMode = 'tap' | 'swipe' | 'buttons' | 'both';
+export type ReadingRulerMode = 'underline' | 'highlight' | 'dimBackground' | 'dualGuide' | 'focusBox' | 'laser';
+export type PaperTexture = 'clean' | 'parchment' | 'grain' | 'linen';
 
 export interface ThemeColors {
   canvas: string;

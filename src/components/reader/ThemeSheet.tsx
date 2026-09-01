@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { Slider } from '../common/Slider';
 import { useTheme } from '../common/ThemeProvider';
 import { ThemeMode } from '../../types';
-import { Sun, Moon, Sparkles, Smartphone } from 'lucide-react-native';
+import { Smartphone } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
+import { THEME_PALETTES } from '../../utils/theme';
 
 export interface ThemeSheetProps {
   visible: boolean;
@@ -15,16 +16,24 @@ export interface ThemeSheetProps {
 export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
   const { themeMode, setThemeMode, warmthLevel, setWarmthLevel, colors } = useTheme();
 
-  const themes: { label: string; mode: ThemeMode; bg: string; text: string; icon: React.ReactNode }[] = [
-    { label: 'Crisp White', mode: 'light', bg: '#FFFFFF', text: '#18181B', icon: <Sun size={18} color="#18181B" /> },
-    { label: 'Parchment Grey', mode: 'sepia', bg: '#F5F5F0', text: '#262624', icon: <Sparkles size={18} color="#262624" /> },
-    { label: 'Charcoal Dusk', mode: 'dark', bg: '#18181B', text: '#FAFAFA', icon: <Moon size={18} color="#FAFAFA" /> },
-    { label: 'OLED Pure Black', mode: 'oled', bg: '#000000', text: '#F4F4F5', icon: <Moon size={18} color="#FAFAFA" /> },
+  const themes: { label: string; mode: ThemeMode; bg: string; text: string; subtitle: string }[] = [
+    { label: 'Crisp Light', mode: 'light', bg: THEME_PALETTES.light.canvas, text: THEME_PALETTES.light.textPrimary, subtitle: 'Editorial ivory' },
+    { label: 'Parchment', mode: 'sepia', bg: THEME_PALETTES.sepia.canvas, text: THEME_PALETTES.sepia.textPrimary, subtitle: 'Warm sepia' },
+    { label: 'Charcoal Dark', mode: 'dark', bg: THEME_PALETTES.dark.canvas, text: THEME_PALETTES.dark.textPrimary, subtitle: 'Deep zinc' },
+    { label: 'OLED Pure Black', mode: 'oled', bg: THEME_PALETTES.oled.canvas, text: THEME_PALETTES.oled.textPrimary, subtitle: 'True black' },
+    { label: 'Forest Green', mode: 'forest', bg: THEME_PALETTES.forest.canvas, text: THEME_PALETTES.forest.textPrimary, subtitle: 'Emerald soothing' },
+    { label: 'Slate Oceanic', mode: 'slate', bg: THEME_PALETTES.slate.canvas, text: THEME_PALETTES.slate.textPrimary, subtitle: 'Navy steel' },
+    { label: 'Solarized Dark', mode: 'solarizedDark', bg: THEME_PALETTES.solarizedDark.canvas, text: THEME_PALETTES.solarizedDark.textPrimary, subtitle: 'Low-contrast cyan' },
+    { label: 'Solarized Light', mode: 'solarizedLight', bg: THEME_PALETTES.solarizedLight.canvas, text: THEME_PALETTES.solarizedLight.textPrimary, subtitle: 'Yellow paper' },
+    { label: 'Rosé Pine', mode: 'rosePine', bg: THEME_PALETTES.rosePine.canvas, text: THEME_PALETTES.rosePine.textPrimary, subtitle: 'Muted lilac' },
+    { label: 'Nordic Frost', mode: 'nord', bg: THEME_PALETTES.nord.canvas, text: THEME_PALETTES.nord.textPrimary, subtitle: 'Arctic ice' },
+    { label: 'Vintage Parchment', mode: 'parchment', bg: THEME_PALETTES.parchment.canvas, text: THEME_PALETTES.parchment.textPrimary, subtitle: 'Antique book' },
+    { label: 'Amber Glow', mode: 'amberGlow', bg: THEME_PALETTES.amberGlow.canvas, text: THEME_PALETTES.amberGlow.textPrimary, subtitle: 'Night candle' },
   ];
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Reading Palette & Tone">
-      <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         {/* System Theme Option */}
         <TouchableOpacity
           onPress={() => setThemeMode('system')}
@@ -34,21 +43,23 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
               backgroundColor: themeMode === 'system' ? colors.accent : colors.canvas,
               borderColor: themeMode === 'system' ? colors.accent : colors.border,
             },
-          ] as any}
+          ]}
         >
           <Smartphone size={18} color={themeMode === 'system' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary} />
           <Text
             style={[
               styles.systemRowText,
               { color: themeMode === 'system' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary },
-            ] as any}
+            ]}
           >
             Match System Appearance
           </Text>
         </TouchableOpacity>
 
-        {/* 4 Monochromatic Reading Palettes */}
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16 }] as any}>MONOCHROMATIC PALETTES</Text>
+        {/* 12 Curated Reading Palettes */}
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16 }]}>
+          12 CURATED READING PALETTES
+        </Text>
         <View style={styles.grid}>
           {themes.map((t) => {
             const isActive = themeMode === t.mode;
@@ -61,40 +72,44 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
                   {
                     backgroundColor: t.bg,
                     borderColor: isActive ? colors.accent : colors.border,
-                    borderWidth: isActive ? 2.5 : 1,
+                    borderWidth: isActive ? 2 : 1,
                   },
-                ] as any}
+                ]}
               >
                 <View style={styles.cardHeader}>
-                  {t.icon}
+                  <View style={[styles.themeDot, { backgroundColor: t.text }]} />
                   {isActive && <View style={[styles.activeDot, { backgroundColor: colors.accent }]} />}
                 </View>
-                <Text style={[styles.cardLabel, { color: t.text }] as any}>{t.label}</Text>
-                <Text style={[styles.sampleText, { color: t.text }] as any} numberOfLines={2}>
-                  In a quiet sanctuary of letters...
-                </Text>
+                <View>
+                  <Text style={[styles.cardLabel, { color: t.text }]}>{t.label}</Text>
+                  <Text style={[styles.sampleText, { color: t.text }]} numberOfLines={1}>
+                    {t.subtitle}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* Dynamic Warmth Slider */}
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 20 }] as any}>
-          WARMTH TEMPERATURE
+        {/* Blue Light Filter / Warmth Temperature */}
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 20 }]}>
+          BLUE LIGHT FILTER (0-95%)
         </Text>
         <Slider
-          label="Warmth Overlay"
+          label="Night Amber Overlay"
           value={warmthLevel}
           min={0.0}
           max={1.0}
           step={0.05}
-          displayFormatter={(v) => (v === 0 ? 'Off' : `${Math.round(v * 100)}% Warmth`)}
+          displayFormatter={(v) => (v === 0 ? 'Off (Natural)' : `${Math.round(v * 95)}% Amber Filter`)}
           onChange={setWarmthLevel}
         />
-      </View>
+      </ScrollView>
     </Sheet>
   );
 };
+
+export default ThemeSheet;
 
 const styles = StyleSheet.create({
   container: {
@@ -124,13 +139,13 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 8,
   },
   themeCard: {
-    width: '48%',
-    borderRadius: 14,
+    width: '48.5%',
+    borderRadius: 12,
     padding: 12,
-    minHeight: 100,
+    minHeight: 80,
     justifyContent: 'space-between',
   },
   cardHeader: {
@@ -138,21 +153,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  themeDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   activeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
   cardLabel: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: 13,
     letterSpacing: -0.2,
   },
   sampleText: {
     fontFamily: FONTS.mona.regular,
     fontSize: 11,
-    opacity: 0.7,
-    marginTop: 4,
+    opacity: 0.65,
+    marginTop: 2,
   },
 });

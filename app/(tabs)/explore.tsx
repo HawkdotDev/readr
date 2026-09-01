@@ -23,7 +23,7 @@ import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 import { formatDurationSeconds } from '../../src/utils/time';
 
-export default function ExploreScreen() {
+export default function LibraryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 

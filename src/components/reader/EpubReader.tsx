@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  useWindowDimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
   GestureResponderEvent,
@@ -16,6 +17,7 @@ import { useReaderStore } from '../../store/readerStore';
 import { ParsedChapter } from '../../services/reader/epubParser';
 import { parseChapterContent } from '../../services/reader/epubBridge';
 import { progressTracker } from '../../services/reader/progressTracker';
+import { ReadingRuler } from './ReadingRuler';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
@@ -39,6 +41,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   onOpenAnnotations,
 }) => {
   const { colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIndex);
   const scrollRef = useRef<any>(null);
 
@@ -51,9 +54,20 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     readingDirection,
     navigationMode,
     pageTurnStyle,
+    paragraphIndent,
+    paragraphSpacing,
+    dropCaps,
+    dualPageMode,
+    readingRulerEnabled,
+    readingRulerMode,
+    readingRulerHeight,
+    readingRulerOpacity,
     setCurrentChapter,
     setLocation,
   } = useReaderStore();
+
+  const isDualPageActive =
+    dualPageMode === true || (dualPageMode === 'auto' && windowWidth >= 640);
 
   const currentChapter = chapters[currentChapterIdx] || chapters[0];
 
@@ -168,11 +182,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       // Check if block has highlighted style (e.g. quote / first paragraph block)
       const isQuoteHighlight = bIdx === 0 && block.text.length > 20 && block.text.length < 240;
 
+      // Handle Drop Caps for the very first paragraph of chapter
+      const shouldApplyDropCap = dropCaps && bIdx === 0 && words.length > 0 && words[0].length > 0;
+      const firstLetter = shouldApplyDropCap ? words[0].charAt(0) : '';
+      const restOfFirstWord = shouldApplyDropCap ? words[0].slice(1) : '';
+
+      // First-line indentation for non-initial paragraphs
+      const shouldIndent = paragraphIndent > 0 && bIdx > 0;
+
       return (
         <View
           key={`p_${bIdx}`}
           style={[
             styles.paragraphWrapper,
+            {
+              marginBottom: 14 * paragraphSpacing,
+              paddingLeft: shouldIndent ? paragraphIndent * 14 : 0,
+            },
             isQuoteHighlight && [
               styles.highlightQuoteBox,
               { backgroundColor: colors.isDark ? 'rgba(234, 179, 8, 0.16)' : 'rgba(254, 240, 138, 0.45)' },
@@ -191,7 +217,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               },
             ]}
           >
-            {words.map((w, wIdx) => (
+            {shouldApplyDropCap && (
+              <Text
+                style={[
+                  styles.dropCapLetter,
+                  {
+                    color: colors.accent,
+                    fontSize: fontSize * 2.6,
+                    lineHeight: fontSize * 2.8,
+                    fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                  },
+                ]}
+              >
+                {firstLetter}
+              </Text>
+            )}
+            {shouldApplyDropCap && restOfFirstWord ? `${restOfFirstWord} ` : ''}
+            {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => (
               <Text
                 key={`w_${bIdx}_${wIdx}`}
                 onLongPress={() => onSelectWordForDictionary(w)}
@@ -204,7 +246,18 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         </View>
       );
     });
-  }, [currentChapter, fontSize, lineHeight, textAlign, fontFamily, colors, onSelectWordForDictionary]);
+  }, [
+    currentChapter,
+    fontSize,
+    lineHeight,
+    textAlign,
+    fontFamily,
+    paragraphIndent,
+    paragraphSpacing,
+    dropCaps,
+    colors,
+    onSelectWordForDictionary,
+  ]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -220,13 +273,21 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+      {/* Reading Ruler Focus Overlay */}
+      <ReadingRuler
+        enabled={readingRulerEnabled}
+        mode={readingRulerMode}
+        height={readingRulerHeight}
+        opacity={readingRulerOpacity}
+      />
+
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContainer,
           {
-            paddingHorizontal: marginHorizontal,
+            paddingHorizontal: isDualPageActive ? 32 : marginHorizontal,
           },
         ]}
         onTouchStart={handleTouchStart}
@@ -253,9 +314,15 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <View style={[styles.dividerBar, { backgroundColor: colors.border }]} />
         </View>
 
-        {/* Center Content View with Highlights Pill */}
+        {/* Center Content View (Supports Adaptive Dual-Page Spread on Landscape/Tablets) */}
         <View style={styles.tapArea}>
-          {renderChapterContent}
+          {isDualPageActive ? (
+            <View style={styles.dualPageSpread}>
+              <View style={styles.dualPageColumn}>{renderChapterContent}</View>
+            </View>
+          ) : (
+            renderChapterContent
+          )}
 
           {/* Floating Highlights Action Pill */}
           {onOpenAnnotations && (
@@ -476,5 +543,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 4,
+  },
+  dropCapLetter: {
+    fontWeight: '800',
+    marginRight: 6,
+    includeFontPadding: false,
+  },
+  dualPageSpread: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  dualPageColumn: {
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
   },
 });

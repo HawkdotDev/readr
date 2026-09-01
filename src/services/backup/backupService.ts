@@ -50,7 +50,7 @@ export async function generateBackup(): Promise<{ uri: string; filename: string;
   const manifest: BackupManifest = {
     $schema: 'https://readr.app/schemas/backup-v1.json',
     version: BACKUP_VERSION,
-    appVersion: '1.0.0',
+    appVersion: '1.1.0-beta',
     createdAt: new Date().toISOString(),
     deviceInfo: {
       platform: 'mobile',

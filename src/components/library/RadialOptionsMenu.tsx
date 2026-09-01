@@ -371,3 +371,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 });
+
+export default RadialOptionsMenu;
+export const BookOptionsMenu = RadialOptionsMenu;
+export type BookOptionsMenuProps = RadialOptionsMenuProps;

@@ -238,3 +238,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
 });
+
+export const DailyTargetCard = GoalProgressRing;
+export type DailyTargetCardProps = GoalProgressRingProps;

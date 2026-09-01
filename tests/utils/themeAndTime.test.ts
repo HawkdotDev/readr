@@ -25,6 +25,30 @@ describe('Theme and Color Utilities', () => {
     const oled = getResolvedThemeColors('oled', false);
     expect(oled.canvas).toBe('#000000');
     expect(oled.isDark).toBe(true);
+
+    const forest = getResolvedThemeColors('forest', false);
+    expect(forest.canvas).toBe('#121E17');
+    expect(forest.isDark).toBe(true);
+
+    const slate = getResolvedThemeColors('slate', false);
+    expect(slate.canvas).toBe('#0F172A');
+    expect(slate.isDark).toBe(true);
+
+    const nord = getResolvedThemeColors('nord', false);
+    expect(nord.canvas).toBe('#2E3440');
+    expect(nord.isDark).toBe(true);
+
+    const rosePine = getResolvedThemeColors('rosePine', false);
+    expect(rosePine.canvas).toBe('#191724');
+    expect(rosePine.isDark).toBe(true);
+
+    const parchment = getResolvedThemeColors('parchment', false);
+    expect(parchment.canvas).toBe('#F5ECD7');
+    expect(parchment.isDark).toBe(false);
+
+    const amberGlow = getResolvedThemeColors('amberGlow', false);
+    expect(amberGlow.canvas).toBe('#1A120B');
+    expect(amberGlow.isDark).toBe(true);
   });
 
   it('resolves system theme based on device color scheme', () => {
@@ -42,10 +66,10 @@ describe('Theme and Color Utilities', () => {
     expect(getWarmthOverlayColor(0.01)).toBe('transparent');
 
     const halfWarmth = getWarmthOverlayColor(0.5);
-    expect(halfWarmth).toContain('rgba(180, 160, 140, 0.15)');
+    expect(halfWarmth).toContain('rgba(230, 138, 34,');
 
     const maxWarmth = getWarmthOverlayColor(1.0);
-    expect(maxWarmth).toContain('rgba(180, 160, 140, 0.30)');
+    expect(maxWarmth).toContain('rgba(230, 138, 34, 0.42');
   });
 });
 

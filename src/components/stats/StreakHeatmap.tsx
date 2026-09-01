@@ -175,3 +175,6 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
   },
 });
+
+export const ReadingGraph = StreakHeatmap;
+export type ReadingGraphProps = StreakHeatmapProps;

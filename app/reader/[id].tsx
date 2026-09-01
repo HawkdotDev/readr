@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useTheme } from '../../src/components/common/ThemeProvider';
+import { getWarmthOverlayColor } from '../../src/utils/theme';
 import { getBookById } from '../../src/db/queries/books';
 import { Book } from '../../src/types';
 import { parseBookFile, ParsedChapter } from '../../src/services/reader/epubParser';
@@ -29,7 +30,7 @@ export default function ReaderScreen() {
   useKeepAwake();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, warmthLevel } = useTheme();
 
   const [book, setBook] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<ParsedChapter[]>([]);
@@ -144,9 +145,24 @@ export default function ReaderScreen() {
         />
       </View>
 
-      {/* Auto-Hiding Floating Bottom Control Capsule (positioned like home page nav bar) */}
+      {/* Blue Light Night Protection Overlay */}
+      {warmthLevel > 0.01 && (
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: getWarmthOverlayColor(warmthLevel),
+              zIndex: 35,
+            },
+          ]}
+        />
+      )}
+
+      {/* Auto-Hiding Floating Bottom Control Capsule */}
       {chromeVisible && (
         <ReaderBottomCapsule
+          onOpenTheme={() => setActiveSheet('theme')}
           onOpenTypography={() => setActiveSheet('typography')}
           onOpenTOC={() => setActiveSheet('toc')}
           onOpenAnnotations={() => setActiveSheet('annotations')}

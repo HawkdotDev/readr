@@ -96,10 +96,18 @@ export default function SettingsScreen() {
 
   const themes: { label: string; mode: ThemeMode; colorDot: string }[] = [
     { label: 'System', mode: 'system', colorDot: '#71717A' },
-    { label: 'Light', mode: 'light', colorDot: '#F8FAFC' },
-    { label: 'Sepia', mode: 'sepia', colorDot: '#EEDBBE' },
+    { label: 'Light', mode: 'light', colorDot: '#FAF7F2' },
+    { label: 'Sepia', mode: 'sepia', colorDot: '#F4EFE6' },
     { label: 'Dark', mode: 'dark', colorDot: '#18181B' },
     { label: 'OLED', mode: 'oled', colorDot: '#000000' },
+    { label: 'Forest', mode: 'forest', colorDot: '#121E17' },
+    { label: 'Slate', mode: 'slate', colorDot: '#0F172A' },
+    { label: 'Solarized Dark', mode: 'solarizedDark', colorDot: '#002B36' },
+    { label: 'Solarized Light', mode: 'solarizedLight', colorDot: '#FDF6E3' },
+    { label: 'Rosé Pine', mode: 'rosePine', colorDot: '#191724' },
+    { label: 'Nord', mode: 'nord', colorDot: '#2E3440' },
+    { label: 'Parchment', mode: 'parchment', colorDot: '#F5ECD7' },
+    { label: 'Amber Glow', mode: 'amberGlow', colorDot: '#1A120B' },
   ];
 
   return (

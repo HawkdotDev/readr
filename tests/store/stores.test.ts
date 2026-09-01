@@ -129,4 +129,30 @@ describe('Reader Store State & Actions', () => {
     expect(s.activeTheme).toBe('sepia');
     expect(s.warmthLevel).toBe(0.4);
   });
+
+  it('manages reading ruler, paragraph indentation, drop caps, and custom fonts', () => {
+    useReaderStore.getState().setReadingRulerEnabled(true);
+    useReaderStore.getState().setReadingRulerMode('dimBackground');
+    useReaderStore.getState().setReadingRulerHeight(44);
+    useReaderStore.getState().setReadingRulerOpacity(0.7);
+
+    useReaderStore.getState().setParagraphIndent(1.5);
+    useReaderStore.getState().setParagraphSpacing(1.75);
+    useReaderStore.getState().setDropCaps(true);
+    useReaderStore.getState().setDualPageMode(true);
+    useReaderStore.getState().addCustomFont('CrimsonPro');
+
+    const s = useReaderStore.getState();
+    expect(s.readingRulerEnabled).toBe(true);
+    expect(s.readingRulerMode).toBe('dimBackground');
+    expect(s.readingRulerHeight).toBe(44);
+    expect(s.readingRulerOpacity).toBe(0.7);
+
+    expect(s.paragraphIndent).toBe(1.5);
+    expect(s.paragraphSpacing).toBe(1.75);
+    expect(s.dropCaps).toBe(true);
+    expect(s.dualPageMode).toBe(true);
+    expect(s.customFonts).toContain('CrimsonPro');
+    expect(s.fontFamily).toBe('CrimsonPro');
+  });
 });

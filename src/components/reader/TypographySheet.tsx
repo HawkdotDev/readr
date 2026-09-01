@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Switch,
+  Alert,
+} from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { Slider } from '../common/Slider';
 import { useTheme } from '../common/ThemeProvider';
@@ -10,19 +18,28 @@ import {
   Minus,
   Plus,
   Type,
-  BookOpen,
+  SlidersHorizontal,
+  FolderPlus,
+  Eye,
+  Sun,
+  Moon,
+  Sparkles,
   ArrowLeftRight,
   ArrowUpDown,
-  Touchpad,
-  Hand,
-  SlidersHorizontal,
-  Zap,
   Smartphone,
-  Volume2,
+  Columns,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../utils/typography';
-import { ReadingDirection, NavigationMode, PageTurnStyle } from '../../types';
+import {
+  ReadingDirection,
+  NavigationMode,
+  PageTurnStyle,
+  ReadingRulerMode,
+  ThemeMode,
+} from '../../types';
+import { pickAndImportCustomFont, loadSavedCustomFonts } from '../../services/storage/fontManager';
+import { THEME_PALETTES } from '../../utils/theme';
 
 export interface TypographySheetProps {
   visible: boolean;
@@ -30,8 +47,9 @@ export interface TypographySheetProps {
 }
 
 export function TypographySheet({ visible, onClose }: TypographySheetProps) {
-  const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState<'typography' | 'experience'>('typography');
+  const { colors, themeMode, setThemeMode, warmthLevel, setWarmthLevel } = useTheme();
+  const [activeTab, setActiveTab] = useState<'typography' | 'experience' | 'focus'>('typography');
+  const [isImportingFont, setIsImportingFont] = useState(false);
 
   const {
     fontFamily,
@@ -43,6 +61,15 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     pageTurnStyle,
     navigationMode,
     volumeKeysTurnPages,
+    paragraphIndent,
+    paragraphSpacing,
+    dropCaps,
+    dualPageMode,
+    customFonts,
+    readingRulerEnabled,
+    readingRulerMode,
+    readingRulerHeight,
+    readingRulerOpacity,
     setFontFamily,
     setFontSize,
     setLineHeight,
@@ -52,9 +79,23 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     setPageTurnStyle,
     setNavigationMode,
     setVolumeKeysTurnPages,
+    setParagraphIndent,
+    setParagraphSpacing,
+    setDropCaps,
+    setDualPageMode,
+    setCustomFonts,
+    addCustomFont,
+    setReadingRulerEnabled,
+    setReadingRulerMode,
+    setReadingRulerHeight,
+    setReadingRulerOpacity,
   } = useReaderStore();
 
-  const fontOptions = [
+  useEffect(() => {
+    loadSavedCustomFonts().then(setCustomFonts);
+  }, []);
+
+  const baseFontOptions = [
     { label: 'Literata', value: 'Literata', familyName: 'Literata' },
     { label: 'Mona Sans', value: 'MonaSans-Regular', familyName: FONTS.mona.regular },
     { label: 'Hubot Sans', value: 'HubotSans-Regular', familyName: FONTS.hubot.regular },
@@ -64,58 +105,71 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     { label: 'System', value: 'System', familyName: undefined },
   ];
 
+  const allFontOptions = [
+    ...baseFontOptions,
+    ...customFonts.map((f) => ({ label: `${f} (Custom)`, value: f, familyName: f })),
+  ];
+
+  const handleImportFont = async () => {
+    setIsImportingFont(true);
+    const result = await pickAndImportCustomFont();
+    setIsImportingFont(false);
+
+    if (result.success && result.fontName) {
+      addCustomFont(result.fontName);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert('Font Loaded', `Successfully imported "${result.fontName}".`);
+    } else if (result.error) {
+      Alert.alert('Font Import Failed', result.error);
+    }
+  };
+
   const handleStepFontSize = (delta: number) => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {}
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setFontSize(Math.max(12, Math.min(36, fontSize + delta)));
   };
 
-  const handleTabChange = (tab: 'typography' | 'experience') => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {}
+  const handleTabChange = (tab: 'typography' | 'experience' | 'focus') => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setActiveTab(tab);
   };
 
+  const themeList: { id: ThemeMode; label: string; preview: string; text: string }[] = [
+    { id: 'light', label: 'Light', preview: THEME_PALETTES.light.canvas, text: THEME_PALETTES.light.textPrimary },
+    { id: 'sepia', label: 'Sepia', preview: THEME_PALETTES.sepia.canvas, text: THEME_PALETTES.sepia.textPrimary },
+    { id: 'dark', label: 'Dark', preview: THEME_PALETTES.dark.canvas, text: THEME_PALETTES.dark.textPrimary },
+    { id: 'oled', label: 'OLED Black', preview: THEME_PALETTES.oled.canvas, text: THEME_PALETTES.oled.textPrimary },
+    { id: 'forest', label: 'Forest', preview: THEME_PALETTES.forest.canvas, text: THEME_PALETTES.forest.textPrimary },
+    { id: 'slate', label: 'Slate', preview: THEME_PALETTES.slate.canvas, text: THEME_PALETTES.slate.textPrimary },
+    { id: 'solarizedDark', label: 'Solarized Dark', preview: THEME_PALETTES.solarizedDark.canvas, text: THEME_PALETTES.solarizedDark.textPrimary },
+    { id: 'solarizedLight', label: 'Solarized Light', preview: THEME_PALETTES.solarizedLight.canvas, text: THEME_PALETTES.solarizedLight.textPrimary },
+    { id: 'rosePine', label: 'Rosé Pine', preview: THEME_PALETTES.rosePine.canvas, text: THEME_PALETTES.rosePine.textPrimary },
+    { id: 'nord', label: 'Nord', preview: THEME_PALETTES.nord.canvas, text: THEME_PALETTES.nord.textPrimary },
+    { id: 'parchment', label: 'Parchment', preview: THEME_PALETTES.parchment.canvas, text: THEME_PALETTES.parchment.textPrimary },
+    { id: 'amberGlow', label: 'Amber Glow', preview: THEME_PALETTES.amberGlow.canvas, text: THEME_PALETTES.amberGlow.textPrimary },
+  ];
+
   return (
     <Sheet visible={visible} onClose={onClose} title="Customisation">
-      {/* Top Segmented Tab Switcher */}
+      {/* Top 3-Segment Tab Switcher */}
       <View style={[styles.tabBar, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
         <TouchableOpacity
           onPress={() => handleTabChange('typography')}
           style={[
             styles.tabButton,
-            {
-              backgroundColor: activeTab === 'typography' ? colors.accent : 'transparent',
-            },
+            { backgroundColor: activeTab === 'typography' ? colors.accent : 'transparent' },
           ]}
-          accessible={true}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'typography' }}
-          accessibilityLabel="Typography Settings"
         >
           <Type
-            size={15}
-            color={
-              activeTab === 'typography'
-                ? colors.isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : colors.textSecondary
-            }
-            style={{ marginRight: 6 }}
+            size={14}
+            color={activeTab === 'typography' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary}
+            style={{ marginRight: 4 }}
           />
           <Text
             style={[
               styles.tabButtonText,
               {
-                color:
-                  activeTab === 'typography'
-                    ? colors.isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : colors.textSecondary,
+                color: activeTab === 'typography' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary,
                 fontFamily: activeTab === 'typography' ? FONTS.mona.bold : FONTS.mona.medium,
               },
             ]}
@@ -128,36 +182,19 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
           onPress={() => handleTabChange('experience')}
           style={[
             styles.tabButton,
-            {
-              backgroundColor: activeTab === 'experience' ? colors.accent : 'transparent',
-            },
+            { backgroundColor: activeTab === 'experience' ? colors.accent : 'transparent' },
           ]}
-          accessible={true}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'experience' }}
-          accessibilityLabel="Reading Experience Settings"
         >
-          <BookOpen
-            size={15}
-            color={
-              activeTab === 'experience'
-                ? colors.isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : colors.textSecondary
-            }
-            style={{ marginRight: 6 }}
+          <SlidersHorizontal
+            size={14}
+            color={activeTab === 'experience' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary}
+            style={{ marginRight: 4 }}
           />
           <Text
             style={[
               styles.tabButtonText,
               {
-                color:
-                  activeTab === 'experience'
-                    ? colors.isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : colors.textSecondary,
+                color: activeTab === 'experience' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary,
                 fontFamily: activeTab === 'experience' ? FONTS.mona.bold : FONTS.mona.medium,
               },
             ]}
@@ -165,88 +202,128 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
             Experience
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handleTabChange('focus')}
+          style={[
+            styles.tabButton,
+            { backgroundColor: activeTab === 'focus' ? colors.accent : 'transparent' },
+          ]}
+        >
+          <Eye
+            size={14}
+            color={activeTab === 'focus' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary}
+            style={{ marginRight: 4 }}
+          />
+          <Text
+            style={[
+              styles.tabButtonText,
+              {
+                color: activeTab === 'focus' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary,
+                fontFamily: activeTab === 'focus' ? FONTS.mona.bold : FONTS.mona.medium,
+              },
+            ]}
+          >
+            Focus & Themes
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 28 }}
+      >
         {activeTab === 'typography' ? (
-          /* ================= TYPOGRAPHY VIEW ================= */
+          /* ================= TAB 1: TYPOGRAPHY ================= */
           <View>
-            {/* Font Family Selector */}
-            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>TYPEFACE</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>
-              {fontOptions.map((f) => {
-                const isActive = fontFamily === f.value || fontFamily === f.label;
+            {/* Typeface Selection */}
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>TYPEFACE</Text>
+              <TouchableOpacity
+                onPress={handleImportFont}
+                disabled={isImportingFont}
+                style={[styles.importFontBtn, { borderColor: colors.border }]}
+              >
+                <FolderPlus size={13} color={colors.accent} style={{ marginRight: 4 }} />
+                <Text style={[styles.importFontBtnText, { color: colors.textPrimary }]}>
+                  {isImportingFont ? 'Importing...' : '+ Add Custom Font'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fontRow}>
+              {allFontOptions.map((font) => {
+                const isSelected = fontFamily === font.value;
                 return (
                   <TouchableOpacity
-                    key={f.value}
+                    key={font.value}
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                      setFontFamily(f.value);
+                      setFontFamily(font.value);
                     }}
                     style={[
-                      styles.fontChip,
+                      styles.fontPill,
                       {
-                        backgroundColor: isActive ? colors.accent : colors.canvas,
-                        borderColor: isActive ? colors.accent : colors.border,
+                        backgroundColor: isSelected ? colors.accent : colors.canvas,
+                        borderColor: isSelected ? colors.accent : colors.border,
                       },
                     ]}
                   >
                     <Text
                       style={[
-                        styles.fontChipText,
+                        styles.fontPillText,
                         {
-                          color: isActive ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
-                          fontFamily: f.familyName || FONTS.mona.medium,
+                          color: isSelected
+                            ? colors.isDark
+                              ? '#000000'
+                              : '#FFFFFF'
+                            : colors.textPrimary,
+                          fontFamily: font.familyName,
                         },
                       ]}
                     >
-                      {f.label}
+                      {font.label}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
 
-            {/* Quick Stepper Row */}
-            <View style={styles.stepperContainer}>
-              <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginBottom: 0 }]}>
-                SIZE & SCALE
-              </Text>
-              <View style={styles.stepperGroup}>
-                <TouchableOpacity
-                  onPress={() => handleStepFontSize(-1)}
-                  style={[styles.stepperBtn, { backgroundColor: colors.canvas, borderColor: colors.border }]}
-                  accessible={true}
-                  accessibilityLabel="Decrease font size"
-                >
-                  <Minus size={16} color={colors.textPrimary} />
-                </TouchableOpacity>
+            {/* Stepper & Continuous Slider */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 16 }]}>
+              FONT SCALE
+            </Text>
+            <View style={styles.stepperRow}>
+              <TouchableOpacity
+                onPress={() => handleStepFontSize(-1)}
+                style={[styles.stepBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                disabled={fontSize <= 12}
+              >
+                <Minus size={16} color={fontSize <= 12 ? colors.textSecondary : colors.textPrimary} />
+              </TouchableOpacity>
 
-                <Text style={[styles.stepperValueText, { color: colors.textPrimary }]}>
-                  {fontSize}pt
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() => handleStepFontSize(1)}
-                  style={[styles.stepperBtn, { backgroundColor: colors.canvas, borderColor: colors.border }]}
-                  accessible={true}
-                  accessibilityLabel="Increase font size"
-                >
-                  <Plus size={16} color={colors.textPrimary} />
-                </TouchableOpacity>
+              <View style={[styles.fontSizeDisplay, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                <Text style={[styles.fontSizeNumber, { color: colors.textPrimary }]}>{fontSize}</Text>
+                <Text style={[styles.fontSizeUnit, { color: colors.textSecondary }]}>pt</Text>
               </View>
+
+              <TouchableOpacity
+                onPress={() => handleStepFontSize(1)}
+                style={[styles.stepBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                disabled={fontSize >= 36}
+              >
+                <Plus size={16} color={fontSize >= 36 ? colors.textSecondary : colors.textPrimary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Font Size Slider */}
             <Slider
-              label="Continuous Font Size"
+              label="Continuous Size"
               value={fontSize}
               min={12}
               max={36}
               step={1}
               unit="pt"
               onChange={setFontSize}
-              style={{ marginTop: 6 }}
             />
 
             {/* Text Alignment */}
@@ -318,7 +395,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
               label="Line Spacing (Vertical Rhythm)"
               value={lineHeight}
               min={1.2}
-              max={2.2}
+              max={2.4}
               step={0.1}
               displayFormatter={(v) => `${v.toFixed(1)}x`}
               onChange={setLineHeight}
@@ -334,9 +411,53 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
               unit="dp"
               onChange={setMarginHorizontal}
             />
+
+            {/* Advanced Paragraph Formatting */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              ADVANCED PARAGRAPHS
+            </Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Drop Caps</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Enlarge initial letter at chapter beginnings
+                  </Text>
+                </View>
+                <Switch
+                  value={dropCaps}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setDropCaps(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            </View>
+
+            <Slider
+              label="First-Line Indentation"
+              value={paragraphIndent}
+              min={0.0}
+              max={2.0}
+              step={0.25}
+              displayFormatter={(v) => (v === 0 ? 'None' : `${v.toFixed(2)}em`)}
+              onChange={setParagraphIndent}
+            />
+
+            <Slider
+              label="Paragraph Gap Spacing"
+              value={paragraphSpacing}
+              min={0.5}
+              max={2.0}
+              step={0.25}
+              displayFormatter={(v) => `${v.toFixed(2)}x`}
+              onChange={setParagraphSpacing}
+            />
           </View>
-        ) : (
-          /* ================= READING EXPERIENCE VIEW ================= */
+        ) : activeTab === 'experience' ? (
+          /* ================= TAB 2: READING EXPERIENCE ================= */
           <View>
             {/* Page Flow & Direction */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>PAGE FLOW & DIRECTION</Text>
@@ -353,8 +474,6 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                     borderColor: readingDirection === 'horizontal' ? colors.accent : colors.border,
                   },
                 ]}
-                accessible={true}
-                accessibilityLabel="Pages turn sideways (horizontal)"
               >
                 <ArrowLeftRight
                   size={20}
@@ -395,8 +514,6 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                     borderColor: readingDirection === 'vertical' ? colors.accent : colors.border,
                   },
                 ]}
-                accessible={true}
-                accessibilityLabel="Continuous top to bottom (vertical)"
               >
                 <ArrowUpDown
                   size={20}
@@ -480,15 +597,58 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
               })}
             </View>
 
+            {/* Dual Page Mode */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              DUAL-PAGE SPREAD
+            </Text>
+            <View style={styles.alignRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setDualPageMode('auto');
+                }}
+                style={[
+                  styles.alignBtn,
+                  {
+                    backgroundColor: dualPageMode === 'auto' ? colors.accent : colors.canvas,
+                    borderColor: dualPageMode === 'auto' ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <Columns size={16} color={dualPageMode === 'auto' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary} />
+                <Text style={[styles.alignBtnText, { color: dualPageMode === 'auto' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary }]}>
+                  Auto (Landscape)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setDualPageMode(dualPageMode === true ? false : true);
+                }}
+                style={[
+                  styles.alignBtn,
+                  {
+                    backgroundColor: dualPageMode === true ? colors.accent : colors.canvas,
+                    borderColor: dualPageMode === true ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.alignBtnText, { color: dualPageMode === true ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary }]}>
+                  {dualPageMode === true ? 'Always 2-Column' : 'Single Column'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Page Turn Style Animation */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
               TRANSITION ANIMATION
             </Text>
-            <View style={styles.styleChipsRow}>
+            <View style={styles.animRow}>
               {(
                 [
                   { id: 'slide' as PageTurnStyle, label: 'Slide' },
-                  { id: 'curl' as PageTurnStyle, label: 'Page Curl' },
+                  { id: 'curl' as PageTurnStyle, label: 'Curl' },
                   { id: 'fade' as PageTurnStyle, label: 'Fade' },
                   { id: 'none' as PageTurnStyle, label: 'Instant' },
                 ] as const
@@ -502,7 +662,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                       setPageTurnStyle(anim.id);
                     }}
                     style={[
-                      styles.styleChip,
+                      styles.animPill,
                       {
                         backgroundColor: isSel ? colors.accent : colors.canvas,
                         borderColor: isSel ? colors.accent : colors.border,
@@ -511,10 +671,9 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                   >
                     <Text
                       style={[
-                        styles.styleChipText,
+                        styles.animPillText,
                         {
                           color: isSel ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
-                          fontFamily: isSel ? FONTS.mona.bold : FONTS.mona.medium,
                         },
                       ]}
                     >
@@ -544,10 +703,151 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                     setVolumeKeysTurnPages(val);
                   }}
                   trackColor={{ false: colors.border, true: colors.accent }}
-                  thumbColor={colors.isDark ? '#FFFFFF' : '#FFFFFF'}
+                  thumbColor="#FFFFFF"
                 />
               </View>
             </View>
+          </View>
+        ) : (
+          /* ================= TAB 3: FOCUS & 12 THEMES ================= */
+          <View>
+            {/* Reading Ruler Focus Tool */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>READING RULER (FOCUS TOOL)</Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Enable Focus Guide</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Interactive draggable line guide following reading position
+                  </Text>
+                </View>
+                <Switch
+                  value={readingRulerEnabled}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setReadingRulerEnabled(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            </View>
+
+            {readingRulerEnabled && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary, fontSize: 11 }]}>
+                  GUIDE STYLE
+                </Text>
+                <View style={styles.rulerModeGrid}>
+                  {(
+                    [
+                      { id: 'underline' as ReadingRulerMode, label: 'Underline' },
+                      { id: 'highlight' as ReadingRulerMode, label: 'Highlight Strip' },
+                      { id: 'dimBackground' as ReadingRulerMode, label: 'Dim Mask' },
+                      { id: 'dualGuide' as ReadingRulerMode, label: 'Dual Guide' },
+                      { id: 'focusBox' as ReadingRulerMode, label: 'Focus Box' },
+                      { id: 'laser' as ReadingRulerMode, label: 'Laser Line' },
+                    ] as const
+                  ).map((m) => {
+                    const isSel = readingRulerMode === m.id;
+                    return (
+                      <TouchableOpacity
+                        key={m.id}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                          setReadingRulerMode(m.id);
+                        }}
+                        style={[
+                          styles.rulerModePill,
+                          {
+                            backgroundColor: isSel ? colors.accent : colors.canvas,
+                            borderColor: isSel ? colors.accent : colors.border,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.rulerModeText,
+                            { color: isSel ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary },
+                          ]}
+                        >
+                          {m.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <Slider
+                  label="Ruler Aperture Height"
+                  value={readingRulerHeight}
+                  min={24}
+                  max={64}
+                  step={4}
+                  unit="px"
+                  onChange={setReadingRulerHeight}
+                />
+
+                <Slider
+                  label="Ruler Intensity & Opacity"
+                  value={readingRulerOpacity}
+                  min={0.2}
+                  max={0.9}
+                  step={0.05}
+                  displayFormatter={(v) => `${Math.round(v * 100)}%`}
+                  onChange={setReadingRulerOpacity}
+                />
+              </View>
+            )}
+
+            {/* 12 Curated Themes */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 20 }]}>
+              12 CURATED PALETTES
+            </Text>
+            <View style={styles.themeGrid}>
+              {themeList.map((t) => {
+                const isActive = themeMode === t.id;
+                return (
+                  <TouchableOpacity
+                    key={t.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      setThemeMode(t.id);
+                    }}
+                    style={[
+                      styles.themeCard,
+                      {
+                        backgroundColor: t.preview,
+                        borderColor: isActive ? colors.accent : colors.border,
+                        borderWidth: isActive ? 2 : 1,
+                      },
+                    ]}
+                  >
+                    <View style={styles.themeCardTop}>
+                      <View style={[styles.themeDot, { backgroundColor: t.text }]} />
+                      {isActive && (
+                        <View style={[styles.activeDot, { backgroundColor: colors.accent }]} />
+                      )}
+                    </View>
+                    <Text style={[styles.themeCardLabel, { color: t.text }]}>{t.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Blue Light Filter */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              BLUE LIGHT FILTER (0-95%)
+            </Text>
+            <Slider
+              label="Night Amber Temperature"
+              value={warmthLevel}
+              min={0.0}
+              max={1.0}
+              step={0.05}
+              displayFormatter={(v) => (v === 0 ? 'Off (Natural)' : `${Math.round(v * 95)}% Amber Filter`)}
+              onChange={setWarmthLevel}
+            />
           </View>
         )}
       </ScrollView>
@@ -556,6 +856,8 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
 }
 
 export default TypographySheet;
+export const CustomisationSheet = TypographySheet;
+export type CustomisationSheetProps = TypographySheetProps;
 
 const styles = StyleSheet.create({
   tabBar: {
@@ -563,156 +865,172 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     padding: 3,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   tabButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 9,
   },
   tabButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     letterSpacing: -0.1,
   },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  sectionLabel: {
-    fontFamily: FONTS.mono.bold,
-    fontSize: 11,
-    letterSpacing: 0.8,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  fontRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingBottom: 6,
-  },
-  fontChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  fontChipText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  stepperContainer: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 14,
-    marginBottom: 4,
+    marginBottom: 10,
   },
-  stepperGroup: {
+  sectionLabel: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 12,
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  importFontBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
   },
-  stepperBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  importFontBtnText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 11,
+  },
+  fontRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  fontPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginRight: 8,
+  },
+  fontPillText: {
+    fontSize: 14,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  stepBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepperValueText: {
+  fontSizeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 4,
+  },
+  fontSizeNumber: {
     fontFamily: FONTS.mono.bold,
-    fontSize: 14,
-    minWidth: 36,
-    textAlign: 'center',
+    fontSize: 18,
+  },
+  fontSizeUnit: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 13,
   },
   alignRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   alignBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
+    gap: 8,
   },
   alignBtnText: {
     fontFamily: FONTS.mona.semiBold,
-    fontSize: 13,
+    fontSize: 13.5,
+    letterSpacing: -0.2,
   },
   directionGrid: {
     flexDirection: 'row',
     gap: 10,
+    marginBottom: 16,
   },
   directionCard: {
     flex: 1,
+    padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   directionCardTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 13.5,
-    letterSpacing: -0.1,
+    fontSize: 14,
     marginBottom: 2,
   },
   directionCardSub: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 11,
-    textAlign: 'center',
+    fontSize: 11.5,
   },
   navModeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 16,
   },
   navModeCard: {
     width: '48.5%',
+    padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    padding: 10,
   },
   navModeTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 12.5,
-    letterSpacing: -0.1,
+    fontSize: 13,
     marginBottom: 2,
   },
   navModeSub: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 10.5,
+    fontSize: 11,
   },
-  styleChipsRow: {
+  animRow: {
     flexDirection: 'row',
     gap: 8,
+    marginBottom: 16,
   },
-  styleChip: {
+  animPill: {
     flex: 1,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    paddingVertical: 8,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  styleChipText: {
-    fontSize: 12,
-    letterSpacing: -0.1,
+  animPillText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 12.5,
   },
   toggleBox: {
     borderRadius: 14,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
+    marginBottom: 12,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -721,16 +1039,64 @@ const styles = StyleSheet.create({
   },
   toggleTextCol: {
     flex: 1,
-    paddingRight: 10,
+    marginRight: 12,
   },
   toggleTitle: {
-    fontFamily: FONTS.mona.bold,
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 13.5,
-    letterSpacing: -0.1,
+    marginBottom: 2,
   },
   toggleSub: {
     fontFamily: FONTS.mona.regular,
     fontSize: 11.5,
-    marginTop: 2,
+  },
+  rulerModeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  rulerModePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  rulerModeText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 11.5,
+  },
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  themeCard: {
+    width: '31%',
+    padding: 10,
+    borderRadius: 12,
+    minHeight: 62,
+    justifyContent: 'space-between',
+  },
+  themeCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  themeDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  themeCardLabel: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 11,
+    marginTop: 6,
   },
 });

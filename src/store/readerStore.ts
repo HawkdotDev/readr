@@ -9,6 +9,8 @@ import {
   ReadingDirection,
   PageTurnStyle,
   NavigationMode,
+  ReadingRulerMode,
+  PaperTexture,
 } from '../types';
 
 export type ActiveSheet = 'none' | 'toc' | 'typography' | 'theme' | 'tts' | 'annotations' | 'dictionary' | 'search';
@@ -31,13 +33,27 @@ export interface ReaderState {
   marginHorizontal: number;
   textAlign: TextAlign;
   activeTheme: ThemeMode;
-  warmthLevel: number; // 0.0 to 1.0
+  warmthLevel: number; // 0.0 to 1.0 (0-95% blue light filter scale)
+
+  // Advanced Paragraph Formatting
+  paragraphIndent: number; // 0.0 to 2.5em
+  paragraphSpacing: number; // multiplier 0.5 to 2.5
+  dropCaps: boolean;
+  paperTexture: PaperTexture;
+  customFonts: string[];
 
   // Reading Experience settings
   readingDirection: ReadingDirection;
   pageTurnStyle: PageTurnStyle;
   navigationMode: NavigationMode;
   volumeKeysTurnPages: boolean;
+  dualPageMode: boolean | 'auto';
+
+  // Reading Ruler Focus Tool
+  readingRulerEnabled: boolean;
+  readingRulerMode: ReadingRulerMode;
+  readingRulerHeight: number;
+  readingRulerOpacity: number;
 
   // Actions
   setCurrentBook: (book: Book | null) => void;
@@ -57,10 +73,23 @@ export interface ReaderState {
   setActiveTheme: (theme: ThemeMode) => void;
   setWarmthLevel: (warmth: number) => void;
 
+  setParagraphIndent: (indent: number) => void;
+  setParagraphSpacing: (spacing: number) => void;
+  setDropCaps: (enabled: boolean) => void;
+  setPaperTexture: (texture: PaperTexture) => void;
+  setCustomFonts: (fonts: string[]) => void;
+  addCustomFont: (font: string) => void;
+
   setReadingDirection: (dir: ReadingDirection) => void;
   setPageTurnStyle: (style: PageTurnStyle) => void;
   setNavigationMode: (mode: NavigationMode) => void;
   setVolumeKeysTurnPages: (enabled: boolean) => void;
+  setDualPageMode: (mode: boolean | 'auto') => void;
+
+  setReadingRulerEnabled: (enabled: boolean) => void;
+  setReadingRulerMode: (mode: ReadingRulerMode) => void;
+  setReadingRulerHeight: (height: number) => void;
+  setReadingRulerOpacity: (opacity: number) => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -82,10 +111,22 @@ export const useReaderStore = create<ReaderState>((set) => ({
   activeTheme: 'light',
   warmthLevel: 0.0,
 
+  paragraphIndent: 0.0,
+  paragraphSpacing: 1.0,
+  dropCaps: false,
+  paperTexture: 'clean',
+  customFonts: [],
+
   readingDirection: 'horizontal',
   pageTurnStyle: 'slide',
   navigationMode: 'both',
   volumeKeysTurnPages: false,
+  dualPageMode: 'auto',
+
+  readingRulerEnabled: false,
+  readingRulerMode: 'highlight',
+  readingRulerHeight: 38,
+  readingRulerOpacity: 0.55,
 
   setCurrentBook: (book) =>
     set({
@@ -124,8 +165,25 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setActiveTheme: (activeTheme) => set({ activeTheme }),
   setWarmthLevel: (warmthLevel) => set({ warmthLevel }),
 
+  setParagraphIndent: (paragraphIndent) => set({ paragraphIndent }),
+  setParagraphSpacing: (paragraphSpacing) => set({ paragraphSpacing }),
+  setDropCaps: (dropCaps) => set({ dropCaps }),
+  setPaperTexture: (paperTexture) => set({ paperTexture }),
+  setCustomFonts: (customFonts) => set({ customFonts }),
+  addCustomFont: (font) =>
+    set((state) => ({
+      customFonts: state.customFonts.includes(font) ? state.customFonts : [...state.customFonts, font],
+      fontFamily: font,
+    })),
+
   setReadingDirection: (readingDirection) => set({ readingDirection }),
   setPageTurnStyle: (pageTurnStyle) => set({ pageTurnStyle }),
   setNavigationMode: (navigationMode) => set({ navigationMode }),
   setVolumeKeysTurnPages: (volumeKeysTurnPages) => set({ volumeKeysTurnPages }),
+  setDualPageMode: (dualPageMode) => set({ dualPageMode }),
+
+  setReadingRulerEnabled: (readingRulerEnabled) => set({ readingRulerEnabled }),
+  setReadingRulerMode: (readingRulerMode) => set({ readingRulerMode }),
+  setReadingRulerHeight: (readingRulerHeight) => set({ readingRulerHeight }),
+  setReadingRulerOpacity: (readingRulerOpacity) => set({ readingRulerOpacity }),
 }));

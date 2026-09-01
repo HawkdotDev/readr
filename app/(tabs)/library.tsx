@@ -29,7 +29,7 @@ import { Plus, Search, LayoutGrid, List } from 'lucide-react-native';
 import { ContinueReadingCard } from '../../src/components/library/ContinueReadingCard';
 import { FONTS } from '../../src/utils/typography';
 
-export default function LibraryScreen() {
+export default function HomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
