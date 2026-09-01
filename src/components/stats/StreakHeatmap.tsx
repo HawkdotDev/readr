@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { DayActivity } from '../../db/queries/stats';
-import { Flame, Calendar, Trophy } from 'lucide-react-native';
+import { Calendar, Trophy } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
 export interface StreakHeatmapProps {
@@ -50,26 +50,19 @@ export function StreakHeatmap({
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-        },
-      ]}
-    >
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
-          <Calendar size={16} color={colors.accent} style={{ marginRight: 6 }} />
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Reading Consistency</Text>
+          <Calendar size={15} color={colors.accent} style={{ marginRight: 6 }} />
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Reading Graph</Text>
         </View>
 
-        <View style={[styles.streakBadge, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
-          <Flame size={14} color="#F59E0B" style={{ marginRight: 4 }} />
-          <Text style={[styles.streakNumber, { color: colors.textPrimary }]}>{currentStreak}</Text>
-          <Text style={[styles.streakLabel, { color: colors.textSecondary }]}>d streak</Text>
+        <View style={styles.longestRow}>
+          <Trophy size={13} color="#F59E0B" style={{ marginRight: 4 }} />
+          <Text style={[styles.longestText, { color: colors.textSecondary }]}>
+            Best: <Text style={{ color: colors.textPrimary, fontFamily: FONTS.mono.bold }}>{longestStreak}d</Text>
+          </Text>
         </View>
       </View>
 
@@ -96,14 +89,9 @@ export function StreakHeatmap({
         ))}
       </ScrollView>
 
-      {/* Footer Info: Longest Streak & Intensity Legend */}
-      <View style={[styles.footerRow, { borderTopColor: colors.border }]}>
-        <View style={styles.longestRow}>
-          <Trophy size={13} color="#F59E0B" style={{ marginRight: 5 }} />
-          <Text style={[styles.longestText, { color: colors.textSecondary }]}>
-            Best streak: <Text style={{ color: colors.textPrimary, fontFamily: FONTS.mono.bold }}>{longestStreak} days</Text>
-          </Text>
-        </View>
+      {/* Footer Info: Legend */}
+      <View style={styles.footerRow}>
+        <Text style={[styles.subHint, { color: colors.textSecondary }]}>Past 16 weeks activity</Text>
 
         <View style={styles.legend}>
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Less</Text>
@@ -122,21 +110,14 @@ export default StreakHeatmap;
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 18,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    marginBottom: 24,
+    marginTop: 4,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   titleWithIcon: {
     flexDirection: 'row',
@@ -147,44 +128,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: -0.2,
   },
-  streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  streakNumber: {
-    fontFamily: FONTS.mono.bold,
-    fontSize: 13,
-    marginRight: 2,
-  },
-  streakLabel: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 11,
-  },
-  gridContent: {
-    flexDirection: 'row',
-    gap: 4.5,
-    paddingVertical: 4,
-  },
-  weekColumn: {
-    gap: 4.5,
-  },
-  cell: {
-    width: 13,
-    height: 13,
-    borderRadius: 3,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    paddingTop: 12,
-    marginTop: 12,
-  },
   longestRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -192,7 +135,29 @@ const styles = StyleSheet.create({
   longestText: {
     fontFamily: FONTS.mona.regular,
     fontSize: 12,
-    letterSpacing: -0.1,
+  },
+  gridContent: {
+    flexDirection: 'row',
+    gap: 4.5,
+    paddingVertical: 2,
+  },
+  weekColumn: {
+    gap: 4.5,
+  },
+  cell: {
+    width: 14,
+    height: 14,
+    borderRadius: 3.5,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  subHint: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 11.5,
   },
   legend: {
     flexDirection: 'row',
