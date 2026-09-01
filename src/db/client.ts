@@ -18,7 +18,7 @@ export const PERFORMANCE_PRAGMAS = [
   'PRAGMA mmap_size = 268435456;', // 256MB memory mapping
 ];
 
-export const TABLE_STATEMENTS = [
+export const TABLE_CREATION_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS books (
     id TEXT PRIMARY KEY,
     file_hash TEXT NOT NULL UNIQUE,
@@ -45,19 +45,12 @@ export const TABLE_STATEMENTS = [
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
     last_read_at INTEGER
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_books_file_hash ON books (file_hash);`,
-  `CREATE INDEX IF NOT EXISTS idx_books_status ON books (status);`,
-  `CREATE INDEX IF NOT EXISTS idx_books_favorite ON books (is_favorite);`,
-  `CREATE INDEX IF NOT EXISTS idx_books_rating ON books (rating);`,
-  `CREATE INDEX IF NOT EXISTS idx_books_last_read ON books (last_read_at);`,
-  `CREATE INDEX IF NOT EXISTS idx_books_updated_at ON books (updated_at);`,
 
   `CREATE TABLE IF NOT EXISTS authors (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     sort_name TEXT
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_authors_name ON authors (name);`,
 
   `CREATE TABLE IF NOT EXISTS book_authors (
     book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
@@ -65,7 +58,6 @@ export const TABLE_STATEMENTS = [
     order_index INTEGER DEFAULT 0 NOT NULL,
     PRIMARY KEY (book_id, author_id)
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_book_authors_author ON book_authors (author_id);`,
 
   `CREATE TABLE IF NOT EXISTS toc_entries (
     id TEXT PRIMARY KEY,
@@ -78,7 +70,6 @@ export const TABLE_STATEMENTS = [
     level INTEGER DEFAULT 0 NOT NULL,
     parent_id TEXT
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_toc_entries_book ON toc_entries (book_id, play_order);`,
 
   `CREATE TABLE IF NOT EXISTS reading_sessions (
     id TEXT PRIMARY KEY,
@@ -90,8 +81,6 @@ export const TABLE_STATEMENTS = [
     end_location TEXT,
     pages_read INTEGER DEFAULT 0 NOT NULL
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_reading_sessions_book ON reading_sessions (book_id);`,
-  `CREATE INDEX IF NOT EXISTS idx_reading_sessions_time ON reading_sessions (start_time);`,
 
   `CREATE TABLE IF NOT EXISTS bookmarks (
     id TEXT PRIMARY KEY,
@@ -102,7 +91,6 @@ export const TABLE_STATEMENTS = [
     snippet TEXT,
     created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_bookmarks_book ON bookmarks (book_id, created_at);`,
 
   `CREATE TABLE IF NOT EXISTS highlights (
     id TEXT PRIMARY KEY,
@@ -114,7 +102,6 @@ export const TABLE_STATEMENTS = [
     created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights (book_id);`,
 
   `CREATE TABLE IF NOT EXISTS notes (
     id TEXT PRIMARY KEY,
@@ -123,7 +110,6 @@ export const TABLE_STATEMENTS = [
     created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
-  `CREATE INDEX IF NOT EXISTS idx_notes_highlight ON notes (highlight_id);`,
 
   `CREATE TABLE IF NOT EXISTS collections (
     id TEXT PRIMARY KEY,
@@ -172,6 +158,7 @@ export const TABLE_STATEMENTS = [
     tts_pitch REAL DEFAULT 1.0 NOT NULL,
     online_metadata_enabled INTEGER DEFAULT 0 NOT NULL
   );`,
+
   `CREATE TABLE IF NOT EXISTS reading_goals (
     id TEXT PRIMARY KEY,
     target_daily_minutes INTEGER DEFAULT 30 NOT NULL,
@@ -180,6 +167,7 @@ export const TABLE_STATEMENTS = [
     longest_streak_days INTEGER DEFAULT 0 NOT NULL,
     last_active_date TEXT
   );`,
+
   `CREATE TABLE IF NOT EXISTS opds_servers (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -189,6 +177,7 @@ export const TABLE_STATEMENTS = [
     icon TEXT DEFAULT 'server',
     created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
+
   `CREATE TABLE IF NOT EXISTS book_settings (
     book_id TEXT PRIMARY KEY REFERENCES books(id) ON DELETE CASCADE,
     font_family TEXT,
@@ -204,10 +193,40 @@ export const TABLE_STATEMENTS = [
     reading_ruler_mode TEXT,
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
+];
+
+export const MIGRATION_STATEMENTS = [
+  'ALTER TABLE books ADD COLUMN rating INTEGER DEFAULT 0 NOT NULL;',
+];
+
+export const INDEX_STATEMENTS = [
+  `CREATE INDEX IF NOT EXISTS idx_books_file_hash ON books (file_hash);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_status ON books (status);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_favorite ON books (is_favorite);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_rating ON books (rating);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_last_read ON books (last_read_at);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_updated_at ON books (updated_at);`,
+  `CREATE INDEX IF NOT EXISTS idx_authors_name ON authors (name);`,
+  `CREATE INDEX IF NOT EXISTS idx_book_authors_author ON book_authors (author_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_toc_entries_book ON toc_entries (book_id, play_order);`,
+  `CREATE INDEX IF NOT EXISTS idx_reading_sessions_book ON reading_sessions (book_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_reading_sessions_time ON reading_sessions (start_time);`,
+  `CREATE INDEX IF NOT EXISTS idx_bookmarks_book ON bookmarks (book_id, created_at);`,
+  `CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights (book_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_notes_highlight ON notes (highlight_id);`,
+];
+
+export const SEED_STATEMENTS = [
   `INSERT OR IGNORE INTO user_settings (id, active_theme, warmth_level, font_family, font_size, line_height, margin_horizontal, text_align, keep_awake, haptic_feedback, tts_rate, tts_pitch, online_metadata_enabled)
    VALUES ('default_user', 'light', 0.0, 'Literata', 18, 1.5, 20, 'left', 1, 1, 1.0, 1.0, 0);`,
   `INSERT OR IGNORE INTO reading_goals (id, target_daily_minutes, target_daily_pages, current_streak_days, longest_streak_days)
    VALUES ('default_user', 30, 20, 0, 0);`,
+];
+
+export const TABLE_STATEMENTS = [
+  ...TABLE_CREATION_STATEMENTS,
+  ...INDEX_STATEMENTS,
+  ...SEED_STATEMENTS,
 ];
 
 export async function getDatabase(): Promise<{ db: ReturnType<typeof drizzle<typeof schema>>; sqlite: SQLite.SQLiteDatabase }> {
@@ -263,7 +282,8 @@ export async function getDatabase(): Promise<{ db: ReturnType<typeof drizzle<typ
 }
 
 export async function initializeTables(sqlite: SQLite.SQLiteDatabase) {
-  for (const stmt of TABLE_STATEMENTS) {
+  // 1. Create all tables
+  for (const stmt of TABLE_CREATION_STATEMENTS) {
     try {
       if (typeof sqlite.execAsync === 'function') {
         await sqlite.execAsync(stmt);
@@ -271,17 +291,46 @@ export async function initializeTables(sqlite: SQLite.SQLiteDatabase) {
         (sqlite as any).execSync(stmt);
       }
     } catch (err) {
-      console.warn('Failed to execute init statement:', err);
+      console.warn('Failed to execute table creation statement:', err);
     }
   }
 
-  // Safe schema migrations
-  try {
-    const addRatingStmt = 'ALTER TABLE books ADD COLUMN rating INTEGER DEFAULT 0 NOT NULL;';
-    if (typeof sqlite.execAsync === 'function') {
-      await sqlite.execAsync(addRatingStmt);
-    } else if (typeof (sqlite as any).execSync === 'function') {
-      (sqlite as any).execSync(addRatingStmt);
+  // 2. Execute safe column migrations before index creation
+  for (const migration of MIGRATION_STATEMENTS) {
+    try {
+      if (typeof sqlite.execAsync === 'function') {
+        await sqlite.execAsync(migration);
+      } else if (typeof (sqlite as any).execSync === 'function') {
+        (sqlite as any).execSync(migration);
+      }
+    } catch {
+      // Column already exists or table was just created with column - completely safe
     }
-  } catch {}
+  }
+
+  // 3. Create all indexes (columns are guaranteed to exist now)
+  for (const stmt of INDEX_STATEMENTS) {
+    try {
+      if (typeof sqlite.execAsync === 'function') {
+        await sqlite.execAsync(stmt);
+      } else if (typeof (sqlite as any).execSync === 'function') {
+        (sqlite as any).execSync(stmt);
+      }
+    } catch (err) {
+      console.warn('Failed to execute index statement:', err);
+    }
+  }
+
+  // 4. Seed initial rows
+  for (const stmt of SEED_STATEMENTS) {
+    try {
+      if (typeof sqlite.execAsync === 'function') {
+        await sqlite.execAsync(stmt);
+      } else if (typeof (sqlite as any).execSync === 'function') {
+        (sqlite as any).execSync(stmt);
+      }
+    } catch (err) {
+      console.warn('Failed to execute seed statement:', err);
+    }
+  }
 }
