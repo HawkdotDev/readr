@@ -36,14 +36,27 @@ import {
   HardDrive,
 } from 'lucide-react-native';
 import { FONTS } from '../../src/utils/typography';
+import { useReaderStore } from '../../src/store/readerStore';
+import { TouchZoneConfigModal } from '../../src/components/reader/TouchZoneConfigModal';
+import { Grid, Sun, Volume2, MoveHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 export default function SettingsScreen() {
   const { colors, themeMode, setThemeMode, warmthLevel, setWarmthLevel } = useTheme();
 
+  const {
+    edgeBrightnessEnabled,
+    setEdgeBrightnessEnabled,
+    shakeToSpeechEnabled,
+    setShakeToSpeechEnabled,
+    tiltToTurnEnabled,
+    setTiltToTurnEnabled,
+  } = useReaderStore();
+
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [goals, setGoals] = useState<ReadingGoal | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [showTouchZoneModal, setShowTouchZoneModal] = useState(false);
 
   useEffect(() => {
     getUserSettings().then(setSettings);
@@ -293,6 +306,97 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Gestures & Touch Action Mapping */}
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+          TOUCH GESTURES & SENSORS
+        </Text>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              setShowTouchZoneModal(true);
+            }}
+            style={[styles.exportBackupBtn, { backgroundColor: colors.canvas, borderColor: colors.border, borderWidth: 1, marginBottom: 14 }]}
+          >
+            <Grid size={16} color={colors.accent} style={{ marginRight: 8 }} />
+            <Text style={[styles.exportBackupBtnText, { color: colors.textPrimary }]}>
+              Customize 9-Zone Touch Grid Actions
+            </Text>
+          </TouchableOpacity>
+
+          {/* Edge Brightness */}
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleIconCol}>
+              <View style={[styles.iconPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                <Sun size={15} color={colors.textPrimary} />
+              </View>
+            </View>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Edge-Swipe Brightness</Text>
+              <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                Swipe left edge up/down to adjust display brightness
+              </Text>
+            </View>
+            <Switch
+              value={edgeBrightnessEnabled}
+              onValueChange={(val) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setEdgeBrightnessEnabled(val);
+              }}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.isDark ? '#FFFFFF' : '#FFFFFF'}
+            />
+          </View>
+
+          {/* Shake-to-Speech */}
+          <View style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 14, paddingTop: 14 }]}>
+            <View style={styles.toggleIconCol}>
+              <View style={[styles.iconPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                <Volume2 size={15} color={colors.textPrimary} />
+              </View>
+            </View>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Shake-to-Speech (TTS)</Text>
+              <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                Shake device to toggle audio narration playback
+              </Text>
+            </View>
+            <Switch
+              value={shakeToSpeechEnabled}
+              onValueChange={(val) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setShakeToSpeechEnabled(val);
+              }}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.isDark ? '#FFFFFF' : '#FFFFFF'}
+            />
+          </View>
+
+          {/* Tilt-to-Turn */}
+          <View style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 14, paddingTop: 14 }]}>
+            <View style={styles.toggleIconCol}>
+              <View style={[styles.iconPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                <MoveHorizontal size={15} color={colors.textPrimary} />
+              </View>
+            </View>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Tilt-to-Turn Pages</Text>
+              <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                Tilt device sideways to flip pages hands-free
+              </Text>
+            </View>
+            <Switch
+              value={tiltToTurnEnabled}
+              onValueChange={(val) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setTiltToTurnEnabled(val);
+              }}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.isDark ? '#FFFFFF' : '#FFFFFF'}
+            />
+          </View>
+        </View>
+
         {/* Data Ownership & .readr Backup */}
         <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
           DATA PRIVACY & BACKUPS
@@ -347,6 +451,12 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* 9-Zone Touch Grid Configurator Modal */}
+      <TouchZoneConfigModal
+        visible={showTouchZoneModal}
+        onClose={() => setShowTouchZoneModal(false)}
+      />
     </View>
   );
 }
