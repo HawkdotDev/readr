@@ -14,7 +14,7 @@ import { useLibrary } from '../../src/hooks/useLibrary';
 import { downloadRecommendedBook, RecommendedBook } from '../../src/services/recommendations/recommendationService';
 import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book } from '../../src/types';
-import { Plus, Search } from 'lucide-react-native';
+import { Plus, Search, LayoutGrid, List } from 'lucide-react-native';
 import { ContinueReadingCard } from '../../src/components/library/ContinueReadingCard';
 import { FONTS } from '../../src/utils/typography';
 
@@ -214,7 +214,14 @@ export default function LibraryScreen() {
                 <TouchableOpacity
                   onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
                   style={styles.viewModeToggle}
+                  accessible={true}
+                  accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
                 >
+                  {viewMode === 'grid' ? (
+                    <List size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  ) : (
+                    <LayoutGrid size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  )}
                   <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
                     {viewMode === 'grid' ? 'View list' : 'View grid'}
                   </Text>
@@ -365,6 +372,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   viewModeToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 4,
     paddingHorizontal: 6,
   },
