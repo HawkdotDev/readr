@@ -276,6 +276,17 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
                 </View>
               </View>
 
+              {/* Tags Preview (if any) */}
+              {book.tags && book.tags.length > 0 && (
+                <View style={[styles.tagsPreviewRow, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}>
+                  {book.tags.map((t) => (
+                    <View key={t.id} style={[styles.menuTagPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                      <Text style={[styles.menuTagText, { color: colors.textSecondary }]}>🏷️ {t.name}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
               {/* Action List */}
               <View style={styles.actionsList}>
                 {menuItems.map((item, idx) => {
@@ -406,6 +417,24 @@ const styles = StyleSheet.create({
   },
   starBtn: {
     padding: 2,
+  },
+  tagsPreviewRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  menuTagPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  menuTagText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 11,
   },
   actionRow: {
     flexDirection: 'row',
