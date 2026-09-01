@@ -19,7 +19,7 @@ export interface ContinueStartedSectionProps {
   onBookLongPress?: (book: Book) => void;
 }
 
-export const ContinueStartedSection: React.FC<ContinueStartedSectionProps> = ({
+export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
   books,
   onBookPress,
   onBookLongPress,
@@ -141,7 +141,7 @@ export const ContinueStartedSection: React.FC<ContinueStartedSectionProps> = ({
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

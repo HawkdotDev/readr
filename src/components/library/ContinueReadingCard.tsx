@@ -12,7 +12,7 @@ export interface ContinueReadingCardProps {
   onOptionsPress?: () => void;
 }
 
-export const ContinueReadingCard: React.FC<ContinueReadingCardProps> = ({
+export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
   book,
   onPress,
   onLongPress,
@@ -128,7 +128,7 @@ export const ContinueReadingCard: React.FC<ContinueReadingCardProps> = ({
       </TouchableOpacity>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: {

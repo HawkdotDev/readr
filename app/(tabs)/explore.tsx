@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -154,6 +155,11 @@ export default function ExploreScreen() {
       <FlatList
         data={activeTab === 'explore' ? catalog : (filteredDeviceBooks as any)}
         keyExtractor={(item) => item.id}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === 'android'}
+        updateCellsBatchingPeriod={40}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.searchHeader}>

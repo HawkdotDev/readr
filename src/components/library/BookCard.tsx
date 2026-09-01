@@ -16,7 +16,7 @@ export interface BookCardProps {
   onLongPress?: () => void;
 }
 
-export const BookCard: React.FC<BookCardProps> = ({
+export const BookCard = React.memo<BookCardProps>(({
   book,
   viewMode = 'grid',
   onPress,
@@ -155,7 +155,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 import { FONTS } from '../../utils/typography';
 

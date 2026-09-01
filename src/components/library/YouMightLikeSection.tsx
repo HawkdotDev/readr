@@ -21,7 +21,7 @@ export interface YouMightLikeSectionProps {
   loadingBookId?: string | null;
 }
 
-export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
+export const YouMightLikeSection = React.memo<YouMightLikeSectionProps>(({
   existingBooks,
   onBookPress,
   loadingBookId,
@@ -137,7 +137,7 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
