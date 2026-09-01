@@ -11,9 +11,9 @@ import { FONTS } from '../../utils/typography';
 export interface ReaderToolbarProps {
   title: string;
   onBack: () => void;
-  onOpenTypography: () => void;
   onOpenTTS: () => void;
   onOpenSearch: () => void;
+  onOpenTypography?: () => void;
   onOpenTOC?: () => void;
   onOpenTheme?: () => void;
   onOpenAnnotations?: () => void;
@@ -22,7 +22,6 @@ export interface ReaderToolbarProps {
 export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   title,
   onBack,
-  onOpenTypography,
   onOpenTTS,
   onOpenSearch,
 }) => {
@@ -47,26 +46,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <ChevronLeft size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      {/* Top Actions: Typography, Audio TTS, Search */}
+      {/* Top Actions: Audio TTS & In-Book Search */}
       <View style={styles.actionGroup}>
-        {/* Typography & Format (Aa) */}
-        <TouchableOpacity
-          onPress={onOpenTypography}
-          style={styles.iconBtn}
-          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          accessible={true}
-          accessibilityLabel="Typography and layout"
-        >
-          <Text
-            style={[
-              styles.aaText,
-              { color: colors.textPrimary },
-            ]}
-          >
-            Aa
-          </Text>
-        </TouchableOpacity>
-
         {/* Audio TTS */}
         <TouchableOpacity
           onPress={onOpenTTS}
@@ -126,10 +107,5 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  aaText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 16,
-    letterSpacing: -0.5,
   },
 });

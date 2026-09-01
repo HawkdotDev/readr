@@ -76,16 +76,16 @@ export function ReaderBottomCapsule({
           <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Theme</Text>
         </TouchableOpacity>
 
-        {/* 2. Format & Layout */}
+        {/* 2. Customisation & Layout */}
         <TouchableOpacity
           onPress={handleTypographyOpen}
           style={styles.tabItem}
           activeOpacity={0.7}
           accessible={true}
-          accessibilityLabel="Open Typography and Layout Settings"
+          accessibilityLabel="Open Customisation Settings"
         >
           <Equal size={20} color={colors.textSecondary} strokeWidth={2.0} />
-          <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Format</Text>
+          <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Customisation</Text>
         </TouchableOpacity>
 
         {/* 3. Table of Contents */}

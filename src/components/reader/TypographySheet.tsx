@@ -46,7 +46,7 @@ export const TypographySheet: React.FC<TypographySheetProps> = ({ visible, onClo
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Typography & Customization">
+    <Sheet visible={visible} onClose={onClose} title="Customisation">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/* Font Family Selector */}
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>TYPEFACE</Text>

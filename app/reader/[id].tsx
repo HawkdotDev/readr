@@ -114,7 +114,6 @@ export default function ReaderScreen() {
           <ReaderToolbar
             title={book.title}
             onBack={() => router.back()}
-            onOpenTypography={() => setActiveSheet('typography')}
             onOpenTTS={() => setActiveSheet('tts')}
             onOpenSearch={() => setActiveSheet('search')}
           />
