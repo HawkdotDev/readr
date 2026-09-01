@@ -126,16 +126,7 @@ export default function ExploreScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {activeTab === 'explore' ? 'Library' : 'Device Shelf'}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {activeTab === 'explore'
-              ? 'Discover public domain classics'
-              : `${deviceBooks.length} books stored on device`}
-          </Text>
-        </View>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Library</Text>
 
         {activeTab === 'shelf' ? (
           <TouchableOpacity
@@ -262,6 +253,13 @@ export default function ExploreScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Subtitle repositioned just below the toggle */}
+              <Text style={[styles.toggleSubtitle, { color: colors.textSecondary }]}>
+                {activeTab === 'explore'
+                  ? 'Discover public domain classics'
+                  : `${deviceBooks.length} books stored on device`}
+              </Text>
             </View>
 
             {/* Search Bar */}
@@ -587,6 +585,13 @@ const styles = StyleSheet.create({
   toggleTabText: {
     fontSize: 13,
     letterSpacing: -0.2,
+  },
+  toggleSubtitle: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 12.5,
+    marginTop: 8,
+    textAlign: 'center',
+    letterSpacing: -0.1,
   },
   sectionTitle: {
     fontFamily: FONTS.mono.bold,
