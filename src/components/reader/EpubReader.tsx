@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  GestureResponderEvent,
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../common/ThemeProvider';
 import { useReaderStore } from '../../store/readerStore';
 import { ParsedChapter } from '../../services/reader/epubParser';
@@ -57,16 +68,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, [currentChapterIdx, chapters]);
 
+  const touchStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const lastTapRef = useRef<number>(0);
 
-  const handleCenterPress = () => {
+  const handleTouchStart = (e: GestureResponderEvent) => {
+    const { pageX, pageY } = e.nativeEvent;
+    touchStartRef.current = { time: Date.now(), x: pageX, y: pageY };
+  };
+
+  const handleTouchEnd = (e: GestureResponderEvent) => {
+    const { pageX, pageY } = e.nativeEvent;
     const now = Date.now();
-    const DOUBLE_TAP_DELAY = 350;
-    if (lastTapRef.current && now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      onToggleChrome();
-      lastTapRef.current = 0;
-    } else {
-      lastTapRef.current = now;
+    const duration = now - touchStartRef.current.time;
+    const dist = Math.hypot(pageX - touchStartRef.current.x, pageY - touchStartRef.current.y);
+
+    // If it was a quick stationary tap (duration < 280ms and moved < 15px)
+    if (duration < 280 && dist < 15) {
+      if (lastTapRef.current && now - lastTapRef.current < 350) {
+        // Double tap confirmed -> toggle chrome!
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        onToggleChrome();
+        lastTapRef.current = 0;
+      } else {
+        lastTapRef.current = now;
+      }
     }
   };
 
@@ -204,6 +229,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             paddingHorizontal: marginHorizontal,
           },
         ]}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         onScroll={handleScroll}
         scrollEventThrottle={200}
       >
@@ -226,12 +253,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <View style={[styles.dividerBar, { backgroundColor: colors.border }]} />
         </View>
 
-        {/* Center Tap Target for chrome toggle on double tap */}
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleCenterPress}
-          style={styles.tapArea}
-        >
+        {/* Center Content View with Highlights Pill */}
+        <View style={styles.tapArea}>
           {renderChapterContent}
 
           {/* Floating Highlights Action Pill */}
@@ -254,7 +277,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               </Text>
             </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Chapter Navigation Buttons */}
         <View style={[styles.navRow, { borderTopColor: colors.border }]}>
