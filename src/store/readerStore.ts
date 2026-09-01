@@ -1,5 +1,15 @@
 import { create } from 'zustand';
-import { Book, Bookmark, Highlight, TOCEntry, ThemeMode, TextAlign } from '../types';
+import {
+  Book,
+  Bookmark,
+  Highlight,
+  TOCEntry,
+  ThemeMode,
+  TextAlign,
+  ReadingDirection,
+  PageTurnStyle,
+  NavigationMode,
+} from '../types';
 
 export type ActiveSheet = 'none' | 'toc' | 'typography' | 'theme' | 'tts' | 'annotations' | 'dictionary' | 'search';
 
@@ -14,7 +24,7 @@ export interface ReaderState {
   activeSheet: ActiveSheet;
   selectedTextForDictionary: string | null;
   
-  // Reading settings
+  // Typography settings
   fontFamily: string;
   fontSize: number;
   lineHeight: number;
@@ -22,6 +32,12 @@ export interface ReaderState {
   textAlign: TextAlign;
   activeTheme: ThemeMode;
   warmthLevel: number; // 0.0 to 1.0
+
+  // Reading Experience settings
+  readingDirection: ReadingDirection;
+  pageTurnStyle: PageTurnStyle;
+  navigationMode: NavigationMode;
+  volumeKeysTurnPages: boolean;
 
   // Actions
   setCurrentBook: (book: Book | null) => void;
@@ -40,6 +56,11 @@ export interface ReaderState {
   setTextAlign: (align: TextAlign) => void;
   setActiveTheme: (theme: ThemeMode) => void;
   setWarmthLevel: (warmth: number) => void;
+
+  setReadingDirection: (dir: ReadingDirection) => void;
+  setPageTurnStyle: (style: PageTurnStyle) => void;
+  setNavigationMode: (mode: NavigationMode) => void;
+  setVolumeKeysTurnPages: (enabled: boolean) => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -60,6 +81,11 @@ export const useReaderStore = create<ReaderState>((set) => ({
   textAlign: 'left',
   activeTheme: 'light',
   warmthLevel: 0.0,
+
+  readingDirection: 'horizontal',
+  pageTurnStyle: 'slide',
+  navigationMode: 'both',
+  volumeKeysTurnPages: false,
 
   setCurrentBook: (book) =>
     set({
@@ -97,4 +123,9 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setTextAlign: (textAlign) => set({ textAlign }),
   setActiveTheme: (activeTheme) => set({ activeTheme }),
   setWarmthLevel: (warmthLevel) => set({ warmthLevel }),
+
+  setReadingDirection: (readingDirection) => set({ readingDirection }),
+  setPageTurnStyle: (pageTurnStyle) => set({ pageTurnStyle }),
+  setNavigationMode: (navigationMode) => set({ navigationMode }),
+  setVolumeKeysTurnPages: (volumeKeysTurnPages) => set({ volumeKeysTurnPages }),
 }));

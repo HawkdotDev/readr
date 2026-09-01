@@ -37,6 +37,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     lineHeight,
     marginHorizontal,
     textAlign,
+    readingDirection,
+    navigationMode,
+    pageTurnStyle,
     setCurrentChapter,
     setLocation,
   } = useReaderStore();
@@ -279,6 +282,39 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* On-Screen Floating Turn Buttons */}
+      {navigationMode === 'buttons' && (
+        <View pointerEvents="box-none" style={styles.floatingNavOverlay}>
+          <TouchableOpacity
+            onPress={handlePrevChapter}
+            disabled={currentChapterIdx === 0}
+            style={[
+              styles.floatingNavBtn,
+              { left: 16, backgroundColor: colors.surface, borderColor: colors.border },
+              currentChapterIdx === 0 && { opacity: 0.2 },
+            ]}
+            accessible={true}
+            accessibilityLabel="Previous Page"
+          >
+            <ChevronLeft size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleNextChapter}
+            disabled={currentChapterIdx >= chapters.length - 1}
+            style={[
+              styles.floatingNavBtn,
+              { right: 16, backgroundColor: colors.surface, borderColor: colors.border },
+              currentChapterIdx >= chapters.length - 1 && { opacity: 0.2 },
+            ]}
+            accessible={true}
+            accessibilityLabel="Next Page"
+          >
+            <ChevronRight size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -381,5 +417,28 @@ const styles = StyleSheet.create({
   chapterCounter: {
     fontFamily: FONTS.mono.bold,
     fontSize: 12,
+  },
+  floatingNavOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    zIndex: 99,
+  },
+  floatingNavBtn: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

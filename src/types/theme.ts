@@ -1,5 +1,8 @@
 export type ThemeMode = 'light' | 'sepia' | 'dark' | 'oled' | 'system';
 export type TextAlign = 'left' | 'justify';
+export type ReadingDirection = 'horizontal' | 'vertical';
+export type PageTurnStyle = 'slide' | 'curl' | 'fade' | 'none';
+export type NavigationMode = 'tap' | 'swipe' | 'buttons' | 'both';
 
 export interface ThemeColors {
   canvas: string;
