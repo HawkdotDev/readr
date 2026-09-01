@@ -5,6 +5,7 @@ import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
 import { BookOpen, Heart, Clock } from 'lucide-react-native';
 import { formatDurationSeconds } from '../../utils/time';
+import { FONTS } from '../../utils/typography';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
@@ -156,8 +157,6 @@ export const BookCard = React.memo<BookCardProps>(({
     </TouchableOpacity>
   );
 });
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   gridContainer: {

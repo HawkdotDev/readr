@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { Minus, Plus } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface SliderProps {
   label: string;
@@ -15,7 +16,7 @@ export interface SliderProps {
   style?: ViewStyle;
 }
 
-export const Slider: React.FC<SliderProps> = ({
+export const Slider = React.memo<SliderProps>(({
   label,
   value,
   min,
@@ -43,10 +44,10 @@ export const Slider: React.FC<SliderProps> = ({
   const displayText = displayFormatter ? displayFormatter(value) : `${value}${unit}`;
 
   return (
-    <View style={[styles.container, style] as any}>
+    <View style={[styles.container, style]}>
       <View style={styles.topRow}>
-        <Text style={[styles.label, { color: colors.textSecondary }] as any}>{label}</Text>
-        <Text style={[styles.valueText, { color: colors.textPrimary }] as any}>{displayText}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[styles.valueText, { color: colors.textPrimary }]}>{displayText}</Text>
       </View>
 
       <View style={styles.controlRow}>
@@ -60,14 +61,16 @@ export const Slider: React.FC<SliderProps> = ({
               borderColor: colors.border,
               opacity: value <= min ? 0.3 : 1,
             },
-          ] as any}
+          ]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessible={true}
+          accessibilityLabel={`Decrease ${label}`}
         >
           <Minus size={16} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        {/* Visual Progress Track */}
-        <View style={[styles.track, { backgroundColor: colors.border }] as any}>
+        {/* Progress Track */}
+        <View style={[styles.track, { backgroundColor: colors.canvas }]}>
           <View
             style={[
               styles.fill,
@@ -75,7 +78,7 @@ export const Slider: React.FC<SliderProps> = ({
                 width: `${progressPercent}%`,
                 backgroundColor: colors.accent,
               },
-            ] as any}
+            ]}
           />
         </View>
 
@@ -89,17 +92,19 @@ export const Slider: React.FC<SliderProps> = ({
               borderColor: colors.border,
               opacity: value >= max ? 0.3 : 1,
             },
-          ] as any}
+          ]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessible={true}
+          accessibilityLabel={`Increase ${label}`}
         >
           <Plus size={16} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
     </View>
   );
-};
+});
 
-import { FONTS } from '../../utils/typography';
+export default Slider;
 
 const styles = StyleSheet.create({
   container: {

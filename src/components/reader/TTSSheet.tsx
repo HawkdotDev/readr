@@ -5,6 +5,7 @@ import { Slider } from '../common/Slider';
 import { useTheme } from '../common/ThemeProvider';
 import { ttsService, TTSState } from '../../services/tts/ttsService';
 import { Play, Pause, Square, SkipBack, SkipForward, Clock } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface TTSSheetProps {
   visible: boolean;
@@ -129,8 +130,6 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
     </Sheet>
   );
 };
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {

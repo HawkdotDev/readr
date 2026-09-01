@@ -4,6 +4,7 @@ import { Sheet } from '../common/Sheet';
 import { useTheme } from '../common/ThemeProvider';
 import { ParsedChapter } from '../../services/reader/epubParser';
 import { CheckCircle2, Circle } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface TOCSheetProps {
   visible: boolean;
@@ -42,7 +43,7 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
                   backgroundColor: isCurrent ? colors.canvas : 'transparent',
                   borderBottomColor: colors.border,
                 },
-              ] as any}
+              ]}
             >
               {isPast ? (
                 <CheckCircle2 size={18} color={colors.textSecondary} style={styles.icon} />
@@ -60,13 +61,13 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
                       color: isCurrent ? colors.accent : colors.textPrimary,
                       fontWeight: isCurrent ? '700' : '500',
                     },
-                  ] as any}
+                  ]}
                   numberOfLines={1}
                 >
                   {chap.title}
                 </Text>
                 {chap.wordCount > 0 && (
-                  <Text style={[styles.wordCount, { color: colors.textSecondary }] as any}>
+                  <Text style={[styles.wordCount, { color: colors.textSecondary }]}>
                     {chap.wordCount} words
                   </Text>
                 )}
@@ -79,7 +80,7 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
   );
 };
 
-import { FONTS } from '../../utils/typography';
+export default TOCSheet;
 
 const styles = StyleSheet.create({
   listContent: {

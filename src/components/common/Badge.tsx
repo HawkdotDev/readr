@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from './ThemeProvider';
+import { FONTS } from '../../utils/typography';
 
 export interface BadgeProps {
   label: string;
@@ -8,7 +9,7 @@ export interface BadgeProps {
   style?: ViewStyle;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ label, variant = 'secondary', style }) => {
+export const Badge = React.memo<BadgeProps>(({ label, variant = 'secondary', style }) => {
   const { colors } = useTheme();
 
   const getStyle = (): { bg: string; text: string; border?: string } => {
@@ -41,14 +42,14 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'secondary', styl
           borderWidth: border ? 1 : 0,
         },
         style,
-      ] as any}
+      ]}
     >
-      <Text style={[styles.text, { color: text }] as any}>{label}</Text>
+      <Text style={[styles.text, { color: text }]}>{label}</Text>
     </View>
   );
-};
+});
 
-import { FONTS } from '../../utils/typography';
+export default Badge;
 
 const styles = StyleSheet.create({
   badge: {
@@ -60,9 +61,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontFamily: FONTS.mono.bold,
+    fontFamily: FONTS.mono.semiBold,
     fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.2,
   },
 });

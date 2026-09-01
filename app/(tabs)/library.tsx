@@ -16,6 +16,7 @@ import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/q
 import { Book } from '../../src/types';
 import { Plus, Search } from 'lucide-react-native';
 import { ContinueReadingCard } from '../../src/components/library/ContinueReadingCard';
+import { FONTS } from '../../src/utils/typography';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -286,8 +287,6 @@ export default function LibraryScreen() {
     </View>
   );
 }
-
-import { FONTS } from '../../src/utils/typography';
 
 const styles = StyleSheet.create({
   container: {

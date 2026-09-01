@@ -16,6 +16,7 @@ import {
   Info,
   CheckCircle2,
 } from 'lucide-react-native';
+import { FONTS } from '../../src/utils/typography';
 
 export default function SettingsScreen() {
   const { colors, themeMode, setThemeMode, warmthLevel, setWarmthLevel } = useTheme();
@@ -239,8 +240,6 @@ export default function SettingsScreen() {
     </View>
   );
 }
-
-import { FONTS } from '../../src/utils/typography';
 
 const styles = StyleSheet.create({
   container: {

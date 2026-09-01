@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
+import { FONTS } from '../../utils/typography';
 
 export interface StatCardProps {
   label: string;
@@ -10,7 +11,7 @@ export interface StatCardProps {
   style?: ViewStyle;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
+export const StatCard = React.memo<StatCardProps>(({
   label,
   value,
   subtitle,
@@ -28,23 +29,23 @@ export const StatCard: React.FC<StatCardProps> = ({
           borderColor: colors.border,
         },
         style,
-      ] as any}
+      ]}
     >
       <View style={styles.topRow}>
-        <Text style={[styles.label, { color: colors.textSecondary }] as any}>{label}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
         <View style={styles.iconBox}>{icon}</View>
       </View>
 
-      <Text style={[styles.value, { color: colors.textPrimary }] as any}>{value}</Text>
+      <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
 
       {subtitle && (
-        <Text style={[styles.subtitle, { color: colors.textSecondary }] as any}>{subtitle}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       )}
     </View>
   );
-};
+});
 
-import { FONTS } from '../../utils/typography';
+export default StatCard;
 
 const styles = StyleSheet.create({
   container: {
@@ -68,19 +69,20 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono.bold,
     fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
   },
   iconBox: {
-    opacity: 0.85,
+    padding: 2,
   },
   value: {
     fontFamily: FONTS.hubot.bold,
     fontSize: 22,
     letterSpacing: -0.5,
+    marginVertical: 4,
   },
   subtitle: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 11,
-    marginTop: 4,
+    fontSize: 12,
+    marginTop: 2,
   },
 });

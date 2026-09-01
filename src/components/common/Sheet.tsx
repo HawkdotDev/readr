@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, Pressable, ViewStyle, Dimensions } from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { X } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -70,7 +71,7 @@ export const Sheet: React.FC<SheetProps> = ({
   );
 };
 
-import { FONTS } from '../../utils/typography';
+export default Sheet;
 
 const styles = StyleSheet.create({
   backdrop: {

@@ -6,6 +6,7 @@ import { lookupWord } from '../../services/dictionary/dictionaryService';
 import { DictionaryDefinition } from '../../types';
 import { BookOpen, Volume2, Highlighter } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import { FONTS } from '../../utils/typography';
 
 export interface DictionarySheetProps {
   visible: boolean;
@@ -107,8 +108,6 @@ export const DictionarySheet: React.FC<DictionarySheetProps> = ({
     </Sheet>
   );
 };
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {

@@ -10,6 +10,7 @@ import { getReadingGoals } from '../../src/db/queries/settings';
 import { ReadingGoal, ReadingSession } from '../../src/types';
 import { formatDurationSeconds, formatRelativeDate } from '../../src/utils/time';
 import { BookOpen, Clock, FileText, Bookmark, Flame, Zap } from 'lucide-react-native';
+import { FONTS } from '../../src/utils/typography';
 
 export default function StatsScreen() {
   const { colors } = useTheme();
@@ -179,8 +180,6 @@ export default function StatsScreen() {
     </View>
   );
 }
-
-import { FONTS } from '../../src/utils/typography';
 
 const styles = StyleSheet.create({
   container: {

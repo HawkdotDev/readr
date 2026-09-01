@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { Search, X } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface SearchBarProps {
   value: string;
@@ -11,7 +12,7 @@ export interface SearchBarProps {
   style?: ViewStyle;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+export const SearchBar = React.memo<SearchBarProps>(({
   value,
   onChangeText,
   placeholder = 'Search library, authors, titles...',
@@ -29,7 +30,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           borderColor: colors.border,
         },
         style,
-      ] as any}
+      ]}
     >
       <Search size={18} color={colors.textSecondary} style={styles.icon} />
       <TextInput
@@ -37,7 +38,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
-        style={[styles.input, { color: colors.textPrimary }] as any}
+        style={[styles.input, { color: colors.textPrimary }]}
         clearButtonMode="never"
         autoCapitalize="none"
         autoCorrect={false}
@@ -48,15 +49,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onPress={() => onChangeText('')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={styles.clearBtn}
+          accessible={true}
+          accessibilityLabel="Clear search text"
         >
           <X size={16} color={colors.textSecondary} />
         </TouchableOpacity>
       )}
     </View>
   );
-};
+});
 
-import { FONTS } from '../../utils/typography';
+export default SearchBar;
 
 const styles = StyleSheet.create({
   container: {

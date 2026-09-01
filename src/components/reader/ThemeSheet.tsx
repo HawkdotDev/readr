@@ -5,6 +5,7 @@ import { Slider } from '../common/Slider';
 import { useTheme } from '../common/ThemeProvider';
 import { ThemeMode } from '../../types';
 import { Sun, Moon, Sparkles, Smartphone } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface ThemeSheetProps {
   visible: boolean;
@@ -94,8 +95,6 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
     </Sheet>
   );
 };
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {

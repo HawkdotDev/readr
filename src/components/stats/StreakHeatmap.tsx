@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { DayActivity } from '../../db/queries/stats';
+import { FONTS } from '../../utils/typography';
 
 export interface StreakHeatmapProps {
   activity: DayActivity[];
@@ -107,8 +108,6 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
     </View>
   );
 };
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {

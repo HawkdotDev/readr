@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { Target, CheckCircle2 } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface GoalProgressRingProps {
   currentMinutes: number;
@@ -10,7 +11,7 @@ export interface GoalProgressRingProps {
   targetPages: number;
 }
 
-export const GoalProgressRing: React.FC<GoalProgressRingProps> = ({
+export const GoalProgressRing = React.memo<GoalProgressRingProps>(({
   currentMinutes,
   targetMinutes,
   currentPages,
@@ -29,17 +30,17 @@ export const GoalProgressRing: React.FC<GoalProgressRingProps> = ({
           backgroundColor: colors.surface,
           borderColor: colors.border,
         },
-      ] as any}
+      ]}
     >
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
           <Target size={18} color={colors.accent} style={{ marginRight: 6 }} />
-          <Text style={[styles.title, { color: colors.textPrimary }] as any}>Daily Reading Goals</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Daily Reading Goals</Text>
         </View>
         {minProgress >= 100 && pageProgress >= 100 ? (
           <View style={[styles.goalAchieved, { backgroundColor: colors.isDark ? '#27272A' : '#E4E4E7' }]}>
             <CheckCircle2 size={16} color={colors.textPrimary} style={{ marginRight: 4 }} />
-            <Text style={[styles.goalAchievedText, { color: colors.textPrimary }] as any}>Goal Met!</Text>
+            <Text style={[styles.goalAchievedText, { color: colors.textPrimary }]}>Goal Met!</Text>
           </View>
         ) : null}
       </View>
@@ -47,43 +48,43 @@ export const GoalProgressRing: React.FC<GoalProgressRingProps> = ({
       {/* Minutes Goal Progress Bar */}
       <View style={styles.goalItem}>
         <View style={styles.goalLabelRow}>
-          <Text style={[styles.goalLabel, { color: colors.textSecondary }] as any}>Time Target</Text>
-          <Text style={[styles.goalValue, { color: colors.textPrimary }] as any}>
+          <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>Time Target</Text>
+          <Text style={[styles.goalValue, { color: colors.textPrimary }]}>
             {currentMinutes} / {targetMinutes} mins ({minProgress}%)
           </Text>
         </View>
-        <View style={[styles.track, { backgroundColor: colors.border }] as any}>
+        <View style={[styles.track, { backgroundColor: colors.border }]}>
           <View
             style={[
               styles.fill,
               { width: `${minProgress}%`, backgroundColor: colors.accent },
-            ] as any}
+            ]}
           />
         </View>
       </View>
 
       {/* Pages Goal Progress Bar */}
-      <View style={[styles.goalItem, { marginTop: 14 }] as any}>
+      <View style={[styles.goalItem, { marginTop: 14 }]}>
         <View style={styles.goalLabelRow}>
-          <Text style={[styles.goalLabel, { color: colors.textSecondary }] as any}>Pages Target</Text>
-          <Text style={[styles.goalValue, { color: colors.textPrimary }] as any}>
+          <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>Pages Target</Text>
+          <Text style={[styles.goalValue, { color: colors.textPrimary }]}>
             {currentPages} / {targetPages} pages ({pageProgress}%)
           </Text>
         </View>
-        <View style={[styles.track, { backgroundColor: colors.border }] as any}>
+        <View style={[styles.track, { backgroundColor: colors.border }]}>
           <View
             style={[
               styles.fill,
               { width: `${pageProgress}%`, backgroundColor: colors.isDark ? '#71717A' : '#52525B' },
-            ] as any}
+            ]}
           />
         </View>
       </View>
     </View>
   );
-};
+});
 
-import { FONTS } from '../../utils/typography';
+export default GoalProgressRing;
 
 const styles = StyleSheet.create({
   container: {

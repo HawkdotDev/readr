@@ -4,6 +4,7 @@ import { Sheet } from '../common/Sheet';
 import { useTheme } from '../common/ThemeProvider';
 import { ParsedChapter } from '../../services/reader/epubParser';
 import { Search, X, ChevronRight } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface SearchSheetProps {
   visible: boolean;
@@ -117,8 +118,6 @@ export const SearchSheet: React.FC<SearchSheetProps> = ({
     </Sheet>
   );
 };
-
-import { FONTS } from '../../utils/typography';
 
 const styles = StyleSheet.create({
   container: {
