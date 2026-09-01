@@ -18,7 +18,7 @@ import { OPDSBookEntry, Book } from '../../src/types';
 import { fetchOPDSCatalog, downloadOPDSBook } from '../../src/services/opds/opdsService';
 import { getAllBooks } from '../../src/db/queries/books';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
-import { Download, BookOpen, Compass, HardDrive, Plus, Clock } from 'lucide-react-native';
+import { Download, BookOpen, Compass, HardDrive, Plus, Clock, Search } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 import { formatDurationSeconds } from '../../src/utils/time';
@@ -30,6 +30,7 @@ export default function ExploreScreen() {
   // Mode: 'explore' (online / public domain catalog) vs 'shelf' (all books on local device)
   const [activeTab, setActiveTab] = useState<'explore' | 'shelf'>('explore');
   const [query, setQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(Boolean(query));
   const [catalog, setCatalog] = useState<OPDSBookEntry[]>([]);
   const [deviceBooks, setDeviceBooks] = useState<Book[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -128,18 +129,51 @@ export default function ExploreScreen() {
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Library</Text>
 
-        {activeTab === 'shelf' ? (
+        <View style={styles.headerActions}>
           <TouchableOpacity
-            onPress={handleImport}
-            style={[styles.importIconBtn, { backgroundColor: colors.accent }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              setIsSearchOpen((prev) => {
+                const next = !prev;
+                if (!next) {
+                  setQuery('');
+                }
+                return next;
+              });
+            }}
+            style={[
+              styles.iconBtn,
+              {
+                backgroundColor: isSearchOpen ? colors.surface : colors.canvas,
+                borderColor: isSearchOpen ? colors.accent : colors.border,
+              },
+            ]}
             accessible={true}
-            accessibilityLabel="Import Book to Device Shelf"
+            accessibilityLabel="Search Library"
           >
-            <Plus size={20} color={colors.isDark ? '#000000' : '#FFFFFF'} />
+            <Search size={20} color={isSearchOpen ? colors.accent : colors.textPrimary} />
           </TouchableOpacity>
-        ) : (
-          <Compass size={26} color={colors.accent} />
-        )}
+
+          {activeTab === 'shelf' ? (
+            <TouchableOpacity
+              onPress={handleImport}
+              style={[styles.importIconBtn, { backgroundColor: colors.accent }]}
+              accessible={true}
+              accessibilityLabel="Import Book to Device Shelf"
+            >
+              <Plus size={20} color={colors.isDark ? '#000000' : '#FFFFFF'} />
+            </TouchableOpacity>
+          ) : (
+            <View
+              style={[
+                styles.iconBtn,
+                { borderColor: colors.border, backgroundColor: colors.surface },
+              ]}
+            >
+              <Compass size={20} color={colors.accent} />
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Main List Container */}
@@ -262,16 +296,21 @@ export default function ExploreScreen() {
               </Text>
             </View>
 
-            {/* Search Bar */}
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={
-                activeTab === 'explore'
-                  ? 'Search public domain classics...'
-                  : 'Search books on your device...'
-              }
-            />
+            {/* Search Bar - only shown when search button is clicked */}
+            {isSearchOpen && (
+              <View style={styles.searchContainer}>
+                <SearchBar
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={
+                    activeTab === 'explore'
+                      ? 'Search public domain classics...'
+                      : 'Search books on your device...'
+                  }
+                  autoFocus={true}
+                />
+              </View>
+            )}
 
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
               {activeTab === 'explore'
@@ -536,17 +575,28 @@ const styles = StyleSheet.create({
     fontSize: 26,
     letterSpacing: -0.8,
   },
-  headerSubtitle: {
-    fontFamily: FONTS.mona.regular,
-    fontSize: 12.5,
-    marginTop: 2,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
-  importIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  importIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchContainer: {
+    marginBottom: 14,
   },
   listContent: {
     paddingHorizontal: 16,
