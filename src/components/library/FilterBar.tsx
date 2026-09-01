@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
-import { BookStatus, BookFormat } from '../../types';
-import { SortOption, LibraryViewMode } from '../../store/libraryStore';
-import { LayoutGrid, List, SlidersHorizontal } from 'lucide-react-native';
+import { BookFormat } from '../../types';
+import { SortOption, LibraryViewMode, LibraryFilterStatus } from '../../store/libraryStore';
+import { LayoutGrid, List } from 'lucide-react-native';
+import { FONTS } from '../../utils/typography';
 
 export interface FilterBarProps {
-  selectedStatus: BookStatus | 'all';
-  onSelectStatus: (status: BookStatus | 'all') => void;
+  selectedStatus: LibraryFilterStatus;
+  onSelectStatus: (status: LibraryFilterStatus) => void;
   selectedFormat: BookFormat | 'all';
   onSelectFormat: (format: BookFormat | 'all') => void;
   viewMode: LibraryViewMode;
@@ -21,13 +22,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onSelectStatus,
   viewMode,
   onToggleViewMode,
-  sortOption,
-  onSelectSort,
 }) => {
   const { colors } = useTheme();
 
-  const statuses: { label: string; value: BookStatus | 'all' }[] = [
+  const statuses: { label: string; value: LibraryFilterStatus }[] = [
     { label: 'All', value: 'all' },
+    { label: '★ Favourites', value: 'favorites' },
     { label: 'Reading', value: 'reading' },
     { label: 'Unread', value: 'unread' },
     { label: 'Finished', value: 'finished' },
@@ -53,7 +53,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   backgroundColor: isActive ? colors.accent : colors.surface,
                   borderColor: isActive ? colors.accent : colors.border,
                 },
-              ] as any}
+              ]}
+              accessible={true}
+              accessibilityLabel={`Filter by ${s.label}`}
             >
               <Text
                 style={[
@@ -62,8 +64,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     color: isActive
                       ? (colors.isDark ? '#000000' : '#FFFFFF')
                       : colors.textSecondary,
+                    fontFamily: isActive ? FONTS.mona.bold : FONTS.mona.medium,
                   },
-                ] as any}
+                ]}
               >
                 {s.label}
               </Text>
@@ -72,12 +75,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         })}
       </ScrollView>
 
-      {/* View Mode & Sort Toggle */}
+      {/* View Mode Toggle */}
       <View style={styles.rightActions}>
         <TouchableOpacity
           onPress={onToggleViewMode}
-          style={[styles.iconButton, { backgroundColor: colors.surface, borderColor: colors.border }] as any}
+          style={[styles.iconButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessible={true}
+          accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
         >
           {viewMode === 'grid' ? (
             <List size={18} color={colors.textPrimary} />
@@ -90,8 +95,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   );
 };
 
-import { FONTS } from '../../utils/typography';
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -100,12 +103,12 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   scrollContent: {
-    flexDirection: 'row',
+    paddingHorizontal: 0,
     gap: 8,
-    paddingRight: 12,
+    alignItems: 'center',
   },
   chip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
@@ -113,17 +116,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipText: {
-    fontFamily: FONTS.mona.semiBold,
-    fontSize: 13,
-    letterSpacing: -0.1,
+    fontSize: 12,
+    letterSpacing: -0.2,
   },
   rightActions: {
-    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 8,
+    gap: 8,
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

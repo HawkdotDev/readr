@@ -143,4 +143,21 @@ describe('Library Filtering & Sorting Logic', () => {
     expect(inProgress[0].title).toBe('The Brothers Karamazov');
     expect(inProgress[0].progressPercentage).toBe(25);
   });
+
+  it('filters books by favourites correctly', () => {
+    const favoriteBooks = sampleBooks.filter((b) => b.isFavorite);
+    expect(favoriteBooks.length).toBe(1);
+    expect(favoriteBooks[0].title).toBe('Crime and Punishment');
+  });
+
+  it('sorts books with favourites first', () => {
+    const sorted = [...sampleBooks].sort((a, b) => {
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    expect(sorted[0].title).toBe('Crime and Punishment');
+    expect(sorted[0].isFavorite).toBe(true);
+  });
 });

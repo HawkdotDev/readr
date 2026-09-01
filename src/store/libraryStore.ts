@@ -2,11 +2,12 @@ import { create } from 'zustand';
 import { Book, BookFormat, BookStatus } from '../types';
 
 export type LibraryViewMode = 'grid' | 'list';
-export type SortOption = 'recent' | 'title' | 'author' | 'progress';
+export type SortOption = 'recent' | 'title' | 'author' | 'progress' | 'favorites';
+export type LibraryFilterStatus = BookStatus | 'all' | 'favorites';
 
 export interface LibraryState {
   searchQuery: string;
-  selectedStatus: BookStatus | 'all';
+  selectedStatus: LibraryFilterStatus;
   selectedFormat: BookFormat | 'all';
   selectedShelfId: string | null;
   sortOption: SortOption;
@@ -14,7 +15,7 @@ export interface LibraryState {
   isLoading: boolean;
 
   setSearchQuery: (query: string) => void;
-  setSelectedStatus: (status: BookStatus | 'all') => void;
+  setSelectedStatus: (status: LibraryFilterStatus) => void;
   setSelectedFormat: (format: BookFormat | 'all') => void;
   setSelectedShelfId: (shelfId: string | null) => void;
   setSortOption: (sort: SortOption) => void;

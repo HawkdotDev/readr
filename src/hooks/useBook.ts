@@ -57,8 +57,18 @@ export function useBook(bookId: string): UseBookResult {
 
   const toggleBookFavorite = async () => {
     if (!book) return;
-    const nextState = await toggleBookFavoriteQuery(book.id, book.isFavorite);
+    const previousState = book.isFavorite;
+    const nextState = !previousState;
+
+    // Optimistic instant state update
     setBook((prev) => (prev ? { ...prev, isFavorite: nextState } : null));
+
+    try {
+      await toggleBookFavoriteQuery(book.id, previousState);
+    } catch {
+      // Rollback on error
+      setBook((prev) => (prev ? { ...prev, isFavorite: previousState } : null));
+    }
   };
 
   const removeBook = async (): Promise<boolean> => {

@@ -26,6 +26,7 @@ export default function LibraryScreen() {
     filteredBooks,
     featuredBook,
     inProgressBooks,
+    favoriteBooks,
     refreshing,
     searchQuery,
     setSearchQuery,
@@ -37,6 +38,7 @@ export default function LibraryScreen() {
     setViewMode,
     sortOption,
     setSortOption,
+    toggleFavorite,
     loadBooks,
     onRefresh,
   } = useLibrary();
@@ -261,9 +263,8 @@ export default function LibraryScreen() {
           router.push(`/book/${b.id}` as any);
         }}
         onToggleFavorite={async (b) => {
-          await toggleBookFavorite(b.id, b.isFavorite);
-          await loadBooks();
           setSelectedWheelBook(null);
+          await toggleFavorite(b.id);
         }}
         onToggleStatus={async (b) => {
           const nextStatus = b.status === 'finished' ? 'reading' : 'finished';

@@ -137,18 +137,32 @@ export function getPersonalizedRecommendations(libraryBooks: Book[]): Recommende
     libraryBooks.flatMap((b) => (b.authors || []).map((a) => a.name.toLowerCase().trim()))
   );
 
+  const favoriteBooks = libraryBooks.filter((b) => b.isFavorite);
+
   const hasPhilosophy =
     libraryBooks.some((b) => b.title.toLowerCase().includes('meditations') || b.title.toLowerCase().includes('walden')) ||
     libraryAuthors.has('marcus aurelius') ||
     libraryAuthors.has('henry david thoreau');
 
+  const hasFavPhilosophy = favoriteBooks.some(
+    (b) => b.title.toLowerCase().includes('meditations') || b.title.toLowerCase().includes('walden') || b.title.toLowerCase().includes('seneca')
+  );
+
   const hasRomanceOrVictorian =
     libraryBooks.some((b) => b.title.toLowerCase().includes('pride') || b.title.toLowerCase().includes('prejudice')) ||
     libraryAuthors.has('jane austen');
 
+  const hasFavVictorian = favoriteBooks.some(
+    (b) => b.title.toLowerCase().includes('pride') || b.title.toLowerCase().includes('prejudice') || b.title.toLowerCase().includes('austen')
+  );
+
   const hasGothic =
     libraryBooks.some((b) => b.title.toLowerCase().includes('frankenstein')) ||
     libraryAuthors.has('mary shelley');
+
+  const hasFavGothic = favoriteBooks.some(
+    (b) => b.title.toLowerCase().includes('frankenstein') || b.title.toLowerCase().includes('dracula')
+  );
 
   // Filter out books user already owns
   const unowned = RECOMMENDATION_CATALOG.filter(
@@ -161,14 +175,14 @@ export function getPersonalizedRecommendations(libraryBooks: Book[]): Recommende
     let reason = item.recommendationReason;
 
     if (item.category === 'Philosophy' && hasPhilosophy) {
-      score += 30;
-      reason = 'Because you enjoy Philosophy';
+      score += hasFavPhilosophy ? 50 : 30;
+      reason = hasFavPhilosophy ? 'Based on your favourite Philosophy reads' : 'Because you enjoy Philosophy';
     } else if (item.category === 'Victorian' && hasRomanceOrVictorian) {
-      score += 30;
-      reason = 'Because you read Jane Austen';
+      score += hasFavVictorian ? 50 : 30;
+      reason = hasFavVictorian ? 'Based on your favourite Victorian classics' : 'Because you read Jane Austen';
     } else if (item.category === 'Gothic' && hasGothic) {
-      score += 30;
-      reason = 'Because you read Frankenstein';
+      score += hasFavGothic ? 50 : 30;
+      reason = hasFavGothic ? 'Based on your favourite Gothic reads' : 'Because you read Frankenstein';
     } else if (item.category === 'Classics') {
       score += 15;
     }
