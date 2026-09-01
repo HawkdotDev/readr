@@ -17,6 +17,8 @@ import { SearchBar } from '../../src/components/common/SearchBar';
 import { RadialOptionsMenu } from '../../src/components/library/RadialOptionsMenu';
 import { YouMightLikeSection } from '../../src/components/library/YouMightLikeSection';
 import { ContinueStartedSection } from '../../src/components/library/ContinueStartedSection';
+import { CustomOPDSModal } from '../../src/components/library/CustomOPDSModal';
+import { FileBrowserModal } from '../../src/components/library/FileBrowserModal';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { useLibrary } from '../../src/hooks/useLibrary';
 import {
@@ -25,7 +27,7 @@ import {
 } from '../../src/services/recommendations/recommendationService';
 import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book } from '../../src/types';
-import { Plus, Search, LayoutGrid, List } from 'lucide-react-native';
+import { Plus, Search, LayoutGrid, List, Globe, FolderOpen } from 'lucide-react-native';
 import { ContinueReadingCard } from '../../src/components/library/ContinueReadingCard';
 import { FONTS } from '../../src/utils/typography';
 
@@ -39,6 +41,7 @@ export default function HomeScreen() {
     featuredBook,
     inProgressBooks,
     favoriteBooks,
+    allTags,
     refreshing,
     searchQuery,
     setSearchQuery,
@@ -46,11 +49,14 @@ export default function HomeScreen() {
     setSelectedStatus,
     selectedFormat,
     setSelectedFormat,
+    selectedTagId,
+    setSelectedTagId,
     viewMode,
     setViewMode,
     sortOption,
     setSortOption,
     toggleFavorite,
+    updateRating,
     loadBooks,
     onRefresh,
   } = useLibrary();
@@ -58,6 +64,8 @@ export default function HomeScreen() {
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
   const [selectedWheelBook, setSelectedWheelBook] = useState<Book | null>(null);
   const [loadingRecId, setLoadingRecId] = useState<string | null>(null);
+  const [isOPDSModalOpen, setIsOPDSModalOpen] = useState(false);
+  const [isFileBrowserOpen, setIsFileBrowserOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -144,7 +152,31 @@ export default function HomeScreen() {
             accessible={true}
             accessibilityLabel="Search Library"
           >
-            <Search size={20} color={isSearchOpen ? colors.accent : colors.textPrimary} />
+            <Search size={18} color={isSearchOpen ? colors.accent : colors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setIsOPDSModalOpen(true)}
+            style={[
+              styles.iconBtn,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+            accessible={true}
+            accessibilityLabel="OPDS & Net Library"
+          >
+            <Globe size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setIsFileBrowserOpen(true)}
+            style={[
+              styles.iconBtn,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+            accessible={true}
+            accessibilityLabel="My Files Storage Browser"
+          >
+            <FolderOpen size={18} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -153,7 +185,7 @@ export default function HomeScreen() {
             accessible={true}
             accessibilityLabel="Import Book"
           >
-            <Plus size={20} color={colors.isDark ? '#000000' : '#FFFFFF'} />
+            <Plus size={18} color={colors.isDark ? '#000000' : '#FFFFFF'} />
           </TouchableOpacity>
         </View>
       </View>
@@ -243,6 +275,9 @@ export default function HomeScreen() {
           onSelectFormat={setSelectedFormat}
           sortOption={sortOption}
           onSelectSort={setSortOption}
+          allTags={allTags}
+          selectedTagId={selectedTagId}
+          onSelectTag={setSelectedTagId}
         />
 
         {/* Books List / Grid */}
@@ -285,7 +320,7 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {/* Popover Options Menu */}
+      {/* Popover Options Menu with 5-Star Rating */}
       <RadialOptionsMenu
         visible={Boolean(selectedWheelBook)}
         book={selectedWheelBook}
@@ -308,11 +343,28 @@ export default function HomeScreen() {
           await loadBooks();
           setSelectedWheelBook(null);
         }}
+        onUpdateRating={async (b, r) => {
+          await updateRating(b.id, r);
+        }}
         onDeleteBook={async (b) => {
           await deleteBook(b.id);
           await loadBooks();
           setSelectedWheelBook(null);
         }}
+      />
+
+      {/* OPDS & Net Library Catalog Modal */}
+      <CustomOPDSModal
+        visible={isOPDSModalOpen}
+        onClose={() => setIsOPDSModalOpen(false)}
+        onBookImported={() => loadBooks()}
+      />
+
+      {/* In-App "My Files" Storage Browser Modal */}
+      <FileBrowserModal
+        visible={isFileBrowserOpen}
+        onClose={() => setIsFileBrowserOpen(false)}
+        onImportCompleted={() => loadBooks()}
       />
     </View>
   );

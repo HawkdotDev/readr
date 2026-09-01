@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'rea
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
-import { BookOpen, Heart, Clock } from 'lucide-react-native';
+import { BookOpen, Heart, Clock, Star } from 'lucide-react-native';
 import { formatDurationSeconds } from '../../utils/time';
 import { FONTS } from '../../utils/typography';
 
@@ -69,6 +69,12 @@ export const BookCard = React.memo<BookCardProps>(({
 
           <View style={styles.listFooter}>
             <Badge label={book.fileFormat.toUpperCase()} variant="secondary" />
+            {book.rating && book.rating > 0 ? (
+              <View style={styles.ratingBadge}>
+                <Star size={11} color="#F59E0B" fill="#F59E0B" style={{ marginRight: 3 }} />
+                <Text style={[styles.ratingBadgeText, { color: colors.textSecondary }] as any}>{book.rating}</Text>
+              </View>
+            ) : null}
             <View style={styles.listProgressWrapper}>
               <Text style={[styles.listProgressText, { color: colors.textSecondary }] as any}>
                 {progressPercent > 0 ? `${progressPercent}% complete` : 'Unread'}
@@ -148,7 +154,15 @@ export const BookCard = React.memo<BookCardProps>(({
         </Text>
 
         <View style={styles.gridFooterRow}>
-          <Badge label={book.fileFormat.toUpperCase()} variant="secondary" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Badge label={book.fileFormat.toUpperCase()} variant="secondary" />
+            {book.rating && book.rating > 0 ? (
+              <View style={styles.ratingBadge}>
+                <Star size={10} color="#F59E0B" fill="#F59E0B" style={{ marginRight: 2 }} />
+                <Text style={[styles.ratingBadgeText, { color: colors.textSecondary }] as any}>{book.rating}</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={[styles.gridPercentText, { color: colors.textSecondary }] as any}>
             {progressPercent > 0 ? `${progressPercent}%` : 'New'}
           </Text>
@@ -296,5 +310,18 @@ const styles = StyleSheet.create({
   timeText: {
     fontFamily: FONTS.mono.medium,
     fontSize: 10.5,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+  },
+  ratingBadgeText: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 10,
+    color: '#F59E0B',
   },
 });

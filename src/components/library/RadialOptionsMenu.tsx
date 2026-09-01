@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { BookOpen, Info, Heart, CheckCircle2, Share2, Trash2, X } from 'lucide-react-native';
+import { BookOpen, Info, Heart, CheckCircle2, Share2, Trash2, X, Star } from 'lucide-react-native';
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
 import { FONTS } from '../../utils/typography';
@@ -25,6 +25,7 @@ export interface RadialOptionsMenuProps {
   onOpenDetails: (book: Book) => void;
   onToggleFavorite: (book: Book) => void;
   onToggleStatus: (book: Book) => void;
+  onUpdateRating?: (book: Book, rating: number) => void;
   onDeleteBook: (book: Book) => void;
 }
 
@@ -36,6 +37,7 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
   onOpenDetails,
   onToggleFavorite,
   onToggleStatus,
+  onUpdateRating,
   onDeleteBook,
 }) => {
   const { colors } = useTheme();
@@ -245,6 +247,35 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
                 </TouchableOpacity>
               </View>
 
+              {/* Star Rating Bar */}
+              <View style={[styles.ratingRow, { borderBottomColor: colors.border, backgroundColor: colors.canvas }]}>
+                <Text style={[styles.ratingLabel, { color: colors.textSecondary }]}>Rating</Text>
+                <View style={styles.starsWrap}>
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isFilled = (book.rating || 0) >= star;
+                    return (
+                      <TouchableOpacity
+                        key={star}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                          const newRating = (book.rating || 0) === star ? 0 : star;
+                          onUpdateRating?.(book, newRating);
+                        }}
+                        style={styles.starBtn}
+                        accessible={true}
+                        accessibilityLabel={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                      >
+                        <Star
+                          size={18}
+                          color={isFilled ? '#F59E0B' : colors.border}
+                          fill={isFilled ? '#F59E0B' : 'transparent'}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
               {/* Action List */}
               <View style={styles.actionsList}>
                 {menuItems.map((item, idx) => {
@@ -353,6 +384,28 @@ const styles = StyleSheet.create({
   },
   actionsList: {
     paddingVertical: 4,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  ratingLabel: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  starsWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  starBtn: {
+    padding: 2,
   },
   actionRow: {
     flexDirection: 'row',

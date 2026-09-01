@@ -5,6 +5,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { getWarmthOverlayColor } from '../../src/utils/theme';
 import { getBookById } from '../../src/db/queries/books';
+import { getBookSettings, saveBookSettings } from '../../src/db/queries/bookSettings';
 import { Book } from '../../src/types';
 import { parseBookFile, ParsedChapter } from '../../src/services/reader/epubParser';
 import { progressTracker } from '../../src/services/reader/progressTracker';
@@ -44,6 +45,17 @@ export default function ReaderScreen() {
     minutesLeftInChapter,
     activeSheet,
     selectedTextForDictionary,
+    fontFamily,
+    fontSize,
+    lineHeight,
+    marginHorizontal,
+    textAlign,
+    activeTheme,
+    paragraphIndent,
+    paragraphSpacing,
+    dropCaps,
+    readingRulerEnabled,
+    readingRulerMode,
     setCurrentBook,
     setActiveSheet,
     closeSheet,
@@ -58,6 +70,33 @@ export default function ReaderScreen() {
       if (b) {
         setBook(b);
         setCurrentBook(b);
+
+        // Load custom per-book settings overrides
+        const customSettings = await getBookSettings(id);
+        if (customSettings) {
+          if (customSettings.fontFamily) useReaderStore.getState().setFontFamily(customSettings.fontFamily);
+          if (customSettings.fontSize) useReaderStore.getState().setFontSize(customSettings.fontSize);
+          if (customSettings.lineHeight) useReaderStore.getState().setLineHeight(customSettings.lineHeight);
+          if (customSettings.marginHorizontal) useReaderStore.getState().setMarginHorizontal(customSettings.marginHorizontal);
+          if (customSettings.textAlign) useReaderStore.getState().setTextAlign(customSettings.textAlign);
+          if (customSettings.activeTheme) useReaderStore.getState().setActiveTheme(customSettings.activeTheme as any);
+          if (customSettings.paragraphIndent !== null && customSettings.paragraphIndent !== undefined) {
+            useReaderStore.getState().setParagraphIndent(customSettings.paragraphIndent);
+          }
+          if (customSettings.paragraphSpacing !== null && customSettings.paragraphSpacing !== undefined) {
+            useReaderStore.getState().setParagraphSpacing(customSettings.paragraphSpacing);
+          }
+          if (customSettings.dropCaps !== null && customSettings.dropCaps !== undefined) {
+            useReaderStore.getState().setDropCaps(customSettings.dropCaps);
+          }
+          if (customSettings.readingRulerEnabled !== null && customSettings.readingRulerEnabled !== undefined) {
+            useReaderStore.getState().setReadingRulerEnabled(customSettings.readingRulerEnabled);
+          }
+          if (customSettings.readingRulerMode) {
+            useReaderStore.getState().setReadingRulerMode(customSettings.readingRulerMode as any);
+          }
+        }
+
         const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
         setChapters(parsed.chapters);
 
@@ -74,6 +113,21 @@ export default function ReaderScreen() {
     return () => {
       if (id) {
         progressTracker.endSession(id);
+        // Persist per-book settings on exit
+        const state = useReaderStore.getState();
+        saveBookSettings(id, {
+          fontFamily: state.fontFamily,
+          fontSize: state.fontSize,
+          lineHeight: state.lineHeight,
+          marginHorizontal: state.marginHorizontal,
+          textAlign: state.textAlign,
+          activeTheme: state.activeTheme,
+          paragraphIndent: state.paragraphIndent,
+          paragraphSpacing: state.paragraphSpacing,
+          dropCaps: state.dropCaps,
+          readingRulerEnabled: state.readingRulerEnabled,
+          readingRulerMode: state.readingRulerMode,
+        }).catch(() => {});
       }
       ttsService.stop();
     };

@@ -39,6 +39,7 @@ export const TABLE_STATEMENTS = [
     progress_percentage REAL DEFAULT 0.0 NOT NULL,
     status TEXT DEFAULT 'unread' NOT NULL,
     is_favorite INTEGER DEFAULT 0 NOT NULL,
+    rating INTEGER DEFAULT 0 NOT NULL,
     total_time_read_seconds INTEGER DEFAULT 0 NOT NULL,
     created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
@@ -47,6 +48,7 @@ export const TABLE_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_books_file_hash ON books (file_hash);`,
   `CREATE INDEX IF NOT EXISTS idx_books_status ON books (status);`,
   `CREATE INDEX IF NOT EXISTS idx_books_favorite ON books (is_favorite);`,
+  `CREATE INDEX IF NOT EXISTS idx_books_rating ON books (rating);`,
   `CREATE INDEX IF NOT EXISTS idx_books_last_read ON books (last_read_at);`,
   `CREATE INDEX IF NOT EXISTS idx_books_updated_at ON books (updated_at);`,
 
@@ -178,6 +180,30 @@ export const TABLE_STATEMENTS = [
     longest_streak_days INTEGER DEFAULT 0 NOT NULL,
     last_active_date TEXT
   );`,
+  `CREATE TABLE IF NOT EXISTS opds_servers (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    username TEXT,
+    password TEXT,
+    icon TEXT DEFAULT 'server',
+    created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS book_settings (
+    book_id TEXT PRIMARY KEY REFERENCES books(id) ON DELETE CASCADE,
+    font_family TEXT,
+    font_size INTEGER,
+    line_height REAL,
+    margin_horizontal INTEGER,
+    text_align TEXT,
+    active_theme TEXT,
+    paragraph_indent REAL,
+    paragraph_spacing REAL,
+    drop_caps INTEGER,
+    reading_ruler_enabled INTEGER,
+    reading_ruler_mode TEXT,
+    updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
+  );`,
   `INSERT OR IGNORE INTO user_settings (id, active_theme, warmth_level, font_family, font_size, line_height, margin_horizontal, text_align, keep_awake, haptic_feedback, tts_rate, tts_pitch, online_metadata_enabled)
    VALUES ('default_user', 'light', 0.0, 'Literata', 18, 1.5, 20, 'left', 1, 1, 1.0, 1.0, 0);`,
   `INSERT OR IGNORE INTO reading_goals (id, target_daily_minutes, target_daily_pages, current_streak_days, longest_streak_days)
@@ -248,4 +274,14 @@ export async function initializeTables(sqlite: SQLite.SQLiteDatabase) {
       console.warn('Failed to execute init statement:', err);
     }
   }
+
+  // Safe schema migrations
+  try {
+    const addRatingStmt = 'ALTER TABLE books ADD COLUMN rating INTEGER DEFAULT 0 NOT NULL;';
+    if (typeof sqlite.execAsync === 'function') {
+      await sqlite.execAsync(addRatingStmt);
+    } else if (typeof (sqlite as any).execSync === 'function') {
+      (sqlite as any).execSync(addRatingStmt);
+    }
+  } catch {}
 }

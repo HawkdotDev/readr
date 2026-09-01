@@ -23,13 +23,26 @@ export async function getAllBooks(): Promise<Book[]> {
         .where(eq(schema.bookAuthors.bookId, b.id))
         .orderBy(asc(schema.bookAuthors.orderIndex));
 
+      // Get tags for book
+      const bookTagsList = await db
+        .select({
+          id: schema.tags.id,
+          name: schema.tags.name,
+          color: schema.tags.color,
+        })
+        .from(schema.bookTags)
+        .innerJoin(schema.tags, eq(schema.bookTags.tagId, schema.tags.id))
+        .where(eq(schema.bookTags.bookId, b.id));
+
       result.push({
         ...b,
         progressPercentage: b.progressPercentage ?? 0,
         pageCount: b.pageCount ?? 0,
         totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
         isFavorite: Boolean(b.isFavorite),
+        rating: b.rating ?? 0,
         authors: bookAuthorsList,
+        tags: bookTagsList,
       });
     }
 
@@ -60,13 +73,25 @@ export async function getBookById(id: string): Promise<Book | null> {
       .where(eq(schema.bookAuthors.bookId, b.id))
       .orderBy(asc(schema.bookAuthors.orderIndex));
 
+    const bookTagsList = await db
+      .select({
+        id: schema.tags.id,
+        name: schema.tags.name,
+        color: schema.tags.color,
+      })
+      .from(schema.bookTags)
+      .innerJoin(schema.tags, eq(schema.bookTags.tagId, schema.tags.id))
+      .where(eq(schema.bookTags.bookId, b.id));
+
     return {
       ...b,
       progressPercentage: b.progressPercentage ?? 0,
       pageCount: b.pageCount ?? 0,
       totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
       isFavorite: Boolean(b.isFavorite),
+      rating: b.rating ?? 0,
       authors: bookAuthorsList,
+      tags: bookTagsList,
     };
   } catch (error) {
     console.warn('Failed to get book by id:', error);
@@ -305,6 +330,17 @@ export async function updateBookCover(id: string, coverImagePath: string): Promi
     await sqlite.runAsync(
       `UPDATE books SET cover_image_path = ?, updated_at = strftime('%s', 'now') WHERE id = ?;`,
       [coverImagePath, id]
+    );
+  }
+}
+
+export async function updateBookRating(id: string, rating: number): Promise<void> {
+  const { sqlite } = await getDatabase();
+  const clampedRating = Math.max(0, Math.min(5, Math.round(rating)));
+  if (sqlite) {
+    await sqlite.runAsync(
+      `UPDATE books SET rating = ?, updated_at = strftime('%s', 'now') WHERE id = ?;`,
+      [clampedRating, id]
     );
   }
 }

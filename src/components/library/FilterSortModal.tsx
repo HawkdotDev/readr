@@ -2,9 +2,19 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { useTheme } from '../common/ThemeProvider';
-import { BookFormat } from '../../types';
+import { BookFormat, Tag } from '../../types';
 import { SortOption } from '../../store/libraryStore';
-import { Check, RotateCcw, SlidersHorizontal, Clock, ArrowDownAZ, User, TrendingUp } from 'lucide-react-native';
+import {
+  Check,
+  RotateCcw,
+  SlidersHorizontal,
+  Clock,
+  ArrowDownAZ,
+  User,
+  TrendingUp,
+  Star,
+  Tag as TagIcon,
+} from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import * as Haptics from 'expo-haptics';
 
@@ -15,6 +25,9 @@ export interface FilterSortModalProps {
   onSelectFormat: (format: BookFormat | 'all') => void;
   sortOption: SortOption;
   onSelectSort: (sort: SortOption) => void;
+  allTags?: Tag[];
+  selectedTagId?: string | null;
+  onSelectTag?: (tagId: string | null) => void;
 }
 
 export function FilterSortModal({
@@ -24,13 +37,17 @@ export function FilterSortModal({
   onSelectFormat,
   sortOption,
   onSelectSort,
+  allTags = [],
+  selectedTagId = null,
+  onSelectTag,
 }: FilterSortModalProps) {
   const { colors } = useTheme();
 
   const sortOptions: { label: string; value: SortOption; icon: any }[] = [
     { label: 'Recently Active', value: 'recent', icon: Clock },
+    { label: 'Highest Rating (5★)', value: 'rating', icon: Star },
     { label: 'Title (A–Z)', value: 'title', icon: ArrowDownAZ },
-    { label: 'Author', value: 'author', icon: User },
+    { label: 'Author Name', value: 'author', icon: User },
     { label: 'Reading Progress', value: 'progress', icon: TrendingUp },
   ];
 
@@ -47,6 +64,7 @@ export function FilterSortModal({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     onSelectFormat('all');
     onSelectSort('recent');
+    onSelectTag?.(null);
   };
 
   return (
@@ -97,9 +115,73 @@ export function FilterSortModal({
           })}
         </View>
 
+        {/* Tag Filter Section */}
+        {allTags.length > 0 && (
+          <View style={{ marginTop: 18 }}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>FILTER BY TAG</Text>
+            <View style={styles.formatGrid}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  onSelectTag?.(null);
+                }}
+                style={[
+                  styles.formatPill,
+                  {
+                    backgroundColor: selectedTagId === null ? colors.accent : colors.canvas,
+                    borderColor: selectedTagId === null ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.formatPillText,
+                    {
+                      color: selectedTagId === null ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+                    },
+                  ]}
+                >
+                  All Tags
+                </Text>
+              </TouchableOpacity>
+
+              {allTags.map((tag) => {
+                const isSelected = selectedTagId === tag.id;
+                return (
+                  <TouchableOpacity
+                    key={tag.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      onSelectTag?.(isSelected ? null : tag.id);
+                    }}
+                    style={[
+                      styles.formatPill,
+                      {
+                        backgroundColor: isSelected ? colors.accent : colors.canvas,
+                        borderColor: isSelected ? colors.accent : colors.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.formatPillText,
+                        {
+                          color: isSelected ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+                        },
+                      ]}
+                    >
+                      🏷️ {tag.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Format Filter Section */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 20 }]}>
-          FILTER BY FILE FORMAT
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 18 }]}>
+          E-BOOK FORMAT
         </Text>
         <View style={styles.formatGrid}>
           {formatOptions.map((fmt) => {
@@ -112,22 +194,18 @@ export function FilterSortModal({
                   onSelectFormat(fmt.value);
                 }}
                 style={[
-                  styles.formatChip,
+                  styles.formatPill,
                   {
-                    backgroundColor: isSelected ? colors.accent : colors.surface,
+                    backgroundColor: isSelected ? colors.accent : colors.canvas,
                     borderColor: isSelected ? colors.accent : colors.border,
                   },
                 ]}
               >
                 <Text
                   style={[
-                    styles.formatText,
+                    styles.formatPillText,
                     {
-                      color: isSelected
-                        ? colors.isDark
-                          ? '#000000'
-                          : '#FFFFFF'
-                        : colors.textSecondary,
+                      color: isSelected ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
                       fontFamily: isSelected ? FONTS.mona.bold : FONTS.mona.medium,
                     },
                   ]}
@@ -139,29 +217,20 @@ export function FilterSortModal({
           })}
         </View>
 
-        {/* Bottom Actions */}
-        <View style={styles.bottomRow}>
-          <TouchableOpacity
-            onPress={handleReset}
-            style={[styles.resetBtn, { borderColor: colors.border }]}
-          >
-            <RotateCcw size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
-            <Text style={[styles.resetBtnText, { color: colors.textSecondary }]}>Reset All</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={onClose}
-            style={[styles.doneBtn, { backgroundColor: colors.accent }]}
-          >
-            <Text style={[styles.doneBtnText, { color: colors.isDark ? '#000000' : '#FFFFFF' }]}>
-              Apply Filters
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Reset Actions */}
+        <TouchableOpacity
+          onPress={handleReset}
+          style={[styles.resetBtn, { borderColor: colors.border }]}
+        >
+          <RotateCcw size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+          <Text style={[styles.resetBtnText, { color: colors.textSecondary }]}>Reset All Filters</Text>
+        </TouchableOpacity>
       </ScrollView>
     </Sheet>
   );
 }
+
+export default FilterSortModal;
 
 const styles = StyleSheet.create({
   content: {
@@ -181,8 +250,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
     paddingHorizontal: 14,
+    paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -191,35 +260,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionLabel: {
-    fontSize: 14,
-    letterSpacing: -0.2,
+    fontSize: 13.5,
+    letterSpacing: -0.1,
   },
   formatGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  formatChip: {
+  formatPill: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 20,
     borderWidth: 1,
   },
-  formatText: {
-    fontSize: 13,
-    letterSpacing: -0.1,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 24,
+  formatPillText: {
+    fontSize: 12.5,
   },
   resetBtn: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 24,
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
@@ -227,17 +289,5 @@ const styles = StyleSheet.create({
   resetBtnText: {
     fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
-  },
-  doneBtn: {
-    flex: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  doneBtnText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 13,
-    letterSpacing: -0.2,
   },
 });

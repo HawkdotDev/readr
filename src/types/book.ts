@@ -102,4 +102,32 @@ export interface Book {
   lastReadAt?: Date | null;
   authors?: Author[];
   toc?: TOCEntry[];
+  tags?: Tag[];
+  rating?: number; // 0 (unrated) or 1 - 5 stars
+}
+
+export interface OPDSServer {
+  id: string;
+  title: string;
+  url: string;
+  username?: string | null;
+  password?: string | null;
+  icon?: string | null;
+  createdAt: Date;
+}
+
+export interface BookSettings {
+  bookId: string;
+  fontFamily?: string | null;
+  fontSize?: number | null;
+  lineHeight?: number | null;
+  marginHorizontal?: number | null;
+  textAlign?: 'left' | 'justify' | null;
+  activeTheme?: string | null;
+  paragraphIndent?: number | null;
+  paragraphSpacing?: number | null;
+  dropCaps?: boolean | null;
+  readingRulerEnabled?: boolean | null;
+  readingRulerMode?: string | null;
+  updatedAt?: Date;
 }

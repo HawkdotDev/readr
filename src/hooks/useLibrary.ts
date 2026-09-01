@@ -1,6 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Book, BookFormat } from '../types';
-import { getAllBooks, toggleBookFavorite as toggleBookFavoriteQuery } from '../db/queries/books';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Book, BookFormat, Tag } from '../types';
+import {
+  getAllBooks,
+  toggleBookFavorite as toggleBookFavoriteQuery,
+  updateBookRating as updateBookRatingQuery,
+} from '../db/queries/books';
+import { getAllTags } from '../db/queries/tags';
 import { autoEnrichBookCoverIfMissing } from '../services/metadata/metadataService';
 import { useLibraryStore, SortOption, LibraryViewMode, LibraryFilterStatus } from '../store/libraryStore';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +16,7 @@ export interface UseLibraryResult {
   featuredBook: Book | null;
   inProgressBooks: Book[];
   favoriteBooks: Book[];
+  allTags: Tag[];
   loading: boolean;
   refreshing: boolean;
   searchQuery: string;
@@ -19,17 +25,21 @@ export interface UseLibraryResult {
   setSelectedStatus: (status: LibraryFilterStatus) => void;
   selectedFormat: BookFormat | 'all';
   setSelectedFormat: (format: BookFormat | 'all') => void;
+  selectedTagId: string | null;
+  setSelectedTagId: (tagId: string | null) => void;
   viewMode: LibraryViewMode;
   setViewMode: (mode: LibraryViewMode) => void;
   sortOption: SortOption;
   setSortOption: (sort: SortOption) => void;
   toggleFavorite: (bookId: string) => Promise<boolean>;
+  updateRating: (bookId: string, rating: number) => Promise<void>;
   loadBooks: () => Promise<void>;
   onRefresh: () => Promise<void>;
 }
 
 export function useLibrary(): UseLibraryResult {
   const [books, setBooks] = useState<Book[]>([]);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -40,6 +50,8 @@ export function useLibrary(): UseLibraryResult {
     setSelectedStatus,
     selectedFormat,
     setSelectedFormat,
+    selectedTagId,
+    setSelectedTagId,
     viewMode,
     setViewMode,
     sortOption,
@@ -49,8 +61,9 @@ export function useLibrary(): UseLibraryResult {
   const loadBooks = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getAllBooks();
+      const [data, tagsData] = await Promise.all([getAllBooks(), getAllTags()]);
       setBooks(data);
+      setAllTags(tagsData);
 
       // Auto-enrich any books without cover art in the background
       const missingCovers = data.filter((b) => !b.coverImagePath);
@@ -74,6 +87,10 @@ export function useLibrary(): UseLibraryResult {
     }
   }, []);
 
+  useEffect(() => {
+    loadBooks();
+  }, [loadBooks]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadBooks();
@@ -81,13 +98,12 @@ export function useLibrary(): UseLibraryResult {
   }, [loadBooks]);
 
   /**
-   * Ultra-fast optimistic favorite toggle (0ms UI latency + background sync)
+   * Optimistic favorite toggle (0ms UI latency + background sync)
    */
   const toggleFavorite = useCallback(
     async (bookId: string): Promise<boolean> => {
       let currentVal = false;
       
-      // 1. Optimistically mutate local state with immediate haptic response
       setBooks((prevBooks) => {
         const target = prevBooks.find((b) => b.id === bookId);
         if (target) {
@@ -102,13 +118,11 @@ export function useLibrary(): UseLibraryResult {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       } catch {}
 
-      // 2. Persist to SQLite in background
       try {
         await toggleBookFavoriteQuery(bookId, currentVal);
         return !currentVal;
       } catch (err) {
         console.error('Failed to persist favorite toggle, rolling back:', err);
-        // Rollback state
         setBooks((prevBooks) =>
           prevBooks.map((b) =>
             b.id === bookId ? { ...b, isFavorite: currentVal } : b
@@ -119,6 +133,21 @@ export function useLibrary(): UseLibraryResult {
     },
     []
   );
+
+  /**
+   * Update 1-5 Star Book Rating
+   */
+  const updateRating = useCallback(async (bookId: string, rating: number): Promise<void> => {
+    setBooks((prevBooks) =>
+      prevBooks.map((b) => (b.id === bookId ? { ...b, rating } : b))
+    );
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      await updateBookRatingQuery(bookId, rating);
+    } catch (err) {
+      console.warn('Failed to update rating:', err);
+    }
+  }, []);
 
   const featuredBook = useMemo(() => {
     return (
@@ -144,7 +173,6 @@ export function useLibrary(): UseLibraryResult {
   }, [books]);
 
   const filteredBooks = useMemo(() => {
-    // If not searching, base list is user's favorites (or all books if none favorited yet)
     const baseList = searchQuery.trim()
       ? books
       : books.some((b) => b.isFavorite)
@@ -169,11 +197,19 @@ export function useLibrary(): UseLibraryResult {
         return false;
       }
 
+      if (selectedTagId) {
+        const hasTag = b.tags?.some((t) => t.id === selectedTagId);
+        if (!hasTag) return false;
+      }
+
       return true;
     });
 
     // Apply sorting
     return list.sort((a, b) => {
+      if (sortOption === 'rating') {
+        return (b.rating || 0) - (a.rating || 0);
+      }
       if (sortOption === 'title') {
         return a.title.localeCompare(b.title);
       }
@@ -190,7 +226,7 @@ export function useLibrary(): UseLibraryResult {
       const timeB = b.lastReadAt ? new Date(b.lastReadAt).getTime() : new Date(b.updatedAt).getTime();
       return timeB - timeA;
     });
-  }, [books, searchQuery, selectedStatus, selectedFormat, sortOption]);
+  }, [books, searchQuery, selectedStatus, selectedFormat, selectedTagId, sortOption]);
 
   return {
     books,
@@ -198,6 +234,7 @@ export function useLibrary(): UseLibraryResult {
     featuredBook,
     inProgressBooks,
     favoriteBooks,
+    allTags,
     loading,
     refreshing,
     searchQuery,
@@ -206,11 +243,14 @@ export function useLibrary(): UseLibraryResult {
     setSelectedStatus,
     selectedFormat,
     setSelectedFormat,
+    selectedTagId,
+    setSelectedTagId,
     viewMode,
     setViewMode,
     sortOption,
     setSortOption,
     toggleFavorite,
+    updateRating,
     loadBooks,
     onRefresh,
   };

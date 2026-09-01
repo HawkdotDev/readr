@@ -160,4 +160,51 @@ describe('Library Filtering & Sorting Logic', () => {
     expect(sorted[0].title).toBe('Crime and Punishment');
     expect(sorted[0].isFavorite).toBe(true);
   });
+
+  it('filters books by tag correctly', () => {
+    const booksWithTags: Book[] = [
+      {
+        ...sampleBooks[0],
+        tags: [{ id: 'tag_classics', name: 'Classics' }],
+      },
+      {
+        ...sampleBooks[1],
+        tags: [{ id: 'tag_philosophy', name: 'Philosophy' }],
+      },
+      {
+        ...sampleBooks[2],
+        tags: [{ id: 'tag_classics', name: 'Classics' }],
+      },
+    ];
+
+    const philosophyBooks = booksWithTags.filter((b) =>
+      b.tags?.some((t) => t.id === 'tag_philosophy')
+    );
+    expect(philosophyBooks.length).toBe(1);
+    expect(philosophyBooks[0].title).toBe('Meditations');
+
+    const classicBooks = booksWithTags.filter((b) =>
+      b.tags?.some((t) => t.id === 'tag_classics')
+    );
+    expect(classicBooks.length).toBe(2);
+  });
+
+  it('sorts books by star rating (highest rating first)', () => {
+    const ratedBooks: Book[] = [
+      { ...sampleBooks[0], rating: 4 },
+      { ...sampleBooks[1], rating: 5 },
+      { ...sampleBooks[2], rating: 2 },
+    ];
+
+    const sortedByRating = [...ratedBooks].sort(
+      (a, b) => (b.rating || 0) - (a.rating || 0)
+    );
+
+    expect(sortedByRating[0].title).toBe('Meditations');
+    expect(sortedByRating[0].rating).toBe(5);
+    expect(sortedByRating[1].title).toBe('Crime and Punishment');
+    expect(sortedByRating[1].rating).toBe(4);
+    expect(sortedByRating[2].title).toBe('Notes from Underground');
+    expect(sortedByRating[2].rating).toBe(2);
+  });
 });

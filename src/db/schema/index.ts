@@ -22,6 +22,7 @@ export const books = sqliteTable('books', {
   progressPercentage: real('progress_percentage').default(0.0).notNull(),
   status: text('status', { enum: ['unread', 'reading', 'finished', 'abandoned'] }).default('unread').notNull(),
   isFavorite: integer('is_favorite', { mode: 'boolean' }).default(false).notNull(),
+  rating: integer('rating').default(0).notNull(), // 0 = unrated, 1 - 5 stars
   totalTimeReadSeconds: integer('total_time_read_seconds').default(0).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
@@ -31,6 +32,7 @@ export const books = sqliteTable('books', {
   index('books_status_idx').on(table.status),
   index('books_last_read_idx').on(table.lastReadAt),
   index('books_favorite_idx').on(table.isFavorite),
+  index('books_rating_idx').on(table.rating),
 ]);
 
 // 2. Authors Table
@@ -172,4 +174,32 @@ export const readingGoals = sqliteTable('reading_goals', {
   currentStreakDays: integer('current_streak_days').default(0).notNull(),
   longestStreakDays: integer('longest_streak_days').default(0).notNull(),
   lastActiveDate: text('last_active_date'),
+});
+
+// 9. Custom OPDS Catalogs
+export const opdsServers = sqliteTable('opds_servers', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  username: text('username'),
+  password: text('password'),
+  icon: text('icon').default('server'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+});
+
+// 10. Per-Book Custom Settings
+export const bookSettings = sqliteTable('book_settings', {
+  bookId: text('book_id').primaryKey().references(() => books.id, { onDelete: 'cascade' }),
+  fontFamily: text('font_family'),
+  fontSize: integer('font_size'),
+  lineHeight: real('line_height'),
+  marginHorizontal: integer('margin_horizontal'),
+  textAlign: text('text_align', { enum: ['left', 'justify'] }),
+  activeTheme: text('active_theme'),
+  paragraphIndent: real('paragraph_indent'),
+  paragraphSpacing: real('paragraph_spacing'),
+  dropCaps: integer('drop_caps', { mode: 'boolean' }),
+  readingRulerEnabled: integer('reading_ruler_enabled', { mode: 'boolean' }),
+  readingRulerMode: text('reading_ruler_mode'),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 });

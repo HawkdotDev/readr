@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
-import { BookFormat } from '../../types';
+import { BookFormat, Tag } from '../../types';
 import { SortOption, LibraryFilterStatus } from '../../store/libraryStore';
 import { SlidersHorizontal } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
@@ -15,6 +15,9 @@ export interface FilterBarProps {
   onSelectFormat: (format: BookFormat | 'all') => void;
   sortOption: SortOption;
   onSelectSort: (sort: SortOption) => void;
+  allTags?: Tag[];
+  selectedTagId?: string | null;
+  onSelectTag?: (tagId: string | null) => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -24,6 +27,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onSelectFormat,
   sortOption,
   onSelectSort,
+  allTags = [],
+  selectedTagId = null,
+  onSelectTag,
 }) => {
   const { colors } = useTheme();
   const [isMoreFiltersOpen, setIsMoreFiltersOpen] = useState(false);
@@ -120,6 +126,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         onSelectFormat={onSelectFormat}
         sortOption={sortOption}
         onSelectSort={onSelectSort}
+        allTags={allTags}
+        selectedTagId={selectedTagId}
+        onSelectTag={onSelectTag}
       />
     </View>
   );
