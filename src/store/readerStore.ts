@@ -15,6 +15,12 @@ import {
   ReadingRulerMode,
   PaperTexture,
 } from '../types';
+import {
+  TouchZone,
+  TouchAction,
+  TouchZoneConfig,
+  DEFAULT_TOUCH_ZONE_CONFIG,
+} from '../services/reader/touchZoneService';
 
 export type ActiveSheet = 'none' | 'toc' | 'typography' | 'theme' | 'tts' | 'annotations' | 'dictionary' | 'search';
 
@@ -52,6 +58,16 @@ export interface ReaderState {
   navigationMode: NavigationMode;
   volumeKeysTurnPages: boolean;
   dualPageMode: boolean | 'auto';
+
+  // 9-Zone Touch Grid & Gestures
+  touchZoneMappings: TouchZoneConfig;
+  edgeBrightnessEnabled: boolean;
+  brightness: number; // 0.0 to 1.0
+
+  // Sensors & Gestures
+  shakeToSpeechEnabled: boolean;
+  tiltToTurnEnabled: boolean;
+  tiltSensitivity: number; // 15 to 45 deg
 
   // Bionic Reading Engine
   bionicReadingEnabled: boolean;
@@ -104,6 +120,15 @@ export interface ReaderState {
   setVolumeKeysTurnPages: (enabled: boolean) => void;
   setDualPageMode: (mode: boolean | 'auto') => void;
 
+  setTouchZoneMappings: (config: TouchZoneConfig) => void;
+  updateTouchZoneAction: (zone: TouchZone, action: TouchAction) => void;
+  setEdgeBrightnessEnabled: (enabled: boolean) => void;
+  setBrightness: (val: number) => void;
+
+  setShakeToSpeechEnabled: (enabled: boolean) => void;
+  setTiltToTurnEnabled: (enabled: boolean) => void;
+  setTiltSensitivity: (sens: number) => void;
+
   setBionicReadingEnabled: (enabled: boolean) => void;
   setBionicFixation: (fixation: BionicFixation) => void;
 
@@ -152,6 +177,14 @@ export const useReaderStore = create<ReaderState>((set) => ({
   navigationMode: 'both',
   volumeKeysTurnPages: false,
   dualPageMode: 'auto',
+
+  touchZoneMappings: DEFAULT_TOUCH_ZONE_CONFIG,
+  edgeBrightnessEnabled: true,
+  brightness: 0.8,
+
+  shakeToSpeechEnabled: false,
+  tiltToTurnEnabled: false,
+  tiltSensitivity: 25,
 
   bionicReadingEnabled: false,
   bionicFixation: 'medium',
@@ -227,6 +260,22 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setNavigationMode: (navigationMode) => set({ navigationMode }),
   setVolumeKeysTurnPages: (volumeKeysTurnPages) => set({ volumeKeysTurnPages }),
   setDualPageMode: (dualPageMode) => set({ dualPageMode }),
+
+  setTouchZoneMappings: (touchZoneMappings) => set({ touchZoneMappings }),
+  updateTouchZoneAction: (zone, action) =>
+    set((state) => ({
+      touchZoneMappings: {
+        ...state.touchZoneMappings,
+        [zone]: action,
+      },
+    })),
+  setEdgeBrightnessEnabled: (edgeBrightnessEnabled) => set({ edgeBrightnessEnabled }),
+  setBrightness: (brightness) => set({ brightness: Math.max(0.05, Math.min(1.0, brightness)) }),
+
+  setShakeToSpeechEnabled: (shakeToSpeechEnabled) => set({ shakeToSpeechEnabled }),
+  setTiltToTurnEnabled: (tiltToTurnEnabled) => set({ tiltToTurnEnabled }),
+  setTiltSensitivity: (tiltSensitivity) =>
+    set({ tiltSensitivity: Math.max(15, Math.min(50, tiltSensitivity)) }),
 
   setBionicReadingEnabled: (bionicReadingEnabled) => set({ bionicReadingEnabled }),
   setBionicFixation: (bionicFixation) => set({ bionicFixation }),

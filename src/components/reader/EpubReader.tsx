@@ -20,9 +20,11 @@ import { progressTracker } from '../../services/reader/progressTracker';
 import { ReadingRuler } from './ReadingRuler';
 import { AutoScrollController } from './AutoScrollController';
 import { SpeedometerOverlay } from './SpeedometerOverlay';
+import { EdgeBrightnessGesture } from './EdgeBrightnessGesture';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import { getFixationLength } from '../../utils/bionic';
+import { resolveActionForTap } from '../../services/reader/touchZoneService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -44,7 +46,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   onOpenAnnotations,
 }) => {
   const { colors } = useTheme();
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIndex);
   const scrollRef = useRef<any>(null);
   const scrollOffsetRef = useRef<number>(0);
@@ -68,6 +70,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     readingRulerMode,
     readingRulerHeight,
     readingRulerOpacity,
+    touchZoneMappings,
+    edgeBrightnessEnabled,
+    setBrightness,
+    setReadingRulerEnabled,
+    setBionicReadingEnabled,
+    toggleAutoScroll,
+    setActiveSheet,
     setCurrentChapter,
     setLocation,
   } = useReaderStore();
@@ -91,6 +100,20 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const touchStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const lastTapRef = useRef<number>(0);
 
+  const handleNextChapter = () => {
+    if (currentChapterIdx < chapters.length - 1) {
+      setCurrentChapterIdx((prev) => prev + 1);
+      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+    }
+  };
+
+  const handlePrevChapter = () => {
+    if (currentChapterIdx > 0) {
+      setCurrentChapterIdx((prev) => prev - 1);
+      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+    }
+  };
+
   const handleTouchStart = (e: GestureResponderEvent) => {
     const { pageX, pageY } = e.nativeEvent;
     touchStartRef.current = { time: Date.now(), x: pageX, y: pageY };
@@ -111,21 +134,37 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         lastTapRef.current = 0;
       } else {
         lastTapRef.current = now;
+        // Resolve 9-Zone touch mapping
+        const { action } = resolveActionForTap(pageX, pageY, windowWidth, windowHeight, touchZoneMappings);
+        switch (action) {
+          case 'nextPage':
+            handleNextChapter();
+            break;
+          case 'prevPage':
+            handlePrevChapter();
+            break;
+          case 'toggleChrome':
+            onToggleChrome();
+            break;
+          case 'autoScroll':
+            toggleAutoScroll();
+            break;
+          case 'readingRuler':
+            setReadingRulerEnabled(!readingRulerEnabled);
+            break;
+          case 'bionic':
+            setBionicReadingEnabled(!bionicReadingEnabled);
+            break;
+          case 'tts':
+            setActiveSheet('tts');
+            break;
+          case 'search':
+            setActiveSheet('search');
+            break;
+          default:
+            break;
+        }
       }
-    }
-  };
-
-  const handleNextChapter = () => {
-    if (currentChapterIdx < chapters.length - 1) {
-      setCurrentChapterIdx((prev) => prev + 1);
-      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
-    }
-  };
-
-  const handlePrevChapter = () => {
-    if (currentChapterIdx > 0) {
-      setCurrentChapterIdx((prev) => prev - 1);
-      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
     }
   };
 
@@ -444,6 +483,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             <ChevronRight size={20} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
+      )}
+
+      {/* Left-Edge Vertical Swipe Brightness Gesture */}
+      {edgeBrightnessEnabled && (
+        <EdgeBrightnessGesture onBrightnessChange={setBrightness} />
       )}
 
       {/* Speedometer Telemetry HUD */}

@@ -39,6 +39,7 @@ import {
   ThemeMode,
 } from '../../types';
 import { pickAndImportCustomFont, loadSavedCustomFonts } from '../../services/storage/fontManager';
+import { TouchZoneConfigModal } from './TouchZoneConfigModal';
 import { THEME_PALETTES } from '../../utils/theme';
 
 export interface TypographySheetProps {
@@ -50,6 +51,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
   const { colors, themeMode, setThemeMode, warmthLevel, setWarmthLevel } = useTheme();
   const [activeTab, setActiveTab] = useState<'typography' | 'experience' | 'focus'>('typography');
   const [isImportingFont, setIsImportingFont] = useState(false);
+  const [showTouchZoneModal, setShowTouchZoneModal] = useState(false);
 
   const {
     fontFamily,
@@ -67,6 +69,10 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     dualPageMode,
     customFonts,
     pageTransition,
+    edgeBrightnessEnabled,
+    shakeToSpeechEnabled,
+    tiltToTurnEnabled,
+    tiltSensitivity,
     bionicReadingEnabled,
     bionicFixation,
     isAutoScrolling,
@@ -93,6 +99,10 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     setDualPageMode,
     setCustomFonts,
     addCustomFont,
+    setEdgeBrightnessEnabled,
+    setShakeToSpeechEnabled,
+    setTiltToTurnEnabled,
+    setTiltSensitivity,
     setBionicReadingEnabled,
     setBionicFixation,
     toggleAutoScroll,
@@ -812,9 +822,45 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
               </View>
             </View>
 
-            {/* Hardware Controls */}
+            {/* 9-Zone Touch Action Mapping */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
-              HARDWARE & TACTILE
+              TOUCH GESTURES & ZONES
+            </Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setShowTouchZoneModal(true);
+                }}
+                style={[styles.startAutoScrollBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+              >
+                <Text style={[styles.startAutoScrollText, { color: colors.textPrimary }]}>
+                  🎛️ Customize 9-Zone Touch Grid Actions
+                </Text>
+              </TouchableOpacity>
+
+              <View style={[styles.toggleRow, { marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Edge-Swipe Brightness</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Swipe left edge up/down to adjust screen brightness
+                  </Text>
+                </View>
+                <Switch
+                  value={edgeBrightnessEnabled}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setEdgeBrightnessEnabled(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            </View>
+
+            {/* Hardware & Motion Sensors */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              HARDWARE & MOTION SENSORS
             </Text>
             <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
               <View style={styles.toggleRow}>
@@ -834,6 +880,56 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                   thumbColor="#FFFFFF"
                 />
               </View>
+
+              <View style={[styles.toggleRow, { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Shake-to-Speech (TTS)</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Shake device to toggle audio narration playback
+                  </Text>
+                </View>
+                <Switch
+                  value={shakeToSpeechEnabled}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setShakeToSpeechEnabled(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              <View style={[styles.toggleRow, { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Tilt-to-Turn Pages</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Tilt device sideways to flip to next or previous page
+                  </Text>
+                </View>
+                <Switch
+                  value={tiltToTurnEnabled}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setTiltToTurnEnabled(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              {tiltToTurnEnabled && (
+                <View style={{ marginTop: 8 }}>
+                  <Slider
+                    label="Tilt Angle Sensitivity"
+                    value={tiltSensitivity}
+                    min={15}
+                    max={45}
+                    step={5}
+                    unit="°"
+                    onChange={setTiltSensitivity}
+                  />
+                </View>
+              )}
             </View>
           </View>
         ) : (
@@ -979,6 +1075,12 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
           </View>
         )}
       </ScrollView>
+
+      {/* 9-Zone Touch Action Mapping Modal */}
+      <TouchZoneConfigModal
+        visible={showTouchZoneModal}
+        onClose={() => setShowTouchZoneModal(false)}
+      />
     </Sheet>
   );
 }
