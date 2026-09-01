@@ -199,10 +199,10 @@ export default function LibraryScreen() {
               />
             )}
 
-            {/* Recent Books Section Header */}
+            {/* Favourites Section Header */}
             {books.length > 0 && (
               <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Recent</Text>
+                <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Favourites</Text>
                 <TouchableOpacity
                   onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
                   style={styles.viewModeToggle}

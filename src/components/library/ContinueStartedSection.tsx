@@ -35,7 +35,7 @@ export const ContinueStartedSection: React.FC<ContinueStartedSectionProps> = ({
         <View style={styles.titleWithIcon}>
           <BookMarked size={16} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            Continue books you started
+            Books you started
           </Text>
         </View>
         <Text style={[styles.subHint, { color: colors.textSecondary }]}>
@@ -145,7 +145,7 @@ export const ContinueStartedSection: React.FC<ContinueStartedSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
     marginTop: 6,
   },
   headerRow: {

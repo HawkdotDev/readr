@@ -141,7 +141,7 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 25,
     marginTop: 10,
   },
   headerRow: {
