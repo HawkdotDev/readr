@@ -1,5 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, StyleSheet, Alert, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { BookCard } from '../../src/components/library/BookCard';
@@ -11,7 +19,10 @@ import { YouMightLikeSection } from '../../src/components/library/YouMightLikeSe
 import { ContinueStartedSection } from '../../src/components/library/ContinueStartedSection';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { useLibrary } from '../../src/hooks/useLibrary';
-import { downloadRecommendedBook, RecommendedBook } from '../../src/services/recommendations/recommendationService';
+import {
+  downloadRecommendedBook,
+  RecommendedBook,
+} from '../../src/services/recommendations/recommendationService';
 import { toggleBookFavorite, updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book } from '../../src/types';
 import { Plus, Search, LayoutGrid, List } from 'lucide-react-native';
@@ -147,122 +158,136 @@ export default function LibraryScreen() {
         </View>
       </View>
 
-      {/* Main List */}
-      <FlatList
-        data={filteredBooks}
-        key={viewMode}
-        numColumns={viewMode === 'grid' ? 2 : 1}
-        columnWrapperStyle={viewMode === 'grid' ? styles.gridColumnWrapper : undefined}
-        keyExtractor={(item) => item.id}
-        initialNumToRender={8}
-        maxToRenderPerBatch={10}
-        windowSize={7}
-        removeClippedSubviews={Platform.OS === 'android'}
-        updateCellsBatchingPeriod={40}
+      {/* Main Scroll Container */}
+      <ScrollView
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
-        ListHeaderComponent={
-          <View style={styles.listHeader}>
-            {isSearchOpen && (
-              <View style={styles.searchContainer}>
-                <SearchBar
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder="Search your library..."
-                  autoFocus={true}
-                />
-              </View>
-            )}
-
-            {/* Pick Up Where You Left Off Section Header & Hero Card */}
-            {featuredBook && !searchQuery.trim() && (
-              <View style={styles.heroSection}>
-                <Text style={[styles.heroSectionTitle, { color: colors.textSecondary }]}>
-                  Pick up where you left off
-                </Text>
-                <ContinueReadingCard
-                  book={featuredBook}
-                  onPress={() => router.push(`/reader/${featuredBook.id}` as any)}
-                  onLongPress={() => setSelectedWheelBook(featuredBook)}
-                  onOptionsPress={() => setSelectedWheelBook(featuredBook)}
-                />
-              </View>
-            )}
-
-            {/* Continue Books You Started Section */}
-            {!searchQuery.trim() && inProgressBooks.length > 0 && (
-              <ContinueStartedSection
-                books={inProgressBooks}
-                onBookPress={(b) => router.push(`/reader/${b.id}` as any)}
-                onBookLongPress={(b) => setSelectedWheelBook(b)}
-              />
-            )}
-
-            {/* You Might Like Side-Scrolling Section */}
-            {!searchQuery.trim() && (
-              <YouMightLikeSection
-                existingBooks={books}
-                onBookPress={handleRecommendedBookPress}
-                loadingBookId={loadingRecId}
-              />
-            )}
-
-            {/* Favourites Section Header */}
-            {books.length > 0 && (
-              <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Favourites</Text>
-                <TouchableOpacity
-                  onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                  style={styles.viewModeToggle}
-                  accessible={true}
-                  accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-                >
-                  {viewMode === 'grid' ? (
-                    <List size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                  ) : (
-                    <LayoutGrid size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                  )}
-                  <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
-                    {viewMode === 'grid' ? 'View list' : 'View grid'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <FilterBar
-              selectedStatus={selectedStatus}
-              onSelectStatus={setSelectedStatus}
-              selectedFormat={selectedFormat}
-              onSelectFormat={setSelectedFormat}
-              viewMode={viewMode}
-              onToggleViewMode={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              sortOption={sortOption}
-              onSelectSort={setSortOption}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
+        }
+      >
+        {isSearchOpen && (
+          <View style={styles.searchContainer}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search your library..."
+              autoFocus={true}
             />
           </View>
-        }
-        ListEmptyComponent={
-          books.length === 0 ? (
-            <EmptyLibrary onImportPress={handleImport} onExplorePress={() => router.push('/explore')} />
-          ) : (
-            <View style={styles.noResults}>
-              <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
-                No books match your current filters.
-              </Text>
-            </View>
-          )
-        }
-        renderItem={({ item }) => (
-          <BookCard
-            book={item}
-            viewMode={viewMode}
-            onPress={() => router.push(`/reader/${item.id}` as any)}
-            onLongPress={() => setSelectedWheelBook(item)}
+        )}
+
+        {/* Pick Up Where You Left Off Section Header & Hero Card */}
+        {featuredBook && !searchQuery.trim() && (
+          <View style={styles.heroSection}>
+            <Text style={[styles.heroSectionTitle, { color: colors.textSecondary }]}>
+              Pick up where you left off
+            </Text>
+            <ContinueReadingCard
+              book={featuredBook}
+              onPress={() => router.push(`/reader/${featuredBook.id}` as any)}
+              onLongPress={() => setSelectedWheelBook(featuredBook)}
+              onOptionsPress={() => setSelectedWheelBook(featuredBook)}
+            />
+          </View>
+        )}
+
+        {/* Continue Books You Started Section */}
+        {!searchQuery.trim() && inProgressBooks.length > 0 && (
+          <ContinueStartedSection
+            books={inProgressBooks}
+            onBookPress={(b) => router.push(`/reader/${b.id}` as any)}
+            onBookLongPress={(b) => setSelectedWheelBook(b)}
           />
         )}
-      />
 
-      {/* Pinterest-like Wheel of Options */}
+        {/* You Might Like Side-Scrolling Section */}
+        {!searchQuery.trim() && (
+          <YouMightLikeSection
+            existingBooks={books}
+            onBookPress={handleRecommendedBookPress}
+            loadingBookId={loadingRecId}
+          />
+        )}
+
+        {/* Favourites Section Header */}
+        {books.length > 0 && (
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Favourites</Text>
+            <TouchableOpacity
+              onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+              style={styles.viewModeToggle}
+              accessible={true}
+              accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+            >
+              {viewMode === 'grid' ? (
+                <List size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              ) : (
+                <LayoutGrid size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              )}
+              <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
+                {viewMode === 'grid' ? 'View list' : 'View grid'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <FilterBar
+          selectedStatus={selectedStatus}
+          onSelectStatus={setSelectedStatus}
+          selectedFormat={selectedFormat}
+          onSelectFormat={setSelectedFormat}
+          viewMode={viewMode}
+          onToggleViewMode={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          sortOption={sortOption}
+          onSelectSort={setSortOption}
+        />
+
+        {/* Books List / Grid */}
+        {books.length === 0 ? (
+          <EmptyLibrary
+            onImportPress={handleImport}
+            onExplorePress={() => router.push('/explore')}
+          />
+        ) : filteredBooks.length === 0 ? (
+          <View style={styles.noResults}>
+            <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
+              No books match your current filters.
+            </Text>
+          </View>
+        ) : viewMode === 'grid' ? (
+          <View style={styles.gridContainer}>
+            {filteredBooks.map((item) => (
+              <View key={item.id} style={styles.gridItemWrapper}>
+                <BookCard
+                  book={item}
+                  viewMode="grid"
+                  onPress={() => router.push(`/reader/${item.id}` as any)}
+                  onLongPress={() => setSelectedWheelBook(item)}
+                />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.listCardContainer}>
+            {filteredBooks.map((item) => (
+              <BookCard
+                key={item.id}
+                book={item}
+                viewMode="list"
+                onPress={() => router.push(`/reader/${item.id}` as any)}
+                onLongPress={() => setSelectedWheelBook(item)}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Popover Options Menu */}
       <RadialOptionsMenu
         visible={Boolean(selectedWheelBook)}
         book={selectedWheelBook}
@@ -313,20 +338,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     letterSpacing: -0.8,
   },
-  heroSection: {
-    marginBottom: 0,
-  },
-  heroSectionTitle: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 13,
-    marginBottom: 8,
-    letterSpacing: -0.1,
-    opacity: 0.85,
-  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   iconBtn: {
     width: 40,
@@ -350,14 +365,21 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 110,
-  },
-  listHeader: {
     paddingTop: 16,
-    paddingBottom: 4,
+    paddingBottom: 110,
   },
   searchContainer: {
     marginBottom: 14,
+  },
+  heroSection: {
+    marginBottom: 16,
+  },
+  heroSectionTitle: {
+    fontFamily: FONTS.mono.semiBold,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 10,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -381,8 +403,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mona.medium,
     fontSize: 13,
   },
-  gridColumnWrapper: {
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingTop: 4,
+  },
+  gridItemWrapper: {
+    width: '48%',
+  },
+  listCardContainer: {
+    flexDirection: 'column',
+    paddingTop: 4,
   },
   noResults: {
     paddingVertical: 48,
