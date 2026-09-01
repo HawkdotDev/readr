@@ -6,52 +6,46 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { Book } from '../../types';
-import { RecommendedBook, getPersonalizedRecommendations } from '../../services/recommendations/recommendationService';
-import { BookOpen, Sparkles, Plus } from 'lucide-react-native';
+import { BookOpen, BookMarked } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import * as Haptics from 'expo-haptics';
 
-export interface YouMightLikeSectionProps {
-  existingBooks: Book[];
-  onBookPress: (book: RecommendedBook) => void;
-  loadingBookId?: string | null;
+export interface ContinueStartedSectionProps {
+  books: Book[];
+  onBookPress: (book: Book) => void;
+  onBookLongPress?: (book: Book) => void;
 }
 
-export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
-  existingBooks,
+export const ContinueStartedSection: React.FC<ContinueStartedSectionProps> = ({
+  books,
   onBookPress,
-  loadingBookId,
+  onBookLongPress,
 }) => {
   const { colors } = useTheme();
 
-  const recommendations = React.useMemo(() => {
-    return getPersonalizedRecommendations(existingBooks);
-  }, [existingBooks]);
-
-  if (recommendations.length === 0) return null;
+  if (!books || books.length === 0) return null;
 
   return (
     <View style={styles.container}>
       {/* Section Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
-          <Sparkles size={16} color={colors.accent} style={{ marginRight: 6 }} />
+          <BookMarked size={16} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            You might like
+            Continue books you started
           </Text>
         </View>
         <Text style={[styles.subHint, { color: colors.textSecondary }]}>
-          Curated for you
+          {books.length} in progress
         </Text>
       </View>
 
-      {/* Horizontal Side-Scrolling Carousel */}
+      {/* Horizontal Carousel */}
       <FlatList
-        data={recommendations}
+        data={books}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
@@ -59,20 +53,30 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
         decelerationRate="fast"
         snapToInterval={146}
         renderItem={({ item }) => {
-          const isLoading = loadingBookId === item.id;
+          const authorName =
+            item.authors && item.authors.length > 0
+              ? item.authors.map((a) => a.name).join(', ')
+              : 'Unknown Author';
+
+          const progress = Math.max(0, Math.min(100, Math.round(item.progressPercentage || 0)));
+          const totalPages = item.pageCount && item.pageCount > 0 ? item.pageCount : 240;
+          const pagesRead = Math.round((progress / 100) * totalPages);
+          const pagesLeft = Math.max(0, totalPages - pagesRead);
 
           return (
             <TouchableOpacity
               activeOpacity={0.88}
-              onPress={() => {
+              onPress={() => onBookPress(item)}
+              onLongPress={() => {
                 try {
-                  Haptics.selectionAsync();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 } catch {}
-                onBookPress(item);
+                onBookLongPress?.(item);
               }}
+              delayLongPress={280}
               style={styles.card}
               accessible={true}
-              accessibilityLabel={`Recommended book: ${item.title} by ${item.author}`}
+              accessibilityLabel={`Continue reading ${item.title} by ${authorName}, ${progress}% completed`}
             >
               {/* Cover Artwork */}
               <View
@@ -85,37 +89,37 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
                   },
                 ]}
               >
-                {item.coverUrl ? (
-                  <Image source={{ uri: item.coverUrl }} style={styles.coverImage} resizeMode="cover" />
+                {item.coverImagePath ? (
+                  <Image source={{ uri: item.coverImagePath }} style={styles.coverImage} resizeMode="cover" />
                 ) : (
                   <View style={[styles.placeholderCover, { backgroundColor: colors.accent }]}>
                     <BookOpen size={24} color={colors.isDark ? '#000000' : '#FFFFFF'} />
                   </View>
                 )}
-
-                {/* Quick Add overlay button */}
-                <View style={[styles.addPill, { backgroundColor: colors.accent }]}>
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color={colors.isDark ? '#000000' : '#FFFFFF'} />
-                  ) : (
-                    <Plus size={14} color={colors.isDark ? '#000000' : '#FFFFFF'} strokeWidth={2.5} />
-                  )}
-                </View>
               </View>
 
-              {/* Thematic Reason Pill */}
-              <View
-                style={[
-                  styles.reasonTag,
-                  {
-                    backgroundColor: colors.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <Text style={[styles.reasonText, { color: colors.accent }]} numberOfLines={1}>
-                  {item.recommendationReason}
-                </Text>
+              {/* Progress Section */}
+              <View style={styles.progressContainer}>
+                <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${Math.max(5, progress)}%`,
+                        backgroundColor: colors.accent,
+                      },
+                    ]}
+                  />
+                </View>
+
+                <View style={styles.metaRow}>
+                  <Text style={[styles.percentageText, { color: colors.textPrimary }]}>
+                    {progress}%
+                  </Text>
+                  <Text style={[styles.pagesLeftText, { color: colors.textSecondary }]}>
+                    {pagesLeft}p left
+                  </Text>
+                </View>
               </View>
 
               {/* Book Info */}
@@ -129,7 +133,7 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
                 style={[styles.bookAuthor, { color: colors.textSecondary }]}
                 numberOfLines={1}
               >
-                {item.author}
+                {authorName}
               </Text>
             </TouchableOpacity>
           );
@@ -142,13 +146,13 @@ export const YouMightLikeSection: React.FC<YouMightLikeSectionProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
-    marginTop: 10,
+    marginTop: 6,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // paddingHorizontal: 20,
+    paddingHorizontal: 5,
     marginBottom: 12,
   },
   titleWithIcon: {
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
     elevation: 4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   coverImage: {
     width: '100%',
@@ -194,33 +198,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addPill: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  reasonTag: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 6,
-    borderWidth: 0.8,
+  progressContainer: {
     marginBottom: 4,
-    maxWidth: '100%',
   },
-  reasonText: {
+  progressTrack: {
+    height: 3.5,
+    borderRadius: 2,
+    overflow: 'hidden',
+    width: '100%',
+    marginBottom: 4,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  percentageText: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 10,
+    fontSize: 11,
+    letterSpacing: -0.1,
+  },
+  pagesLeftText: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 10.5,
     letterSpacing: -0.1,
   },
   bookTitle: {

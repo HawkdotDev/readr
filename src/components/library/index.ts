@@ -4,3 +4,4 @@ export * from './EmptyLibrary';
 export * from './FilterBar';
 export * from './RadialOptionsMenu';
 export * from './YouMightLikeSection';
+export * from './ContinueStartedSection';

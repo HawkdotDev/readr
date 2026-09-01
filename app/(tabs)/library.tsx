@@ -8,6 +8,7 @@ import { EmptyLibrary } from '../../src/components/library/EmptyLibrary';
 import { SearchBar } from '../../src/components/common/SearchBar';
 import { RadialOptionsMenu } from '../../src/components/library/RadialOptionsMenu';
 import { YouMightLikeSection } from '../../src/components/library/YouMightLikeSection';
+import { ContinueStartedSection } from '../../src/components/library/ContinueStartedSection';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { useLibrary } from '../../src/hooks/useLibrary';
 import { downloadRecommendedBook, RecommendedBook } from '../../src/services/recommendations/recommendationService';
@@ -24,6 +25,7 @@ export default function LibraryScreen() {
     books,
     filteredBooks,
     featuredBook,
+    inProgressBooks,
     refreshing,
     searchQuery,
     setSearchQuery,
@@ -177,6 +179,15 @@ export default function LibraryScreen() {
                   onOptionsPress={() => setSelectedWheelBook(featuredBook)}
                 />
               </View>
+            )}
+
+            {/* Continue Books You Started Section */}
+            {!searchQuery.trim() && inProgressBooks.length > 0 && (
+              <ContinueStartedSection
+                books={inProgressBooks}
+                onBookPress={(b) => router.push(`/reader/${b.id}` as any)}
+                onBookLongPress={(b) => setSelectedWheelBook(b)}
+              />
             )}
 
             {/* You Might Like Side-Scrolling Section */}

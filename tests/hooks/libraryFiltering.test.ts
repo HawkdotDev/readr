@@ -104,4 +104,43 @@ describe('Library Filtering & Sorting Logic', () => {
     expect(featured?.title).toBe('Crime and Punishment');
     expect(featured?.progressPercentage).toBe(65);
   });
+
+  it('identifies in-progress books other than the featured hero card', () => {
+    const featured =
+      sampleBooks.find((b) => b.status === 'reading' && (b.progressPercentage || 0) > 0) ||
+      sampleBooks.find((b) => (b.progressPercentage || 0) > 0) ||
+      sampleBooks[0];
+
+    const additionalReadingBook: Book = {
+      id: 'b4',
+      fileHash: 'h4',
+      title: 'The Brothers Karamazov',
+      originalFilename: 'karamazov.epub',
+      filePath: 'file:///books/karamazov.epub',
+      fileFormat: 'epub',
+      fileSizeBytes: 3000,
+      pageCount: 800,
+      progressPercentage: 25,
+      status: 'reading',
+      isFavorite: false,
+      totalTimeReadSeconds: 1500,
+      createdAt: new Date('2026-01-20'),
+      updatedAt: new Date('2026-01-22'),
+      authors: [{ id: 'a1', name: 'Fyodor Dostoevsky' }],
+    };
+
+    const allBooks = [...sampleBooks, additionalReadingBook];
+
+    const inProgress = allBooks.filter(
+      (b) =>
+        b.id !== featured?.id &&
+        b.status !== 'finished' &&
+        (b.progressPercentage || 0) > 0 &&
+        (b.progressPercentage || 0) < 100
+    );
+
+    expect(inProgress.length).toBe(1);
+    expect(inProgress[0].title).toBe('The Brothers Karamazov');
+    expect(inProgress[0].progressPercentage).toBe(25);
+  });
 });

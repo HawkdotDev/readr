@@ -8,6 +8,7 @@ export interface UseLibraryResult {
   books: Book[];
   filteredBooks: Book[];
   featuredBook: Book | null;
+  inProgressBooks: Book[];
   loading: boolean;
   refreshing: boolean;
   searchQuery: string;
@@ -84,6 +85,17 @@ export function useLibrary(): UseLibraryResult {
     );
   }, [books]);
 
+  const inProgressBooks = useMemo(() => {
+    if (!featuredBook) return [];
+    return books.filter(
+      (b) =>
+        b.id !== featuredBook.id &&
+        b.status !== 'finished' &&
+        (b.progressPercentage || 0) > 0 &&
+        (b.progressPercentage || 0) < 100
+    );
+  }, [books, featuredBook]);
+
   const filteredBooks = useMemo(() => {
     return books.filter((b) => {
       if (searchQuery.trim()) {
@@ -111,6 +123,7 @@ export function useLibrary(): UseLibraryResult {
     books,
     filteredBooks,
     featuredBook,
+    inProgressBooks,
     loading,
     refreshing,
     searchQuery,
