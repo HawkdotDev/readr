@@ -1,0 +1,177 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version Tag (e.g. v1.1.0-beta)'
+        required: true
+        default: 'v1.1.0-beta'
+      prerelease:
+        description: 'Is this a pre-release (beta)?'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate:
+    name: Validate Build & Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript Verification
+        run: bun run typecheck
+
+      - name: Run Test Suite
+        run: bun test
+
+  build-android:
+    name: Build Android Application
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Native Android Project
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build Android APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare APK Asset
+        run: |
+          mkdir -p build-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk build-output/Readr-v1.1.0-beta-android.apk
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readr-android-apk
+          path: build-output/Readr-v1.1.0-beta-android.apk
+
+  build-bundle:
+    name: Export Production Bundles
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Export Native Production Bundles
+        run: npx expo export --platform all
+
+      - name: Compress Bundle Archive
+        run: |
+          mkdir -p build-output
+          zip -r build-output/Readr-v1.1.0-beta-bundles.zip dist/
+
+      - name: Upload Bundles Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readr-bundles
+          path: build-output/Readr-v1.1.0-beta-bundles.zip
+
+  create-github-release:
+    name: Publish GitHub Release (iOS & Android)
+    runs-on: ubuntu-latest
+    needs: [build-android, build-bundle]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: readr-android-apk
+          path: release-assets
+
+      - name: Download Bundles Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: readr-bundles
+          path: release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || inputs.version }}
+          name: Readr ${{ github.ref_name || inputs.version }}
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            ## 🚀 Readr v1.1.0-beta Release (iOS & Android)
+
+            We are excited to launch **Readr v1.1.0 Beta**, bringing deep UI/UX polish, customisation controls, rich stats, and sovereign reading performance!
+
+            ### ✨ Key Features & Improvements
+            - **📚 Full Reading Customisation**:
+              - Dual-tab customisation sheet for **Typography** (typefaces, continuous font scaling, line spacing, margins, text alignment) and **Reading Experience** (horizontal page-turn vs. continuous vertical flow, edge tap zones, swipe gestures, on-screen button pills, and transition animations).
+            - **📊 Redesigned Reading Stats & Timeline**:
+              - Clean **Reading Graph** habit matrix directly on the canvas without card borders.
+              - Completely overhauled **Recent Sessions** activity timeline featuring book cover thumbnails, author details, duration pills, pages read, and 1-tap reading continuation.
+              - Redesigned daily habit hero card and lifetime metrics grid.
+            - **🎨 App-wide Visual Hierarchy**:
+              - Unified "Readr" home view with in-place seamless List/Grid toggling.
+              - Library view with search bar toggle and refined filter sorting.
+              - Refined Settings view with color theme swatches, night-warmth slider, and offline data sovereignty badges.
+            - **📱 Reader Navigation & Gestures**:
+              - Floating bottom navigation capsule placed directly above the reading progress track.
+              - Streamlined top toolbar with audio narration and in-book search.
+              - Reliable double-tap gesture on the screen surface to toggle navigation chrome.
+              - Flat, border-defined modal slide-ups without drop shadows.
+
+            ### 📦 Downloads & Installation
+            - **Android APK**: Download `Readr-v1.1.0-beta-android.apk` below and install on your device.
+            - **Production Bundle**: `Readr-v1.1.0-beta-bundles.zip` containing cross-platform compiled assets.
+
+            ---
+            *Built with Expo SDK 57 • SQLite • Drizzle ORM • 100% Offline & Private Sovereignty*
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

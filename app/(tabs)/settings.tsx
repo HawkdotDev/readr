@@ -333,7 +333,7 @@ export default function SettingsScreen() {
 
         {/* App Footer */}
         <View style={styles.aboutFooter}>
-          <Text style={[styles.aboutTitle, { color: colors.textPrimary }]}>Readr v1.0.0</Text>
+          <Text style={[styles.aboutTitle, { color: colors.textPrimary }]}>Readr v1.1.0-beta</Text>
           <Text style={[styles.aboutSubtitle, { color: colors.textSecondary }]}>
             Expo SDK 57 • SQLite • Drizzle ORM • 100% Local Sovereignty
           </Text>

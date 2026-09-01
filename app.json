@@ -2,7 +2,7 @@
   "expo": {
     "name": "Readr",
     "slug": "readr",
-    "version": "1.0.0",
+    "version": "1.1.0-beta",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "readr",
@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hawkdotdev.readr",
+      "buildNumber": "2",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -23,6 +24,7 @@
         "backgroundColor": "#18181B"
       },
       "package": "com.hawkdotdev.readr",
+      "versionCode": 2,
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
