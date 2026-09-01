@@ -57,6 +57,19 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, [currentChapterIdx, chapters]);
 
+  const lastTapRef = useRef<number>(0);
+
+  const handleCenterPress = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 350;
+    if (lastTapRef.current && now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      onToggleChrome();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  };
+
   const handleNextChapter = () => {
     if (currentChapterIdx < chapters.length - 1) {
       setCurrentChapterIdx((prev) => prev + 1);
@@ -213,10 +226,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <View style={[styles.dividerBar, { backgroundColor: colors.border }]} />
         </View>
 
-        {/* Center Tap Target for chrome toggle */}
+        {/* Center Tap Target for chrome toggle on double tap */}
         <TouchableOpacity
           activeOpacity={1}
-          onPress={onToggleChrome}
+          onPress={handleCenterPress}
           style={styles.tapArea}
         >
           {renderChapterContent}

@@ -56,7 +56,6 @@ export function ReaderBottomCapsule({
           {
             backgroundColor: colors.surface,
             borderColor: colors.border,
-            shadowOpacity: colors.isDark ? 0.35 : 0.08,
           },
         ]}
       >
@@ -123,7 +122,7 @@ export default ReaderBottomCapsule;
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    bottom: Platform.OS === 'ios' ? 76 : 68,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -139,10 +138,6 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
-    elevation: 8,
     paddingHorizontal: 8,
   },
   tabItem: {
