@@ -109,7 +109,7 @@ export default function LibraryScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Top Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Library</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Home</Text>
 
         <View style={styles.headerActions}>
           <TouchableOpacity

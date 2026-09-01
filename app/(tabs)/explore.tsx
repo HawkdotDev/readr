@@ -127,7 +127,7 @@ export default function ExploreScreen() {
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {activeTab === 'explore' ? 'Explore' : 'Device Shelf'}
+            {activeTab === 'explore' ? 'Library' : 'Device Shelf'}
           </Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             {activeTab === 'explore'

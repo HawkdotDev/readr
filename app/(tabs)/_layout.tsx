@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { BookOpen, Compass, BarChart2, Settings } from 'lucide-react-native';
+import { Home, BookOpen, BarChart2, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 
@@ -51,7 +51,7 @@ function CustomFloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
           let icon = null;
           if (route.name === 'library') {
             icon = (
-              <BookOpen
+              <Home
                 size={20}
                 color={iconColor}
                 fill={isFocused ? iconColor : 'transparent'}
@@ -60,7 +60,7 @@ function CustomFloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
             );
           } else if (route.name === 'explore') {
             icon = (
-              <Compass
+              <BookOpen
                 size={20}
                 color={iconColor}
                 fill={isFocused ? iconColor : 'transparent'}
@@ -129,13 +129,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="library"
         options={{
-          title: 'Library',
+          title: 'Home',
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: 'Library',
         }}
       />
       <Tabs.Screen
