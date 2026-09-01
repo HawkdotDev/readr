@@ -16,7 +16,7 @@ export interface SliderProps {
   style?: ViewStyle;
 }
 
-export const Slider = React.memo<SliderProps>(({
+export function Slider({
   label,
   value,
   min,
@@ -26,7 +26,7 @@ export const Slider = React.memo<SliderProps>(({
   displayFormatter,
   onChange,
   style,
-}) => {
+}: SliderProps) {
   const { colors } = useTheme();
 
   const handleDecrement = () => {
@@ -102,9 +102,7 @@ export const Slider = React.memo<SliderProps>(({
       </View>
     </View>
   );
-});
-
-export default Slider;
+}
 
 const styles = StyleSheet.create({
   container: {

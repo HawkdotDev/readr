@@ -15,14 +15,14 @@ export interface SheetProps {
   style?: ViewStyle;
 }
 
-export const Sheet: React.FC<SheetProps> = ({
+export function Sheet({
   visible,
   onClose,
   title,
   children,
   maxHeightRatio = 0.8,
   style,
-}) => {
+}: SheetProps) {
   const { colors } = useTheme();
 
   return (
@@ -69,9 +69,7 @@ export const Sheet: React.FC<SheetProps> = ({
       </Pressable>
     </Modal>
   );
-};
-
-export default Sheet;
+}
 
 const styles = StyleSheet.create({
   backdrop: {

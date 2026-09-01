@@ -9,7 +9,7 @@ export interface BadgeProps {
   style?: ViewStyle;
 }
 
-export const Badge = React.memo<BadgeProps>(({ label, variant = 'secondary', style }) => {
+export function Badge({ label, variant = 'secondary', style }: BadgeProps) {
   const { colors } = useTheme();
 
   const getStyle = (): { bg: string; text: string; border?: string } => {
@@ -47,9 +47,7 @@ export const Badge = React.memo<BadgeProps>(({ label, variant = 'secondary', sty
       <Text style={[styles.text, { color: text }]}>{label}</Text>
     </View>
   );
-});
-
-export default Badge;
+}
 
 const styles = StyleSheet.create({
   badge: {

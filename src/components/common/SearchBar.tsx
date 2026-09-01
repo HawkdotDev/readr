@@ -12,13 +12,13 @@ export interface SearchBarProps {
   style?: ViewStyle;
 }
 
-export const SearchBar = React.memo<SearchBarProps>(({
+export function SearchBar({
   value,
   onChangeText,
   placeholder = 'Search library, authors, titles...',
   autoFocus = false,
   style,
-}) => {
+}: SearchBarProps) {
   const { colors } = useTheme();
 
   return (
@@ -57,9 +57,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
       )}
     </View>
   );
-});
-
-export default SearchBar;
+}
 
 const styles = StyleSheet.create({
   container: {

@@ -27,7 +27,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   const statuses: { label: string; value: LibraryFilterStatus }[] = [
     { label: 'All', value: 'all' },
-    { label: '★ Favourites', value: 'favorites' },
     { label: 'Reading', value: 'reading' },
     { label: 'Unread', value: 'unread' },
     { label: 'Finished', value: 'finished' },

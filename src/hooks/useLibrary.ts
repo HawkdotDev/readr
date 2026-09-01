@@ -144,7 +144,14 @@ export function useLibrary(): UseLibraryResult {
   }, [books]);
 
   const filteredBooks = useMemo(() => {
-    const list = books.filter((b) => {
+    // If not searching, base list is user's favorites (or all books if none favorited yet)
+    const baseList = searchQuery.trim()
+      ? books
+      : books.some((b) => b.isFavorite)
+      ? books.filter((b) => b.isFavorite)
+      : books;
+
+    const list = baseList.filter((b) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchTitle = b.title.toLowerCase().includes(q);
@@ -154,9 +161,7 @@ export function useLibrary(): UseLibraryResult {
         if (!matchTitle && !matchAuthor) return false;
       }
 
-      if (selectedStatus === 'favorites') {
-        if (!b.isFavorite) return false;
-      } else if (selectedStatus !== 'all' && b.status !== selectedStatus) {
+      if (selectedStatus !== 'all' && b.status !== selectedStatus) {
         return false;
       }
 
@@ -169,11 +174,6 @@ export function useLibrary(): UseLibraryResult {
 
     // Apply sorting
     return list.sort((a, b) => {
-      if (sortOption === 'favorites') {
-        if (a.isFavorite && !b.isFavorite) return -1;
-        if (!a.isFavorite && b.isFavorite) return 1;
-        return a.title.localeCompare(b.title);
-      }
       if (sortOption === 'title') {
         return a.title.localeCompare(b.title);
       }

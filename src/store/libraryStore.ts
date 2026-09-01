@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { Book, BookFormat, BookStatus } from '../types';
 
 export type LibraryViewMode = 'grid' | 'list';
-export type SortOption = 'recent' | 'title' | 'author' | 'progress' | 'favorites';
-export type LibraryFilterStatus = BookStatus | 'all' | 'favorites';
+export type SortOption = 'recent' | 'title' | 'author' | 'progress';
+export type LibraryFilterStatus = BookStatus | 'all';
 
 export interface LibraryState {
   searchQuery: string;
@@ -29,7 +29,7 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   selectedFormat: 'all',
   selectedShelfId: null,
   sortOption: 'recent',
-  viewMode: 'grid',
+  viewMode: 'list', // Default to list view
   isLoading: false,
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
