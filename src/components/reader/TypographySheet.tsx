@@ -66,6 +66,13 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     dropCaps,
     dualPageMode,
     customFonts,
+    pageTransition,
+    bionicReadingEnabled,
+    bionicFixation,
+    isAutoScrolling,
+    autoScrollMode,
+    autoScrollSpeed,
+    showSpeedometer,
     readingRulerEnabled,
     readingRulerMode,
     readingRulerHeight,
@@ -77,6 +84,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     setTextAlign,
     setReadingDirection,
     setPageTurnStyle,
+    setPageTransition,
     setNavigationMode,
     setVolumeKeysTurnPages,
     setParagraphIndent,
@@ -85,6 +93,13 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     setDualPageMode,
     setCustomFonts,
     addCustomFont,
+    setBionicReadingEnabled,
+    setBionicFixation,
+    toggleAutoScroll,
+    setAutoScrolling,
+    setAutoScrollMode,
+    setAutoScrollSpeed,
+    setShowSpeedometer,
     setReadingRulerEnabled,
     setReadingRulerMode,
     setReadingRulerHeight,
@@ -642,24 +657,29 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
 
             {/* Page Turn Style Animation */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
-              TRANSITION ANIMATION
+              PAGE TRANSITION DYNAMICS
             </Text>
             <View style={styles.animRow}>
               {(
                 [
-                  { id: 'slide' as PageTurnStyle, label: 'Slide' },
-                  { id: 'curl' as PageTurnStyle, label: 'Curl' },
-                  { id: 'fade' as PageTurnStyle, label: 'Fade' },
-                  { id: 'none' as PageTurnStyle, label: 'Instant' },
-                ] as const
+                  { id: 'slide' as const, label: 'Slide' },
+                  { id: 'curl' as const, label: '3D Curl' },
+                  { id: 'cover' as const, label: 'Cover' },
+                  { id: 'fade' as const, label: 'Fade' },
+                  { id: 'scroll' as const, label: 'Scroll' },
+                  { id: 'none' as const, label: 'Instant' },
+                ]
               ).map((anim) => {
-                const isSel = pageTurnStyle === anim.id;
+                const isSel = pageTransition === anim.id || pageTurnStyle === anim.id;
                 return (
                   <TouchableOpacity
                     key={anim.id}
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                      setPageTurnStyle(anim.id);
+                      setPageTransition(anim.id);
+                      if (anim.id === 'slide' || anim.id === 'curl' || anim.id === 'fade' || anim.id === 'none') {
+                        setPageTurnStyle(anim.id);
+                      }
                     }}
                     style={[
                       styles.animPill,
@@ -682,6 +702,114 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+
+            {/* Bionic Speed Reading Engine */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              BIONIC SPEED READING
+            </Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Bionic Reading Mode</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Bolds initial word stems to guide eye fixations and speed up comprehension
+                  </Text>
+                </View>
+                <Switch
+                  value={bionicReadingEnabled}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setBionicReadingEnabled(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              {bionicReadingEnabled && (
+                <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }}>
+                  <Text style={[styles.drawerTitle, { color: colors.textSecondary, marginBottom: 8 }]}>FIXATION INTENSITY</Text>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    {(
+                      [
+                        { id: 'low' as const, label: 'Low (35%)' },
+                        { id: 'medium' as const, label: 'Medium (50%)' },
+                        { id: 'high' as const, label: 'High (65%)' },
+                      ]
+                    ).map((lvl) => {
+                      const isSel = bionicFixation === lvl.id;
+                      return (
+                        <TouchableOpacity
+                          key={lvl.id}
+                          onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                            setBionicFixation(lvl.id);
+                          }}
+                          style={[
+                            styles.modePill,
+                            {
+                              backgroundColor: isSel ? colors.accent : colors.surface,
+                              borderColor: isSel ? colors.accent : colors.border,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.modePillText,
+                              {
+                                color: isSel ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+                                fontFamily: isSel ? FONTS.mona.bold : FONTS.mona.medium,
+                              },
+                            ]}
+                          >
+                            {lvl.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Hands-Free Auto-Scroll & Telemetry */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              AUTO-SCROLL & TELEMETRY
+            </Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextCol}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Reading Speedometer (WPM)</Text>
+                  <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+                    Display live Words-Per-Minute gauge and pacing estimate
+                  </Text>
+                </View>
+                <Switch
+                  value={showSpeedometer}
+                  onValueChange={(val) => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setShowSpeedometer(val);
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                    setAutoScrolling(true);
+                    onClose();
+                  }}
+                  style={[styles.startAutoScrollBtn, { backgroundColor: colors.accent }]}
+                >
+                  <Text style={[styles.startAutoScrollText, { color: colors.isDark ? '#000000' : '#FFFFFF' }]}>
+                    ⚡ Start Hands-Free Auto-Scroll HUD
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Hardware Controls */}
@@ -1098,5 +1226,30 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mona.bold,
     fontSize: 11,
     marginTop: 6,
+  },
+  drawerTitle: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  modePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  modePillText: {
+    fontSize: 11.5,
+  },
+  startAutoScrollBtn: {
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startAutoScrollText: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 12.5,
   },
 });

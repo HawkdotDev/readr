@@ -18,8 +18,11 @@ import { ParsedChapter } from '../../services/reader/epubParser';
 import { parseChapterContent } from '../../services/reader/epubBridge';
 import { progressTracker } from '../../services/reader/progressTracker';
 import { ReadingRuler } from './ReadingRuler';
+import { AutoScrollController } from './AutoScrollController';
+import { SpeedometerOverlay } from './SpeedometerOverlay';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
+import { getFixationLength } from '../../utils/bionic';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -44,6 +47,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const { width: windowWidth } = useWindowDimensions();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIndex);
   const scrollRef = useRef<any>(null);
+  const scrollOffsetRef = useRef<number>(0);
 
   const {
     fontFamily,
@@ -58,6 +62,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     paragraphSpacing,
     dropCaps,
     dualPageMode,
+    bionicReadingEnabled,
+    bionicFixation,
     readingRulerEnabled,
     readingRulerMode,
     readingRulerHeight,
@@ -233,15 +239,33 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               </Text>
             )}
             {shouldApplyDropCap && restOfFirstWord ? `${restOfFirstWord} ` : ''}
-            {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => (
-              <Text
-                key={`w_${bIdx}_${wIdx}`}
-                onLongPress={() => onSelectWordForDictionary(w)}
-                suppressHighlighting={true}
-              >
-                {w}{' '}
-              </Text>
-            ))}
+            {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => {
+              if (bionicReadingEnabled && w && w.trim().length > 0) {
+                const fixLen = getFixationLength(w.length, bionicFixation);
+                const boldPart = w.slice(0, fixLen);
+                const normalPart = w.slice(fixLen);
+                return (
+                  <Text
+                    key={`w_${bIdx}_${wIdx}`}
+                    onLongPress={() => onSelectWordForDictionary(w)}
+                    suppressHighlighting={true}
+                  >
+                    <Text style={{ fontFamily: FONTS.mona.bold, fontWeight: '700' }}>{boldPart}</Text>
+                    {normalPart}{' '}
+                  </Text>
+                );
+              }
+
+              return (
+                <Text
+                  key={`w_${bIdx}_${wIdx}`}
+                  onLongPress={() => onSelectWordForDictionary(w)}
+                  suppressHighlighting={true}
+                >
+                  {w}{' '}
+                </Text>
+              );
+            })}
           </Text>
         </View>
       );
@@ -255,12 +279,15 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     paragraphIndent,
     paragraphSpacing,
     dropCaps,
+    bionicReadingEnabled,
+    bionicFixation,
     colors,
     onSelectWordForDictionary,
   ]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    scrollOffsetRef.current = contentOffset.y;
     const totalScrollable = contentSize.height - layoutMeasurement.height;
     if (totalScrollable > 0) {
       const scrollPercent = Math.max(0, Math.min(1, contentOffset.y / totalScrollable));
@@ -418,6 +445,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Speedometer Telemetry HUD */}
+      <SpeedometerOverlay />
+
+      {/* Hands-Free Auto-Scroll Floating Controller */}
+      <AutoScrollController
+        onScrollTick={(deltaY) => {
+          scrollOffsetRef.current += deltaY;
+          if (scrollRef.current) {
+            if (typeof scrollRef.current.scrollTo === 'function') {
+              scrollRef.current.scrollTo({ y: scrollOffsetRef.current, animated: false });
+            }
+          }
+        }}
+        onPageTurnNext={handleNextChapter}
+        onPageTurnPrev={handlePrevChapter}
+      />
     </View>
   );
 };
