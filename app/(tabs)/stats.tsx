@@ -1,24 +1,27 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { StreakHeatmap } from '../../src/components/stats/StreakHeatmap';
 import { StatCard } from '../../src/components/stats/StatCard';
 import { GoalProgressRing } from '../../src/components/stats/GoalProgressRing';
+import { RecentSessionsList } from '../../src/components/stats/RecentSessionsList';
 import {
   getLifetimeStats,
   getActivityHistory,
-  getRecentSessions,
+  getRecentSessionsWithBooks,
   LifetimeStats,
   DayActivity,
+  EnrichedReadingSession,
 } from '../../src/db/queries/stats';
 import { getReadingGoals } from '../../src/db/queries/settings';
-import { ReadingGoal, ReadingSession } from '../../src/types';
-import { formatDurationSeconds, formatRelativeDate } from '../../src/utils/time';
-import { BookOpen, Clock, FileText, Bookmark, Flame, Zap, Compass, Award } from 'lucide-react-native';
+import { ReadingGoal } from '../../src/types';
+import { formatDurationSeconds } from '../../src/utils/time';
+import { BookOpen, Clock, FileText, Bookmark, Flame } from 'lucide-react-native';
 import { FONTS } from '../../src/utils/typography';
 
 export default function StatsScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
 
   const [lifetime, setLifetime] = useState<LifetimeStats>({
@@ -39,7 +42,7 @@ export default function StatsScreen() {
     longestStreakDays: 0,
   });
 
-  const [recentSessions, setRecentSessions] = useState<ReadingSession[]>([]);
+  const [recentSessions, setRecentSessions] = useState<EnrichedReadingSession[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
@@ -48,7 +51,7 @@ export default function StatsScreen() {
         getLifetimeStats(),
         getActivityHistory(112),
         getReadingGoals(),
-        getRecentSessions(10),
+        getRecentSessionsWithBooks(15),
       ]);
       setLifetime(lStats);
       setActivity(act);
@@ -110,7 +113,7 @@ export default function StatsScreen() {
           targetPages={goals.targetDailyPages}
         />
 
-        {/* 16-Week Consistency & Habit Heatmap */}
+        {/* 16-Week Consistency & Habit Graph */}
         <StreakHeatmap
           activity={activity}
           currentStreak={goals.currentStreakDays}
@@ -154,53 +157,15 @@ export default function StatsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
           RECENT SESSIONS
         </Text>
-        {recentSessions.length === 0 ? (
-          <View
-            style={[
-              styles.emptySessions,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-          >
-            <Clock size={28} color={colors.textSecondary} style={{ marginBottom: 8 }} />
-            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Sessions Recorded Yet</Text>
-            <Text style={[styles.emptySub, { color: colors.textSecondary }]}>
-              Open any book in your library to automatically track reading time and speed.
-            </Text>
-          </View>
-        ) : (
-          recentSessions.map((sess) => (
-            <View
-              key={sess.id}
-              style={[
-                styles.sessionCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <View style={styles.sessionLeft}>
-                <View style={[styles.sessionIconBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
-                  <Zap size={14} color={colors.accent} />
-                </View>
-                <View>
-                  <Text style={[styles.sessionDuration, { color: colors.textPrimary }]}>
-                    {formatDurationSeconds(sess.durationSeconds)} of reading
-                  </Text>
-                  {sess.pagesRead > 0 && (
-                    <Text style={[styles.sessionPages, { color: colors.textSecondary }]}>
-                      {sess.pagesRead} {sess.pagesRead === 1 ? 'page' : 'pages'} turned
-                    </Text>
-                  )}
-                </View>
-              </View>
-
-              <Text style={[styles.sessionDate, { color: colors.textSecondary }]}>
-                {formatRelativeDate(sess.startTime)}
-              </Text>
-            </View>
-          ))
-        )}
+        <RecentSessionsList
+          sessions={recentSessions}
+          onSessionPress={(sess) => {
+            if (sess.bookId) {
+              router.push(`/reader/${sess.bookId}` as any);
+            }
+          }}
+          onExplorePress={() => router.push('/explore')}
+        />
       </ScrollView>
     </View>
   );
@@ -255,64 +220,5 @@ const styles = StyleSheet.create({
   metricRow: {
     flexDirection: 'row',
     gap: 12,
-  },
-  emptySessions: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 15,
-    marginBottom: 4,
-  },
-  emptySub: {
-    fontFamily: FONTS.mona.regular,
-    fontSize: 12.5,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  sessionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sessionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  sessionIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sessionDuration: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 14,
-    letterSpacing: -0.2,
-  },
-  sessionPages: {
-    fontFamily: FONTS.mona.regular,
-    fontSize: 12,
-    marginTop: 1,
-  },
-  sessionDate: {
-    fontFamily: FONTS.mono.medium,
-    fontSize: 11.5,
   },
 });

@@ -68,6 +68,13 @@ async function updateStreakOnSession(sessionDate: Date): Promise<void> {
   });
 }
 
+export interface EnrichedReadingSession extends ReadingSession {
+  bookTitle?: string;
+  bookAuthor?: string;
+  coverImagePath?: string | null;
+  fileFormat?: string;
+}
+
 export async function getRecentSessions(limit: number = 30): Promise<ReadingSession[]> {
   const { db } = await getDatabase();
   if (!db) return [];
@@ -77,6 +84,59 @@ export async function getRecentSessions(limit: number = 30): Promise<ReadingSess
     .from(schema.readingSessions)
     .orderBy(desc(schema.readingSessions.startTime))
     .limit(limit);
+}
+
+export async function getRecentSessionsWithBooks(limit: number = 20): Promise<EnrichedReadingSession[]> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return [];
+
+  try {
+    const rows = (await sqlite.getAllAsync(
+      `SELECT 
+        s.id,
+        s.book_id,
+        s.start_time,
+        s.end_time,
+        s.duration_seconds,
+        s.start_location,
+        s.end_location,
+        s.pages_read,
+        b.title AS book_title,
+        b.cover_image_path,
+        b.file_format,
+        (SELECT a.name FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id LIMIT 1) AS book_author
+       FROM reading_sessions s
+       LEFT JOIN books b ON s.book_id = b.id
+       ORDER BY s.start_time DESC
+       LIMIT ?;`,
+      [limit]
+    )) as any[];
+
+    return rows.map((r) => ({
+      id: r.id,
+      bookId: r.book_id,
+      startTime: new Date(r.start_time * 1000),
+      endTime: new Date(r.end_time * 1000),
+      durationSeconds: r.duration_seconds || 0,
+      startLocation: r.start_location,
+      endLocation: r.end_location,
+      pagesRead: r.pages_read || 0,
+      bookTitle: r.book_title || 'Reading Session',
+      bookAuthor: r.book_author || 'Unknown Author',
+      coverImagePath: r.cover_image_path,
+      fileFormat: r.file_format || 'epub',
+    }));
+  } catch (e) {
+    console.warn('Failed to query recent sessions with books, fallback to basic:', e);
+    const basic = await getRecentSessions(limit);
+    return basic.map((b) => ({
+      ...b,
+      bookTitle: 'Reading Session',
+      bookAuthor: 'Readr',
+      coverImagePath: null,
+      fileFormat: 'epub',
+    }));
+  }
 }
 
 export interface DayActivity {
