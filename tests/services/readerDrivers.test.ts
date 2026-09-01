@@ -3,6 +3,10 @@ import { ReaderDriverFactory } from '../../src/services/reader/drivers/driverFac
 import { EpubDriver } from '../../src/services/reader/drivers/EpubDriver';
 import { PdfDriver } from '../../src/services/reader/drivers/PdfDriver';
 import { TxtDriver } from '../../src/services/reader/drivers/TxtDriver';
+import { ComicDriver } from '../../src/services/reader/drivers/ComicDriver';
+import { MobiDriver } from '../../src/services/reader/drivers/MobiDriver';
+import { Fb2Driver } from '../../src/services/reader/drivers/Fb2Driver';
+import { DocxDriver } from '../../src/services/reader/drivers/DocxDriver';
 import { parseChapterContent } from '../../src/services/reader/epubBridge';
 
 describe('Reader Format Drivers (SOLID / OCP)', () => {
@@ -22,6 +26,22 @@ describe('Reader Format Drivers (SOLID / OCP)', () => {
     const mdDriver = ReaderDriverFactory.getDriver('md');
     expect(mdDriver).toBeInstanceOf(TxtDriver);
     expect(mdDriver.format).toBe('md');
+
+    const cbzDriver = ReaderDriverFactory.getDriver('cbz');
+    expect(cbzDriver).toBeInstanceOf(ComicDriver);
+    expect(cbzDriver.format).toBe('cbz');
+
+    const mobiDriver = ReaderDriverFactory.getDriver('mobi');
+    expect(mobiDriver).toBeInstanceOf(MobiDriver);
+    expect(mobiDriver.format).toBe('mobi');
+
+    const fb2Driver = ReaderDriverFactory.getDriver('fb2');
+    expect(fb2Driver).toBeInstanceOf(Fb2Driver);
+    expect(fb2Driver.format).toBe('fb2');
+
+    const docxDriver = ReaderDriverFactory.getDriver('docx');
+    expect(docxDriver).toBeInstanceOf(DocxDriver);
+    expect(docxDriver.format).toBe('docx');
   });
 
   it('calculates EPUB reading progress reliably from chapter identifiers', () => {
@@ -36,6 +56,20 @@ describe('Reader Format Drivers (SOLID / OCP)', () => {
 
     // Zero items fallback
     expect(driver.calculateProgress('', 0)).toBe(0);
+  });
+
+  it('calculates Comic, Mobi, FB2 and Docx progress reliably', () => {
+    const comicDriver = new ComicDriver('cbz');
+    expect(comicDriver.calculateProgress('page_10', 40)).toBe(25);
+
+    const mobiDriver = new MobiDriver('mobi');
+    expect(mobiDriver.calculateProgress('pos_50', 100)).toBe(50);
+
+    const fb2Driver = new Fb2Driver();
+    expect(fb2Driver.calculateProgress('sec_4', 8)).toBe(50);
+
+    const docxDriver = new DocxDriver('docx');
+    expect(docxDriver.calculateProgress('page_3', 10)).toBe(30);
   });
 
   it('calculates PDF and TXT progress reliably', () => {

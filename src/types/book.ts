@@ -1,4 +1,16 @@
-export type BookFormat = 'epub' | 'pdf' | 'txt' | 'md' | 'cbz';
+export type BookFormat =
+  | 'epub'
+  | 'pdf'
+  | 'txt'
+  | 'md'
+  | 'cbz'
+  | 'cbr'
+  | 'mobi'
+  | 'azw3'
+  | 'fb2'
+  | 'docx'
+  | 'rtf'
+  | 'html';
 export type BookStatus = 'unread' | 'reading' | 'finished' | 'abandoned';
 export type HighlightColor =
   | 'charcoal'

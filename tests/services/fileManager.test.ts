@@ -14,6 +14,16 @@ describe('fileManager Service', () => {
     expect(detectFormatFromFilename('essay.txt')).toBe('txt');
   });
 
+  it('correctly detects extended digital formats (CBR, MOBI, AZW3, FB2, DOCX, RTF, HTML)', () => {
+    expect(detectFormatFromFilename('manga.cbr')).toBe('cbr');
+    expect(detectFormatFromFilename('kindle_book.mobi')).toBe('mobi');
+    expect(detectFormatFromFilename('amazon.azw3')).toBe('azw3');
+    expect(detectFormatFromFilename('russian_novel.fb2')).toBe('fb2');
+    expect(detectFormatFromFilename('manuscript.docx')).toBe('docx');
+    expect(detectFormatFromFilename('formatted.rtf')).toBe('rtf');
+    expect(detectFormatFromFilename('webpage.html')).toBe('html');
+  });
+
   it('defaults unknown extensions to txt', () => {
     expect(detectFormatFromFilename('document.unknown')).toBe('txt');
   });

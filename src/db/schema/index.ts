@@ -14,7 +14,9 @@ export const books = sqliteTable('books', {
   language: text('language').default('en'),
   originalFilename: text('original_filename').notNull(),
   filePath: text('file_path').notNull(),
-  fileFormat: text('file_format', { enum: ['epub', 'pdf', 'txt', 'md', 'cbz'] }).notNull(),
+  fileFormat: text('file_format', {
+    enum: ['epub', 'pdf', 'txt', 'md', 'cbz', 'cbr', 'mobi', 'azw3', 'fb2', 'docx', 'rtf', 'html'],
+  }).notNull(),
   coverImagePath: text('cover_image_path'),
   fileSizeBytes: integer('file_size_bytes').notNull(),
   pageCount: integer('page_count').default(0).notNull(),

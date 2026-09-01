@@ -29,9 +29,28 @@ export function detectFormatFromFilename(filename: string): BookFormat {
     case 'pdf':
       return 'pdf';
     case 'md':
+    case 'markdown':
       return 'md';
     case 'cbz':
       return 'cbz';
+    case 'cbr':
+      return 'cbr';
+    case 'mobi':
+    case 'prc':
+      return 'mobi';
+    case 'azw3':
+    case 'azw':
+      return 'azw3';
+    case 'fb2':
+      return 'fb2';
+    case 'docx':
+      return 'docx';
+    case 'rtf':
+      return 'rtf';
+    case 'html':
+    case 'htm':
+    case 'xhtml':
+      return 'html';
     default:
       return 'txt';
   }
