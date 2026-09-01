@@ -114,11 +114,8 @@ export default function ReaderScreen() {
           <ReaderToolbar
             title={book.title}
             onBack={() => router.back()}
-            onOpenTOC={() => setActiveSheet('toc')}
             onOpenTypography={() => setActiveSheet('typography')}
-            onOpenTheme={() => setActiveSheet('theme')}
             onOpenTTS={() => setActiveSheet('tts')}
-            onOpenAnnotations={() => setActiveSheet('annotations')}
             onOpenSearch={() => setActiveSheet('search')}
           />
         </View>
@@ -136,24 +133,25 @@ export default function ReaderScreen() {
         />
       </View>
 
-      {/* Auto-Hiding Signature Fluid Folio Bar & Bottom Control Capsule */}
-      {chromeVisible && (
-        <View style={styles.bottomChromeWrapper}>
-          <FolioBar
-            chapterTitle={currentChapterTitle}
-            currentChapterNumber={currentChapterIndex + 1}
-            totalChapters={chapters.length || 1}
-            progressPercentage={progressPercentage}
-            minutesLeft={minutesLeftInChapter}
-            onPress={toggleChrome}
-          />
+      {/* Signature Fluid Folio Bar */}
+      <View style={styles.folioWrapper}>
+        <FolioBar
+          chapterTitle={currentChapterTitle}
+          currentChapterNumber={currentChapterIndex + 1}
+          totalChapters={chapters.length || 1}
+          progressPercentage={progressPercentage}
+          minutesLeft={minutesLeftInChapter}
+          onPress={toggleChrome}
+        />
+      </View>
 
-          <ReaderBottomCapsule
-            onOpenTypography={() => setActiveSheet('typography')}
-            onOpenTOC={() => setActiveSheet('toc')}
-            onOpenAnnotations={() => setActiveSheet('annotations')}
-          />
-        </View>
+      {/* Auto-Hiding Floating Bottom Control Capsule (positioned like home page nav bar) */}
+      {chromeVisible && (
+        <ReaderBottomCapsule
+          onOpenTypography={() => setActiveSheet('typography')}
+          onOpenTOC={() => setActiveSheet('toc')}
+          onOpenAnnotations={() => setActiveSheet('annotations')}
+        />
       )}
 
       {/* Modal Sheets */}
@@ -225,7 +223,7 @@ const styles = StyleSheet.create({
   readerArea: {
     flex: 1,
   },
-  bottomChromeWrapper: {
-    paddingBottom: 4,
+  folioWrapper: {
+    paddingBottom: 6,
   },
 });

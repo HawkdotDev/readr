@@ -3,40 +3,34 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import {
   ChevronLeft,
-  List,
-  Bookmark,
   Search,
   Volume2,
-  Sliders,
 } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
 export interface ReaderToolbarProps {
   title: string;
   onBack: () => void;
-  onOpenTOC: () => void;
   onOpenTypography: () => void;
-  onOpenTheme: () => void;
   onOpenTTS: () => void;
-  onOpenAnnotations: () => void;
   onOpenSearch: () => void;
+  onOpenTOC?: () => void;
+  onOpenTheme?: () => void;
+  onOpenAnnotations?: () => void;
 }
 
 export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   title,
   onBack,
-  onOpenTOC,
   onOpenTypography,
-  onOpenTheme,
   onOpenTTS,
-  onOpenAnnotations,
   onOpenSearch,
 }) => {
   const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
-      {/* Back Button (Circular Pill like image) */}
+      {/* Back Button */}
       <TouchableOpacity
         onPress={onBack}
         style={[
@@ -53,7 +47,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <ChevronLeft size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      {/* Action Group */}
+      {/* Top Actions: Typography, Audio TTS, Search */}
       <View style={styles.actionGroup}>
         {/* Typography & Format (Aa) */}
         <TouchableOpacity
@@ -71,28 +65,6 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
           >
             Aa
           </Text>
-        </TouchableOpacity>
-
-        {/* Table of Contents (List :=) */}
-        <TouchableOpacity
-          onPress={onOpenTOC}
-          style={styles.iconBtn}
-          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          accessible={true}
-          accessibilityLabel="Table of Contents"
-        >
-          <List size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        {/* Bookmarks & Annotations */}
-        <TouchableOpacity
-          onPress={onOpenAnnotations}
-          style={styles.iconBtn}
-          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          accessible={true}
-          accessibilityLabel="Bookmarks and Highlights"
-        >
-          <Bookmark size={19} color={colors.textPrimary} />
         </TouchableOpacity>
 
         {/* Audio TTS */}
@@ -120,6 +92,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     </View>
   );
 };
+
+export default ReaderToolbar;
 
 const styles = StyleSheet.create({
   container: {
@@ -150,13 +124,12 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   aaText: {
     fontFamily: FONTS.mona.bold,
     fontSize: 16,
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
   },
 });

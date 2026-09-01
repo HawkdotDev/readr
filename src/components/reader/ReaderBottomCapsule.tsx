@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet, Platform, Text } from 'react-native
 import { useTheme } from '../common/ThemeProvider';
 import { Sun, Moon, Equal, List, Bookmark } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { FONTS } from '../../utils/typography';
 
 export interface ReaderBottomCapsuleProps {
   onOpenTypography: () => void;
@@ -10,18 +11,17 @@ export interface ReaderBottomCapsuleProps {
   onOpenAnnotations?: () => void;
 }
 
-export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
+export function ReaderBottomCapsule({
   onOpenTypography,
   onOpenTOC,
   onOpenAnnotations,
-}) => {
+}: ReaderBottomCapsuleProps) {
   const { colors, themeMode, setThemeMode } = useTheme();
 
   const handleThemeToggle = async () => {
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {}
-    // If currently dark/oled, toggle to light; otherwise toggle to dark
     const nextMode = colors.isDark ? 'light' : 'dark';
     setThemeMode(nextMode);
   };
@@ -49,18 +49,18 @@ export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
   };
 
   return (
-    <View style={styles.outerWrapper} pointerEvents="box-none">
+    <View style={styles.floatingContainer} pointerEvents="box-none">
       <View
         style={[
           styles.capsule,
           {
             backgroundColor: colors.surface,
             borderColor: colors.border,
-            shadowOpacity: colors.isDark ? 0.3 : 0.08,
+            shadowOpacity: colors.isDark ? 0.35 : 0.08,
           },
         ]}
       >
-        {/* 1. Single Light/Dark Mode Toggle Button */}
+        {/* 1. Theme Toggle */}
         <TouchableOpacity
           onPress={handleThemeToggle}
           style={styles.tabItem}
@@ -69,13 +69,14 @@ export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
           accessibilityLabel={colors.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {colors.isDark ? (
-            <Sun size={22} color={colors.textPrimary} strokeWidth={2.0} />
+            <Sun size={20} color={colors.textSecondary} strokeWidth={1.8} />
           ) : (
-            <Moon size={22} color={colors.textPrimary} strokeWidth={2.0} />
+            <Moon size={20} color={colors.textSecondary} strokeWidth={1.8} />
           )}
+          <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Theme</Text>
         </TouchableOpacity>
 
-        {/* 2. Customisation Button */}
+        {/* 2. Format & Layout */}
         <TouchableOpacity
           onPress={handleTypographyOpen}
           style={styles.tabItem}
@@ -83,10 +84,11 @@ export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
           accessible={true}
           accessibilityLabel="Open Typography and Layout Settings"
         >
-          <Equal size={22} color={colors.textPrimary} strokeWidth={2.2} />
+          <Equal size={20} color={colors.textSecondary} strokeWidth={2.0} />
+          <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Format</Text>
         </TouchableOpacity>
 
-        {/* 3. Table of Contents Button (Beside Customisation) */}
+        {/* 3. Table of Contents */}
         <TouchableOpacity
           onPress={handleTOCOpen}
           style={styles.tabItem}
@@ -94,10 +96,11 @@ export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
           accessible={true}
           accessibilityLabel="Open Table of Contents"
         >
-          <List size={22} color={colors.textPrimary} strokeWidth={2.0} />
+          <List size={20} color={colors.textSecondary} strokeWidth={1.8} />
+          <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Contents</Text>
         </TouchableOpacity>
 
-        {/* 4. Bookmarks and Annotations */}
+        {/* 4. Bookmarks and Highlights */}
         {onOpenAnnotations && (
           <TouchableOpacity
             onPress={handleAnnotationsOpen}
@@ -106,20 +109,26 @@ export const ReaderBottomCapsule: React.FC<ReaderBottomCapsuleProps> = ({
             accessible={true}
             accessibilityLabel="Open Bookmarks and Highlights"
           >
-            <Bookmark size={21} color={colors.textPrimary} strokeWidth={2.0} />
+            <Bookmark size={19} color={colors.textSecondary} strokeWidth={1.8} />
+            <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>Bookmarks</Text>
           </TouchableOpacity>
         )}
       </View>
     </View>
   );
-};
+}
+
+export default ReaderBottomCapsule;
 
 const styles = StyleSheet.create({
-  outerWrapper: {
+  floatingContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    left: 0,
+    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    paddingTop: 8,
+    zIndex: 999,
   },
   capsule: {
     flexDirection: 'row',
@@ -141,5 +150,12 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  tabLabel: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 10,
+    marginTop: 3,
+    letterSpacing: -0.2,
   },
 });
