@@ -13,6 +13,7 @@ export interface FoliateEngineConfig {
   paragraphIndent: number;
   paragraphSpacing: number;
   dropCaps: boolean;
+  initialPosition?: 'start' | 'end';
   highlights?: Array<{ id: string; selectedText: string; color: HighlightColor }>;
   nameReplacements?: Array<{ findText: string; replaceText: string; isCaseSensitive?: boolean }>;
 }
@@ -32,6 +33,7 @@ export function generateFoliateHtml(
     paragraphIndent,
     paragraphSpacing,
     dropCaps,
+    initialPosition = 'start',
   } = config;
 
   const resolvedFont =
@@ -94,13 +96,16 @@ export function generateFoliateHtml(
       ${
         readingDirection === 'horizontal'
           ? `
-        column-width: 100vw;
-        column-gap: 0;
+        column-width: calc(100vw - (var(--readr-margin) * 2));
+        column-gap: calc(var(--readr-margin) * 2);
         column-fill: auto;
-        height: 100vh;
+        height: calc(100vh - 148px);
+        margin-top: 72px;
+        margin-bottom: 76px;
+        padding-left: var(--readr-margin);
+        padding-right: var(--readr-margin);
         box-sizing: border-box;
-        padding: 76px var(--readr-margin) 72px var(--readr-margin);
-        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.28s cubic-bezier(0.18, 0.9, 0.26, 1);
         will-change: transform;
       `
           : `
@@ -109,6 +114,28 @@ export function generateFoliateHtml(
         margin: 0 auto;
       `
       }
+    }
+
+    /* Page Footer Indicator */
+    #readr-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #readr-page-indicator {
+      font-size: 11px;
+      font-family: monospace, sans-serif;
+      color: var(--readr-text-secondary);
+      opacity: 0.85;
+      letter-spacing: 0.8px;
     }
 
     /* Typography Hierarchy */
@@ -210,15 +237,28 @@ export function generateFoliateHtml(
     <div id="readr-flow">
       ${chapterHtml}
     </div>
+    ${
+      readingDirection === 'horizontal'
+        ? `<div id="readr-footer">
+             <span id="readr-page-indicator">1 of 1</span>
+           </div>`
+        : ''
+    }
   </div>
 
   <script>
     (function() {
       const isHorizontal = ${readingDirection === 'horizontal'};
       const flow = document.getElementById('readr-flow');
-      const viewport = document.getElementById('readr-viewport');
+      const pageIndicator = document.getElementById('readr-page-indicator');
       let currentPage = 0;
       let totalPages = 1;
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+      let currentX = 0;
+      let startTime = 0;
+      const initialPos = "${initialPosition}";
 
       function post(msg) {
         if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -226,10 +266,33 @@ export function generateFoliateHtml(
         }
       }
 
+      function updatePageIndicator() {
+        if (pageIndicator) {
+          pageIndicator.innerText = (currentPage + 1) + ' of ' + totalPages;
+        }
+      }
+
+      function updateTransform(animated, extraOffset) {
+        if (!isHorizontal) return;
+        const screenW = window.innerWidth;
+        const offset = -currentPage * screenW + (extraOffset || 0);
+        if (animated) {
+          flow.style.transition = 'transform 0.28s cubic-bezier(0.18, 0.9, 0.26, 1)';
+        } else {
+          flow.style.transition = 'none';
+        }
+        flow.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
+        updatePageIndicator();
+      }
+
       function recalculatePages() {
         if (!isHorizontal) return;
         const screenW = window.innerWidth;
-        totalPages = Math.max(1, Math.ceil(flow.scrollWidth / screenW));
+        totalPages = Math.max(1, Math.round(flow.scrollWidth / screenW));
+        if (currentPage >= totalPages) {
+          currentPage = Math.max(0, totalPages - 1);
+        }
+        updateTransform(false, 0);
         post({
           type: 'pageTurn',
           page: currentPage + 1,
@@ -243,7 +306,7 @@ export function generateFoliateHtml(
         const next = currentPage + delta;
         if (next >= 0 && next < totalPages) {
           currentPage = next;
-          flow.style.transform = 'translate3d(' + (-currentPage * window.innerWidth) + 'px, 0, 0)';
+          updateTransform(true, 0);
           recalculatePages();
         } else if (next >= totalPages) {
           post({ type: 'nextChapter' });
@@ -252,41 +315,83 @@ export function generateFoliateHtml(
         }
       };
 
-      // Tap Navigation Listener
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchStartTime = 0;
-
+      // 1. Touch Start
       document.addEventListener('touchstart', function(e) {
         if (e.touches && e.touches[0]) {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-          touchStartTime = Date.now();
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          currentX = startX;
+          startTime = Date.now();
+          isDragging = false;
+          if (isHorizontal) {
+            flow.style.transition = 'none';
+          }
         }
       }, { passive: true });
 
-      document.addEventListener('touchend', function(e) {
-        const touchDuration = Date.now() - touchStartTime;
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
+      // 2. Touch Move (Real-time interactive page dragging)
+      document.addEventListener('touchmove', function(e) {
+        if (!isHorizontal || !e.touches || !e.touches[0]) return;
+        currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
 
-        // Swipe Gesture
-        if (isHorizontal && touchDuration < 400 && Math.abs(deltaX) > 40 && Math.abs(deltaY) < 50) {
-          if (deltaX < 0) {
-            window.turnPage(1);
-          } else {
-            window.turnPage(-1);
+        if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+          isDragging = true;
+          // Apply elastic resistance at chapter edges
+          let adjustedDelta = deltaX;
+          if (currentPage === 0 && deltaX > 0) {
+            adjustedDelta = deltaX * 0.35;
+          } else if (currentPage === totalPages - 1 && deltaX < 0) {
+            adjustedDelta = deltaX * 0.35;
           }
+          updateTransform(false, adjustedDelta);
+        }
+      }, { passive: true });
+
+      // 3. Touch End (Flick velocity & drag threshold detection)
+      document.addEventListener('touchend', function(e) {
+        const duration = Date.now() - startTime;
+        const deltaX = currentX - startX;
+        const screenW = window.innerWidth;
+        const velocity = Math.abs(deltaX) / Math.max(1, duration);
+
+        if (isDragging) {
+          // Swipe threshold: 16% screen width or high velocity flick
+          if (deltaX < -screenW * 0.16 || (deltaX < -28 && velocity > 0.35)) {
+            // Next Page
+            if (currentPage < totalPages - 1) {
+              currentPage++;
+              updateTransform(true, 0);
+              recalculatePages();
+            } else {
+              // At chapter end -> next chapter
+              updateTransform(true, 0);
+              post({ type: 'nextChapter' });
+            }
+          } else if (deltaX > screenW * 0.16 || (deltaX > 28 && velocity > 0.35)) {
+            // Prev Page
+            if (currentPage > 0) {
+              currentPage--;
+              updateTransform(true, 0);
+              recalculatePages();
+            } else {
+              // At chapter start -> prev chapter
+              updateTransform(true, 0);
+              post({ type: 'prevChapter' });
+            }
+          } else {
+            // Snapping back to current page
+            updateTransform(true, 0);
+          }
+          isDragging = false;
           return;
         }
 
-        // Tap Gesture (Duration < 260ms, dist < 15px)
-        if (touchDuration < 260 && Math.hypot(deltaX, deltaY) < 15) {
-          const screenW = window.innerWidth;
-          const ratioX = touchEndX / screenW;
-
+        // Tap Navigation (Clean tap with no significant drag)
+        if (duration < 280 && Math.abs(deltaX) < 12) {
+          const ratioX = startX / screenW;
           if (ratioX < 0.22) {
             if (isHorizontal) window.turnPage(-1);
             else post({ type: 'prevChapter' });
@@ -364,8 +469,15 @@ export function generateFoliateHtml(
         }
       };
 
-      // Initial page calculation
-      window.addEventListener('load', recalculatePages);
+      // Initial page calculation and initialPosition handling
+      window.addEventListener('load', function() {
+        recalculatePages();
+        if (initialPos === 'end' && totalPages > 1) {
+          currentPage = totalPages - 1;
+          updateTransform(false, 0);
+          recalculatePages();
+        }
+      });
       window.addEventListener('resize', recalculatePages);
       setTimeout(recalculatePages, 120);
     })();

@@ -121,7 +121,10 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
     }
   }, [currentChapterIdx, chapters]);
 
-  const animateToChapter = (newIndex: number) => {
+  const [transitionDirection, setTransitionDirection] = useState<'start' | 'end'>('start');
+
+  const animateToChapter = (newIndex: number, direction: 'start' | 'end' = 'start') => {
+    setTransitionDirection(direction);
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -144,14 +147,14 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
   const handleNextChapter = () => {
     if (currentChapterIdx < chapters.length - 1) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      animateToChapter(currentChapterIdx + 1);
+      animateToChapter(currentChapterIdx + 1, 'start');
     }
   };
 
   const handlePrevChapter = () => {
     if (currentChapterIdx > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      animateToChapter(currentChapterIdx - 1);
+      animateToChapter(currentChapterIdx - 1, 'end');
     }
   };
 
@@ -171,6 +174,7 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
       paragraphIndent,
       paragraphSpacing,
       dropCaps,
+      initialPosition: transitionDirection,
       highlights: savedHighlights.map((h) => ({
         id: h.id,
         selectedText: h.selectedText,
@@ -178,7 +182,7 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
       })),
       nameReplacements,
     });
-  }, [currentChapter, readingDirection]);
+  }, [currentChapter, readingDirection, transitionDirection]);
 
   // Push live config updates directly to DOM without reloading WebView
   useEffect(() => {

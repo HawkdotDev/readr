@@ -100,6 +100,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   // Smooth Chapter Transition Animation
   const chapterAnim = useRef(new Animated.Value(1)).current;
+  const touchStartPos = useRef({ x: 0, y: 0, time: 0 });
 
   const {
     fontFamily,
@@ -695,15 +696,59 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
       {readingDirection === 'horizontal' ? (
         /* ================= DUAL ENGINE 1: HORIZONTAL PAGINATED READER ================= */
-        <View style={styles.paginatedContainer}>
+        <View
+          style={styles.paginatedContainer}
+          onTouchStart={(e) => {
+            touchStartPos.current = {
+              x: e.nativeEvent.pageX,
+              y: e.nativeEvent.pageY,
+              time: Date.now(),
+            };
+          }}
+          onTouchEnd={(e) => {
+            const dx = e.nativeEvent.pageX - touchStartPos.current.x;
+            const dy = e.nativeEvent.pageY - touchStartPos.current.y;
+            const dt = Date.now() - touchStartPos.current.time;
+
+            if (dt < 260 && Math.hypot(dx, dy) < 15) {
+              const ratio = touchStartPos.current.x / windowWidth;
+              if (ratio < 0.22) {
+                if (currentPageIdx > 0) {
+                  horizontalScrollRef.current?.scrollTo({
+                    x: (currentPageIdx - 1) * windowWidth,
+                    animated: true,
+                  });
+                  setCurrentPageIdx(currentPageIdx - 1);
+                } else {
+                  handlePrevChapter();
+                }
+              } else if (ratio > 0.78) {
+                if (currentPageIdx < paginatedPages.length - 1) {
+                  horizontalScrollRef.current?.scrollTo({
+                    x: (currentPageIdx + 1) * windowWidth,
+                    animated: true,
+                  });
+                  setCurrentPageIdx(currentPageIdx + 1);
+                } else {
+                  handleNextChapter();
+                }
+              } else {
+                onToggleChrome();
+              }
+            }
+          }}
+        >
           <ScrollView
             ref={horizontalScrollRef}
             horizontal={true}
             pagingEnabled={true}
             showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
             onMomentumScrollEnd={(e) => {
               const pIdx = Math.round(e.nativeEvent.contentOffset.x / windowWidth);
-              setCurrentPageIdx(pIdx);
+              if (pIdx !== currentPageIdx && pIdx >= 0 && pIdx < paginatedPages.length) {
+                setCurrentPageIdx(pIdx);
+              }
             }}
             contentContainerStyle={{ flexGrow: 1 }}
           >
@@ -761,48 +806,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               </View>
             ))}
           </ScrollView>
-
-          {/* Paginated Tap Navigation Overlay (Left 20% = Prev, Center 60% = Chrome, Right 20% = Next) */}
-          <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-            <TouchableOpacity
-              style={styles.leftTapZone}
-              onPress={() => {
-                if (currentPageIdx > 0) {
-                  horizontalScrollRef.current?.scrollTo({
-                    x: (currentPageIdx - 1) * windowWidth,
-                    animated: true,
-                  });
-                  setCurrentPageIdx(currentPageIdx - 1);
-                } else {
-                  handlePrevChapter();
-                }
-              }}
-              accessible={true}
-              accessibilityLabel="Previous Page"
-            />
-            <TouchableOpacity
-              style={styles.centerTapZone}
-              onPress={onToggleChrome}
-              accessible={true}
-              accessibilityLabel="Toggle Controls"
-            />
-            <TouchableOpacity
-              style={styles.rightTapZone}
-              onPress={() => {
-                if (currentPageIdx < paginatedPages.length - 1) {
-                  horizontalScrollRef.current?.scrollTo({
-                    x: (currentPageIdx + 1) * windowWidth,
-                    animated: true,
-                  });
-                  setCurrentPageIdx(currentPageIdx + 1);
-                } else {
-                  handleNextChapter();
-                }
-              }}
-              accessible={true}
-              accessibilityLabel="Next Page"
-            />
-          </View>
         </View>
       ) : (
         /* ================= DUAL ENGINE 2: CONTINUOUS VERTICAL SCROLL ================= */

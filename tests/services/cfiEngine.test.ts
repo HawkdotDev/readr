@@ -80,7 +80,7 @@ describe('Foliate Micro-Runtime HTML Generator', () => {
     expect(html).toContain('--readr-canvas: #0D0D11');
     expect(html).toContain('--readr-text: #FAFAFA');
     expect(html).toContain('--readr-font-size: 18px');
-    expect(html).toContain('column-width: 100vw');
+    expect(html).toContain('column-width: calc(100vw');
     expect(html).toContain('window.ReadrEngine');
     expect(html).toContain('Down the Rabbit-Hole');
   });
