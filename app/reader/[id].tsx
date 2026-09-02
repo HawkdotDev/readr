@@ -337,8 +337,6 @@ export default function ReaderScreen() {
           onOpenTTS={() => setActiveSheet('tts')}
           onOpenSearch={() => setActiveSheet('search')}
           onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
-          onToggleBookmark={handleToggleBookmark}
-          isBookmarked={isCurrentChapterBookmarked}
         />
       </Animated.View>
 

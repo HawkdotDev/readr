@@ -1,14 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import {
   ChevronLeft,
   Search,
   Volume2,
   UserCheck,
-  Bookmark,
 } from 'lucide-react-native';
-import { FONTS } from '../../utils/typography';
 
 export interface ReaderToolbarProps {
   title: string;
@@ -16,8 +14,6 @@ export interface ReaderToolbarProps {
   onOpenTTS: () => void;
   onOpenSearch: () => void;
   onOpenNameReplacement?: () => void;
-  onToggleBookmark?: () => void;
-  isBookmarked?: boolean;
   onOpenTypography?: () => void;
   onOpenTOC?: () => void;
   onOpenTheme?: () => void;
@@ -30,8 +26,6 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onOpenTTS,
   onOpenSearch,
   onOpenNameReplacement,
-  onToggleBookmark,
-  isBookmarked,
 }) => {
   const { colors } = useTheme();
 
@@ -41,7 +35,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
       <TouchableOpacity
         onPress={onBack}
         style={[
-          styles.backCircleBtn,
+          styles.circleBtn,
           {
             backgroundColor: colors.surface,
             borderColor: colors.border,
@@ -60,58 +54,58 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         {onOpenNameReplacement && (
           <TouchableOpacity
             onPress={onOpenNameReplacement}
-            style={styles.iconBtn}
+            style={[
+              styles.circleBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
             hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
             accessible={true}
             accessibilityLabel="Role Reversal and Name Replacer"
           >
-            <UserCheck size={19} color={colors.textSecondary} />
+            <UserCheck size={19} color={colors.textPrimary} />
           </TouchableOpacity>
         )}
 
         {/* Audio TTS */}
         <TouchableOpacity
           onPress={onOpenTTS}
-          style={styles.iconBtn}
+          style={[
+            styles.circleBtn,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           accessible={true}
           accessibilityLabel="Audio Narration"
         >
-          <Volume2 size={19} color={colors.textSecondary} />
+          <Volume2 size={19} color={colors.textPrimary} />
         </TouchableOpacity>
-
-        {/* 1-Tap Bookmark */}
-        {onToggleBookmark && (
-          <TouchableOpacity
-            onPress={onToggleBookmark}
-            style={styles.iconBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-            accessible={true}
-            accessibilityLabel={isBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
-          >
-            <Bookmark
-              size={18}
-              color={isBookmarked ? colors.accent : colors.textSecondary}
-              fill={isBookmarked ? colors.accent : 'transparent'}
-            />
-          </TouchableOpacity>
-        )}
 
         {/* In-Book Search */}
         <TouchableOpacity
           onPress={onOpenSearch}
-          style={styles.iconBtn}
+          style={[
+            styles.circleBtn,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           accessible={true}
           accessibilityLabel="Search in book"
         >
-          <Search size={18} color={colors.textSecondary} />
+          <Search size={18} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
 
 export default ReaderToolbar;
 
@@ -123,7 +117,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'space-between',
   },
-  backCircleBtn: {
+  circleBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -139,12 +133,6 @@ const styles = StyleSheet.create({
   actionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 10,
   },
 });
