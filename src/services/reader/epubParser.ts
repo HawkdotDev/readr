@@ -7,6 +7,8 @@ export interface ParsedChapter {
   content: string; // Clean HTML or text
   orderIndex: number;
   wordCount: number;
+  chapterNumber?: number; // 1, 2, 3... for story chapters
+  isFrontMatter?: boolean;
 }
 
 export interface ParsedBookContent {
@@ -217,10 +219,14 @@ export async function parseEpubArchive(
         let npMatch;
         while ((npMatch = navPointRegex.exec(ncxXml)) !== null) {
           const title = decodeHtmlEntities(npMatch[1].trim());
-          const src = npMatch[2].split('#')[0];
+          const fullSrc = npMatch[2];
+          const src = fullSrc.split('#')[0];
           const filename = src.split('/').pop() || src;
-          tocTitlesMap.set(filename, title);
-          tocTitlesMap.set(src, title);
+          tocTitlesMap.set(fullSrc, title);
+          if (!tocTitlesMap.has(filename) || tocTitlesMap.get(filename)?.toLowerCase() === 'contents') {
+            tocTitlesMap.set(filename, title);
+            tocTitlesMap.set(src, title);
+          }
         }
       } catch {}
     }
@@ -273,9 +279,14 @@ export async function parseEpubArchive(
   }
 
   // 9. Read and format each spine chapter
-  const chapters: ParsedChapter[] = [];
+  const rawChapters: Array<{
+    id: string;
+    title: string;
+    content: string;
+    wordCount: number;
+    href: string;
+  }> = [];
   let totalWords = 0;
-  let chapterIndex = 0;
 
   for (const idref of spineItemRefs) {
     const href = manifestMap.get(idref);
@@ -289,7 +300,7 @@ export async function parseEpubArchive(
     const filename = href.split('/').pop() || href;
     const { cleanHtml, chapterTitle, wordCount } = processChapterHtml(
       rawHtml,
-      chapterIndex,
+      rawChapters.length,
       tocTitlesMap.get(href) || tocTitlesMap.get(filename)
     );
 
@@ -299,15 +310,49 @@ export async function parseEpubArchive(
     }
 
     totalWords += wordCount;
-    chapters.push({
-      id: `chap_${chapterIndex}`,
+    rawChapters.push({
+      id: `chap_${rawChapters.length}`,
       title: chapterTitle,
       content: cleanHtml,
-      orderIndex: chapterIndex,
       wordCount,
+      href,
     });
-    chapterIndex++;
   }
+
+  // Classify front matter vs body chapters and assign accurate story chapter numbers
+  let storyChapterCount = 0;
+  const chapters: ParsedChapter[] = rawChapters.map((ch, idx) => {
+    const isFront = isFrontMatterSection(ch.title, ch.href, ch.wordCount);
+    let chapterNum: number | undefined;
+
+    if (!isFront) {
+      // Check if title has an explicit chapter/book/part/letter number
+      const match = ch.title.match(/(?:chapter|chap\.?|book|part|letter)\s+([0-9IVXLCDM]+)/i);
+      if (match) {
+        const parsedInt = parseInt(match[1], 10);
+        if (!isNaN(parsedInt)) {
+          chapterNum = parsedInt;
+          storyChapterCount = Math.max(storyChapterCount, parsedInt);
+        } else {
+          storyChapterCount++;
+          chapterNum = storyChapterCount;
+        }
+      } else {
+        storyChapterCount++;
+        chapterNum = storyChapterCount;
+      }
+    }
+
+    return {
+      id: ch.id,
+      title: ch.title,
+      content: ch.content,
+      orderIndex: idx,
+      wordCount: ch.wordCount,
+      chapterNumber: chapterNum,
+      isFrontMatter: isFront,
+    };
+  });
 
   // Fallback if no spine chapters were extractable
   if (chapters.length === 0) {
@@ -320,6 +365,72 @@ export async function parseEpubArchive(
     chapters,
     totalWords,
   };
+}
+
+export function isFrontMatterSection(
+  title: string,
+  filenameOrHref: string,
+  wordCount: number
+): boolean {
+  const t = (title || '').toLowerCase().trim();
+  const f = (filenameOrHref || '').toLowerCase();
+
+  // Explicit front matter filenames/IDs
+  if (
+    f.includes('cover') ||
+    f.includes('wrap000') ||
+    f.includes('titlepage') ||
+    f.includes('halftitle') ||
+    f.includes('imprint') ||
+    f.includes('colophon') ||
+    f.includes('uncopyright') ||
+    f.includes('copyright') ||
+    f.includes('pg-header') ||
+    f.includes('boilerplate') ||
+    f.includes('toc') ||
+    f.includes('contents') ||
+    f.includes('nav')
+  ) {
+    return true;
+  }
+
+  // Common front-matter titles
+  if (
+    t === 'cover' ||
+    t === 'title page' ||
+    t === 'half title' ||
+    t === 'half-title' ||
+    t === 'contents' ||
+    t === 'table of contents' ||
+    t === 'copyright' ||
+    t === 'colophon' ||
+    t === 'imprint' ||
+    t === 'epigraph' ||
+    t === 'dedication' ||
+    t.startsWith('the project gutenberg') ||
+    t.startsWith('project gutenberg') ||
+    t.includes('license') ||
+    t === 'boilerplate'
+  ) {
+    return true;
+  }
+
+  // Short non-chapter pages
+  if (
+    wordCount < 40 &&
+    !t.includes('chapter') &&
+    !t.includes('book') &&
+    !t.includes('part') &&
+    !t.includes('act') &&
+    !t.includes('scene') &&
+    !t.includes('letter')
+  ) {
+    if (t.includes('title') || t.includes('edition') || t.includes('author') || t === '') {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -408,7 +519,16 @@ export function processChapterHtml(
 
   detectedTitle = decodeHtmlEntities(detectedTitle);
   if (!detectedTitle || detectedTitle.length > 80 || detectedTitle.toLowerCase().includes('untitled')) {
-    detectedTitle = `Chapter ${chapterIndex + 1}`;
+    const rawLower = rawHtml.slice(0, 500).toLowerCase();
+    if (rawLower.includes('cover')) {
+      detectedTitle = 'Cover';
+    } else if (rawLower.includes('title')) {
+      detectedTitle = 'Title Page';
+    } else if (rawLower.includes('contents')) {
+      detectedTitle = 'Contents';
+    } else {
+      detectedTitle = `Chapter ${chapterIndex + 1}`;
+    }
   }
 
   // 3. Convert headings, paragraphs, and blockquotes to clean semantic HTML

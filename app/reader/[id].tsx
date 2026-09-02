@@ -144,7 +144,7 @@ export default function ReaderScreen() {
 
         setChapters(parsedChapters);
 
-        // Resume from last saved chapter if available
+        // Resume from last saved chapter if available, or start at first story chapter
         if (b.lastReadLocation) {
           const match = b.lastReadLocation.match(/chap_(\d+)/);
           if (match) {
@@ -152,6 +152,12 @@ export default function ReaderScreen() {
             if (savedIdx >= 0 && savedIdx < parsedChapters.length) {
               setActiveChapterIndex(savedIdx);
             }
+          }
+        } else {
+          // Open directly at first story chapter (skipping cover/front matter), matching Kindle/Apple Books
+          const firstStoryIdx = parsedChapters.findIndex((c) => !c.isFrontMatter);
+          if (firstStoryIdx > 0) {
+            setActiveChapterIndex(firstStoryIdx);
           }
         }
 

@@ -97,4 +97,23 @@ describe('Reader Format Drivers (SOLID / OCP)', () => {
 
     expect(blocks[3].type).toBe('paragraph');
   });
+
+  it('correctly identifies front-matter sections vs true story chapters', () => {
+    const { isFrontMatterSection } = require('../../src/services/reader/epubParser');
+
+    // Front matter cases
+    expect(isFrontMatterSection('Cover', 'wrap0000.html', 5)).toBe(true);
+    expect(isFrontMatterSection('Table of Contents', 'toc.xhtml', 50)).toBe(true);
+    expect(isFrontMatterSection('Contents', '8761230412384829988_11-h-0.htm.html', 120)).toBe(true);
+    expect(isFrontMatterSection('Title Page', 'titlepage.xhtml', 10)).toBe(true);
+    expect(isFrontMatterSection('The Project Gutenberg eBook of Alice in Wonderland', 'pg-header.xhtml', 400)).toBe(true);
+    expect(isFrontMatterSection('Imprint', 'imprint.xhtml', 15)).toBe(true);
+    expect(isFrontMatterSection('Dedication', 'dedication.xhtml', 25)).toBe(true);
+
+    // True story chapter cases
+    expect(isFrontMatterSection('CHAPTER I. Down the Rabbit-Hole', '11-h-1.htm.html', 2100)).toBe(false);
+    expect(isFrontMatterSection('CHAPTER II. The Pool of Tears', '11-h-2.htm.html', 1950)).toBe(false);
+    expect(isFrontMatterSection('Book I: Debts and Lessons', 'chap_1.xhtml', 1500)).toBe(false);
+    expect(isFrontMatterSection('Letter 1', 'letter-1.xhtml', 800)).toBe(false);
+  });
 });

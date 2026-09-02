@@ -241,11 +241,21 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   };
 
+  // Total story body chapters (excluding front-matter)
+  const totalStoryChapters = useMemo(() => {
+    const storyChaps = chapters.filter((c) => !c.isFrontMatter);
+    return storyChaps.length > 0 ? storyChaps.length : chapters.length;
+  }, [chapters]);
+
   // Clean formatted display title
   const displayTitle = useMemo(() => {
     if (!currentChapter) return 'Beginning';
     const raw = currentChapter.title || `Chapter ${currentChapterIdx + 1}`;
-    const clean = raw.replace(/^chapter\s*\d+[:.\s-]*/i, '').trim() || raw;
+    // Strip leading "Chapter X[:.] " or Roman numerals "Chapter I[:.] " or "Book I[:.] "
+    const clean =
+      raw
+        .replace(/^(?:chapter|chap\.?|book|part|letter)\s*(?:[0-9]+|[ivxlcdm]+)[:.\s-]*/i, '')
+        .trim() || raw;
     return applyNameReplacements(clean, nameReplacements);
   }, [currentChapter, currentChapterIdx, nameReplacements]);
 
@@ -552,7 +562,15 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             <Text
               style={[styles.chapterKicker, { color: colors.textSecondary }]}
             >
-              CHAPTER {currentChapterIdx + 1}
+              {currentChapter?.isFrontMatter
+                ? currentChapter.title.toUpperCase().includes('COVER')
+                  ? 'COVER'
+                  : currentChapter.title.toUpperCase().includes('CONTENTS')
+                  ? 'CONTENTS'
+                  : 'FRONT MATTER'
+                : currentChapter?.chapterNumber
+                ? `CHAPTER ${currentChapter.chapterNumber}`
+                : `CHAPTER ${currentChapterIdx + 1}`}
             </Text>
             <Text
               style={[
@@ -637,7 +655,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             <Text
               style={[styles.chapterCounter, { color: colors.textSecondary }]}
             >
-              {currentChapterIdx + 1} of {chapters.length || 1}
+              {currentChapter?.isFrontMatter
+                ? currentChapter.title
+                : currentChapter?.chapterNumber
+                ? `Chapter ${currentChapter.chapterNumber} of ${totalStoryChapters}`
+                : `${currentChapterIdx + 1} of ${chapters.length || 1}`}
             </Text>
 
             <TouchableOpacity
