@@ -139,14 +139,11 @@ export async function parseEpubArchive(
   // 2. Load the ZIP container with JSZip
   let zip: JSZip;
   if (typeof rawData === 'string') {
-    const cleanStr = rawData.replace(/^data:.*?;base64,/, '').trim();
-    // Check if it's base64 or raw string
-    if (cleanStr.startsWith('UEsDB') || cleanStr.startsWith('UEsBA')) {
+    const cleanStr = rawData.replace(/^data:.*?;base64,/, '').replace(/\r?\n|\r/g, '').trim();
+    try {
       zip = await JSZip.loadAsync(cleanStr, { base64: true });
-    } else if (cleanStr.startsWith('PK')) {
+    } catch {
       zip = await JSZip.loadAsync(cleanStr);
-    } else {
-      throw new Error('File does not start with ZIP magic bytes (PK).');
     }
   } else {
     zip = await JSZip.loadAsync(rawData);

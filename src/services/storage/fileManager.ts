@@ -64,8 +64,8 @@ export async function readUriAsBase64(uri: string): Promise<string> {
         encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
       });
       if (base64 && base64.length > 0) return base64;
-    } catch (e) {
-      console.warn('[fileManager] readAsStringAsync failed, falling back to fetch stream:', e);
+    } catch {
+      // Direct FileSystem read rejected by OS, proceed to ContentResolver fetch stream
     }
   }
 
@@ -93,8 +93,8 @@ export async function copyFileResilient(sourceUri: string, destinationPath: stri
       to: destinationPath,
     });
     return;
-  } catch (copyErr) {
-    console.warn('[fileManager] FileSystem.copyAsync rejected, attempting stream copy fallback:', copyErr);
+  } catch {
+    // Native copy rejected by OS, proceed to stream copy fallback
   }
 
   // 2. Fallback: Stream read via readUriAsBase64 and write into app's writable document sandbox

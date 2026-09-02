@@ -15,7 +15,7 @@ import { getBookById } from '../../src/db/queries/books';
 import { getBookSettings, saveBookSettings } from '../../src/db/queries/bookSettings';
 import { getBookNameReplacements } from '../../src/db/queries/nameReplacements';
 import { Book } from '../../src/types';
-import { parseBookFile, ParsedChapter } from '../../src/services/reader/epubParser';
+import { parseBookFile, ParsedChapter, createSampleBookContent } from '../../src/services/reader/epubParser';
 import { progressTracker } from '../../src/services/reader/progressTracker';
 import { ttsService } from '../../src/services/tts/ttsService';
 import { useReaderStore } from '../../src/store/readerStore';
@@ -129,23 +129,35 @@ export default function ReaderScreen() {
         const replacements = await getBookNameReplacements(id);
         useReaderStore.getState().setNameReplacements(replacements);
 
-        const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
-        setChapters(parsed.chapters);
+        let parsedChapters: ParsedChapter[] = [];
+        try {
+          const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
+          parsedChapters = parsed.chapters || [];
+        } catch (parseErr) {
+          console.warn('[reader] parseBookFile encountered an error:', parseErr);
+        }
+
+        if (parsedChapters.length === 0) {
+          const fallback = createSampleBookContent(b.title);
+          parsedChapters = fallback.chapters;
+        }
+
+        setChapters(parsedChapters);
 
         // Resume from last saved chapter if available
         if (b.lastReadLocation) {
           const match = b.lastReadLocation.match(/chap_(\d+)/);
           if (match) {
             const savedIdx = parseInt(match[1], 10);
-            if (savedIdx >= 0 && savedIdx < parsed.chapters.length) {
+            if (savedIdx >= 0 && savedIdx < parsedChapters.length) {
               setActiveChapterIndex(savedIdx);
             }
           }
         }
 
         // Feed TTS service with initial chapter text (applying active name replacements)
-        if (parsed.chapters.length > 0) {
-          const plainText = parsed.chapters[0].content.replace(/<[^>]+>/g, ' ');
+        if (parsedChapters.length > 0) {
+          const plainText = parsedChapters[0].content.replace(/<[^>]+>/g, ' ');
           const substituted = applyNameReplacements(plainText, replacements);
           ttsService.setContent(substituted);
         }

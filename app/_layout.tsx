@@ -1,4 +1,8 @@
 import '../global.css';
+import { Buffer } from 'buffer';
+if (typeof (global as any).Buffer === 'undefined') {
+  (global as any).Buffer = Buffer;
+}
 import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
