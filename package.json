@@ -9,8 +9,7 @@
     "url": "git+https://github.com/hawkdotdev/readr.git"
   },
   "bugs": {
-    "url": "https://github.com/hawkdotdev/readr/issues?q=is%3Aissue+is%3Aopen+label%3Abug",
-    "email": "support@hawkdot.dev"
+    "url": "https://github.com/hawkdotdev/readr/issues?q=is%3Aissue+is%3Aopen+label%3Abug"
   },
   "features": {
     "url": "https://github.com/hawkdotdev/readr/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement"
