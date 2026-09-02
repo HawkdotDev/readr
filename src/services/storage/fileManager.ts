@@ -162,7 +162,7 @@ export async function importBookFromUri(
 export async function pickAndImportBook(): Promise<ImportResult | null> {
   try {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ['application/epub+zip', 'application/pdf', 'text/plain', 'text/markdown'],
+      type: ['*/*', 'application/epub+zip', 'application/epub', 'application/octet-stream', 'application/pdf', 'text/plain', 'text/markdown'],
       copyToCacheDirectory: true,
     });
 

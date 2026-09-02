@@ -11,7 +11,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Jane Austen',
     summary: 'A romantic masterpiece following Elizabeth Bennet as she deals with manners, upbringing, morality, and marriage in 19th-century England.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.epub?source=download',
     fileFormat: 'epub',
     published: '1813',
   },
@@ -21,7 +21,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'F. Scott Fitzgerald',
     summary: 'A portrait of the Jazz Age exploring themes of decadence, idealism, resistance to change, and social upheaval in Long Island.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby/downloads/f-scott-fitzgerald_the-great-gatsby.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/f-scott-fitzgerald/the-great-gatsby/downloads/f-scott-fitzgerald_the-great-gatsby.epub?source=download',
     fileFormat: 'epub',
     published: '1925',
   },
@@ -31,7 +31,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Mary Shelley',
     summary: 'The seminal gothic science fiction novel telling the story of Victor Frankenstein and his tragic sentient creation.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439471-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/mary-shelley_frankenstein.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/mary-shelley_frankenstein.epub?source=download',
     fileFormat: 'epub',
     published: '1818',
   },
@@ -41,7 +41,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Oscar Wilde',
     summary: 'A decadent philosophical novel of youth, aesthetic beauty, hedonism, and moral corruption in Victorian London.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439570-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/oscar-wilde/the-picture-of-dorian-gray/downloads/oscar-wilde_the-picture-of-dorian-gray.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/oscar-wilde/the-picture-of-dorian-gray/downloads/oscar-wilde_the-picture-of-dorian-gray.epub?source=download',
     fileFormat: 'epub',
     published: '1890',
   },
@@ -51,7 +51,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Bram Stoker',
     summary: 'The archetypal Gothic vampire novel composed through letters, journal entries, and ship logs of Jonathan Harker and Mina Murray.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439846-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/bram-stoker/dracula/downloads/bram-stoker_dracula.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/bram-stoker/dracula/downloads/bram-stoker_dracula.epub?source=download',
     fileFormat: 'epub',
     published: '1897',
   },
@@ -61,7 +61,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Charlotte Brontë',
     summary: 'A revolutionary coming-of-age story exploring passion, moral integrity, independence, and dark secrets at Thornfield Hall.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141441146-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/charlotte-bronte/jane-eyre/downloads/charlotte-bronte_jane-eyre.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/charlotte-bronte/jane-eyre/downloads/charlotte-bronte_jane-eyre.epub?source=download',
     fileFormat: 'epub',
     published: '1847',
   },
@@ -71,7 +71,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Lucius Annaeus Seneca',
     summary: 'Essential Stoic wisdom on friendship, courage, grief, and navigating life with equanimity and purposeful reason.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780140442106-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/seneca/epistles/richard-mott-gummere/downloads/seneca_epistles_richard-mott-gummere.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/seneca/epistles/richard-mott-gummere/downloads/seneca_epistles_richard-mott-gummere.epub?source=download',
     fileFormat: 'epub',
     published: '65 AD',
   },
@@ -81,7 +81,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Lewis Carroll',
     summary: 'A whimsical literary journey of Alice tumbling down a rabbit hole into a fantastical realm of peculiar creatures.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439761-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/lewis-carroll/alices-adventures-in-wonderland/downloads/lewis-carroll_alices-adventures-in-wonderland.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/lewis-carroll/alices-adventures-in-wonderland/downloads/lewis-carroll_alices-adventures-in-wonderland.epub?source=download',
     fileFormat: 'epub',
     published: '1865',
   },
@@ -91,7 +91,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'James Joyce',
     summary: 'Fifteen evocative short stories depicting Irish middle-class life in and around Dublin in the early years of the 20th century.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780140186475-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/james-joyce/dubliners/downloads/james-joyce_dubliners.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/james-joyce/dubliners/downloads/james-joyce_dubliners.epub?source=download',
     fileFormat: 'epub',
     published: '1914',
   },
@@ -101,7 +101,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Emily Brontë',
     summary: 'A tempestuous tale of intense, almost demonic love between Catherine Earnshaw and Heathcliff on the Yorkshire moors.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141439556-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/emily-bronte/wuthering-heights/downloads/emily-bronte_wuthering-heights.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/emily-bronte/wuthering-heights/downloads/emily-bronte_wuthering-heights.epub?source=download',
     fileFormat: 'epub',
     published: '1847',
   },
@@ -111,7 +111,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Frances Hodgson Burnett',
     summary: 'A heartwarming classic about Mary Lennox who discovers a neglected locked garden on a Yorkshire estate and brings it back to life.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141321066-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/frances-hodgson-burnett/the-secret-garden/downloads/frances-hodgson-burnett_the-secret-garden.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/frances-hodgson-burnett/the-secret-garden/downloads/frances-hodgson-burnett_the-secret-garden.epub?source=download',
     fileFormat: 'epub',
     published: '1911',
   },
@@ -121,7 +121,7 @@ export const STANDARD_EBOOKS_CATALOG: OPDSBookEntry[] = [
     author: 'Charlotte Perkins Gilman',
     summary: 'A psychological tour-de-force detailing a young woman’s gradual descent into madness while confined for rest cure.',
     coverUrl: 'https://covers.openlibrary.org/b/isbn/9780143105855-L.jpg',
-    downloadUrl: 'https://standardebooks.org/ebooks/charlotte-perkins-gilman/the-yellow-wallpaper/downloads/charlotte-perkins-gilman_the-yellow-wallpaper.epub',
+    downloadUrl: 'https://standardebooks.org/ebooks/charlotte-perkins-gilman/the-yellow-wallpaper/downloads/charlotte-perkins-gilman_the-yellow-wallpaper.epub?source=download',
     fileFormat: 'epub',
     published: '1892',
   },
@@ -604,6 +604,11 @@ export async function downloadOPDSBook(
     const cacheDir = (FileSystem as any).cacheDirectory || '';
     const tempUri = `${cacheDir}${book.id}.${book.fileFormat}`;
 
+    let targetDownloadUrl = book.downloadUrl;
+    if (targetDownloadUrl.includes('standardebooks.org') && !targetDownloadUrl.includes('source=download')) {
+      targetDownloadUrl += (targetDownloadUrl.includes('?') ? '&' : '?') + 'source=download';
+    }
+
     const headers: Record<string, string> = {};
     if (username && password) {
       const basicAuth = typeof btoa === 'function' ? btoa(`${username}:${password}`) : Buffer.from(`${username}:${password}`).toString('base64');
@@ -611,13 +616,30 @@ export async function downloadOPDSBook(
     }
 
     // Download the EPUB/PDF file to cache directory
-    const downloadRes = await FileSystem.downloadAsync(book.downloadUrl, tempUri, {
+    let downloadRes = await FileSystem.downloadAsync(targetDownloadUrl, tempUri, {
       headers,
     });
 
     if (downloadRes.status !== 200) {
       throw new Error(`Download failed with status ${downloadRes.status}`);
     }
+
+    // Check if downloaded file is an HTML interstitial / redirect page instead of binary
+    try {
+      const snippet = await FileSystem.readAsStringAsync(tempUri, { length: 300 });
+      if (snippet.includes('<!DOCTYPE') || snippet.includes('<html') || snippet.includes('<?xml')) {
+        const fullText = await FileSystem.readAsStringAsync(tempUri);
+        const redirectMatch = fullText.match(/url=["']?([^"'>\s]+)["']?/i);
+        if (redirectMatch && redirectMatch[1]) {
+          let resolvedRedirect = redirectMatch[1];
+          if (resolvedRedirect.startsWith('/')) {
+            const parsedUrl = new URL(targetDownloadUrl);
+            resolvedRedirect = `${parsedUrl.origin}${resolvedRedirect}`;
+          }
+          downloadRes = await FileSystem.downloadAsync(resolvedRedirect, tempUri, { headers });
+        }
+      }
+    } catch {}
 
     // Ingest into local library
     const result = await importBookFromUri(

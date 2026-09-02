@@ -18,6 +18,7 @@ export interface ParsedBookContent {
 
 /**
  * Main dispatcher to parse any book format into structured chapters.
+ * Resilient against non-zip files marked as EPUB, corrupt headers, and web/native filesystem differences.
  */
 export async function parseBookFile(
   filePath: string,
@@ -27,55 +28,147 @@ export async function parseBookFile(
   const normalizedFormat = format.toLowerCase().trim();
 
   try {
-    if (normalizedFormat === 'epub') {
-      return await parseEpubArchive(filePath, defaultTitle);
+    // 1. If format is EPUB (or filename ends with .epub)
+    if (normalizedFormat === 'epub' || filePath.toLowerCase().endsWith('.epub')) {
+      try {
+        return await parseEpubArchive(filePath, defaultTitle);
+      } catch (epubErr) {
+        console.warn(`[epubParser] Failed to parse EPUB archive at ${filePath}, checking for text/html fallback:`, epubErr);
+        // Fallback: If the file was not a zip archive (e.g. plain text or HTML saved as .epub),
+        // read it as text rather than displaying generic placeholder text!
+        const rawContent = await readFileAsTextSafe(filePath);
+        if (rawContent && rawContent.trim().length > 0) {
+          if (rawContent.includes('<!DOCTYPE') || rawContent.includes('<html') || rawContent.includes('<p>')) {
+            const { cleanHtml, chapterTitle, wordCount } = processChapterHtml(rawContent, 0, defaultTitle);
+            return {
+              title: chapterTitle || defaultTitle,
+              author: 'Unknown Author',
+              chapters: [
+                {
+                  id: 'chap_0',
+                  title: chapterTitle || defaultTitle,
+                  content: cleanHtml,
+                  orderIndex: 0,
+                  wordCount,
+                },
+              ],
+              totalWords: wordCount,
+            };
+          }
+          return parseTextContent(rawContent, defaultTitle);
+        }
+      }
     }
 
-    if (normalizedFormat === 'fb2') {
-      const rawXml = await FileSystem.readAsStringAsync(filePath);
+    // 2. FictionBook 2 (.fb2)
+    if (normalizedFormat === 'fb2' || filePath.toLowerCase().endsWith('.fb2')) {
+      const rawXml = await readFileAsTextSafe(filePath);
       return parseFb2Content(rawXml, defaultTitle);
     }
 
-    // Default plain text / Markdown / HTML reader
-    const rawContent = await FileSystem.readAsStringAsync(filePath);
+    // 3. Default plain text / Markdown / HTML reader
+    const rawContent = await readFileAsTextSafe(filePath);
     return parseTextContent(rawContent, defaultTitle);
   } catch (err) {
     console.warn(`[epubParser] Failed to parse ${format} file at ${filePath}:`, err);
-    // Return graceful readable sample rather than failing or showing binary noise
     return createSampleBookContent(defaultTitle);
   }
 }
 
 /**
- * Decompresses and extracts a true EPUB archive (ZIP container with OPF, NCX, and XHTML).
+ * Safely reads a file as a string across React Native, Expo, and Web environments.
+ */
+export async function readFileAsTextSafe(filePath: string): Promise<string> {
+  try {
+    if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:')) {
+      const res = await fetch(filePath);
+      return await res.text();
+    }
+
+    if (FileSystem && typeof (FileSystem as any).readAsStringAsync === 'function') {
+      try {
+        return await FileSystem.readAsStringAsync(filePath);
+      } catch {
+        const res = await fetch(filePath);
+        return await res.text();
+      }
+    }
+
+    const res = await fetch(filePath);
+    return await res.text();
+  } catch (e) {
+    console.warn(`[epubParser] readFileAsTextSafe failed for ${filePath}:`, e);
+    return '';
+  }
+}
+
+/**
+ * Safely reads a binary file as Base64 or ArrayBuffer across React Native and Web.
+ */
+export async function readFileAsBase64OrBuffer(filePath: string): Promise<string | ArrayBuffer> {
+  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:')) {
+    const res = await fetch(filePath);
+    return await res.arrayBuffer();
+  }
+
+  if (FileSystem && typeof (FileSystem as any).readAsStringAsync === 'function') {
+    try {
+      return await FileSystem.readAsStringAsync(filePath, {
+        encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
+      });
+    } catch {
+      const res = await fetch(filePath);
+      return await res.arrayBuffer();
+    }
+  }
+
+  const res = await fetch(filePath);
+  return await res.arrayBuffer();
+}
+
+/**
+ * Decompresses and extracts a true EPUB archive (ZIP container with OPF, NCX/Nav, and XHTML).
  */
 export async function parseEpubArchive(
   filePath: string,
   defaultTitle: string
 ): Promise<ParsedBookContent> {
-  // 1. Read binary EPUB file as base64 string
-  const base64Data = await FileSystem.readAsStringAsync(filePath, {
-    encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
-  });
+  // 1. Read binary EPUB file
+  const rawData = await readFileAsBase64OrBuffer(filePath);
 
   // 2. Load the ZIP container with JSZip
-  const zip = await JSZip.loadAsync(base64Data, { base64: true });
+  let zip: JSZip;
+  if (typeof rawData === 'string') {
+    const cleanStr = rawData.replace(/^data:.*?;base64,/, '').trim();
+    // Check if it's base64 or raw string
+    if (cleanStr.startsWith('UEsDB') || cleanStr.startsWith('UEsBA')) {
+      zip = await JSZip.loadAsync(cleanStr, { base64: true });
+    } else if (cleanStr.startsWith('PK')) {
+      zip = await JSZip.loadAsync(cleanStr);
+    } else {
+      throw new Error('File does not start with ZIP magic bytes (PK).');
+    }
+  } else {
+    zip = await JSZip.loadAsync(rawData);
+  }
 
   // 3. Locate root OPF package file from META-INF/container.xml
-  let opfPath = 'OEBPS/content.opf';
-  const containerFile = zip.file('META-INF/container.xml') || zip.file('meta-inf/container.xml');
-  if (containerFile) {
-    const containerXml = await containerFile.async('text');
-    const rootfileMatch = containerXml.match(/full-path=["']([^"']+\.opf)["']/i);
+  let opfPath = '';
+  const containerEntryKey = Object.keys(zip.files).find(
+    (name) => name.toLowerCase() === 'meta-inf/container.xml'
+  );
+
+  if (containerEntryKey && zip.files[containerEntryKey]) {
+    const containerXml = await zip.files[containerEntryKey].async('text');
+    const rootfileMatch = containerXml.match(/full-path=["']([^"']+)["']/i);
     if (rootfileMatch && rootfileMatch[1]) {
-      opfPath = rootfileMatch[1];
+      opfPath = rootfileMatch[1].trim();
     }
   }
 
-  // 4. Find the actual OPF file in ZIP
-  let opfFile = zip.file(opfPath);
+  // 4. Find OPF package file in the ZIP archive
+  let opfFile = opfPath ? findZipFile(zip, opfPath) : null;
   if (!opfFile) {
-    // Search for any .opf file in the archive
     const opfEntry = Object.keys(zip.files).find((name) => name.toLowerCase().endsWith('.opf'));
     if (opfEntry) {
       opfPath = opfEntry;
@@ -91,51 +184,95 @@ export async function parseEpubArchive(
   const opfXml = await opfFile.async('text');
 
   // 5. Extract metadata from OPF
-  const titleMatch = opfXml.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i);
-  const bookTitle = titleMatch ? decodeHtmlEntities(titleMatch[1].trim()) : defaultTitle;
+  const titleMatch = opfXml.match(/<dc:title[^>]*>([\s\S]*?)<\/dc:title>/i);
+  const bookTitle = titleMatch ? decodeHtmlEntities(stripTags(titleMatch[1]).trim()) : defaultTitle;
 
-  const authorMatch = opfXml.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
-  const bookAuthor = authorMatch ? decodeHtmlEntities(authorMatch[1].trim()) : 'Unknown Author';
+  const authorMatch = opfXml.match(/<dc:creator[^>]*>([\s\S]*?)<\/dc:creator>/i);
+  const bookAuthor = authorMatch ? decodeHtmlEntities(stripTags(authorMatch[1]).trim()) : 'Unknown Author';
 
-  // 6. Extract manifest items (id -> href)
+  // 6. Extract manifest items (id -> href) with tag-by-tag parsing
   const manifestMap = new Map<string, string>();
-  const manifestRegex = /<item\s+[^>]*id=["']([^"']+)["'][^>]*href=["']([^"']+)["'][^>]*\/?>/gi;
-  const manifestRegexAlt = /<item\s+[^>]*href=["']([^"']+)["'][^>]*id=["']([^"']+)["'][^>]*\/?>/gi;
-
-  let match;
-  while ((match = manifestRegex.exec(opfXml)) !== null) {
-    manifestMap.set(match[1], match[2]);
+  const itemTagRegex = /<item\b[^>]*>/gi;
+  let itemTagMatch;
+  while ((itemTagMatch = itemTagRegex.exec(opfXml)) !== null) {
+    const tag = itemTagMatch[0];
+    const idMatch = tag.match(/\bid=["']([^"']+)["']/i);
+    const hrefMatch = tag.match(/\bhref=["']([^"']+)["']/i);
+    if (idMatch && hrefMatch) {
+      manifestMap.set(idMatch[1], hrefMatch[1]);
+    }
   }
-  while ((match = manifestRegexAlt.exec(opfXml)) !== null) {
-    manifestMap.set(match[2], match[1]);
-  }
 
-  // 7. Extract TOC titles from NCX or NAV if present
+  // 7. Extract TOC titles from NCX or EPUB 3 Nav Document
   const tocTitlesMap = new Map<string, string>();
-  const ncxIdMatch = opfXml.match(/<spine\s+[^>]*toc=["']([^"']+)["']/i);
+
+  // A. Try NCX
+  const ncxIdMatch = opfXml.match(/<spine\b[^>]*\btoc=["']([^"']+)["']/i);
   const ncxHref = ncxIdMatch ? manifestMap.get(ncxIdMatch[1]) : undefined;
   const ncxPath = ncxHref ? resolveZipPath(opfDir, ncxHref) : Object.keys(zip.files).find((f) => f.toLowerCase().endsWith('.ncx'));
 
-  if (ncxPath && zip.file(ncxPath)) {
-    try {
-      const ncxXml = await zip.file(ncxPath)!.async('text');
-      const navPointRegex = /<navPoint[^>]*>[\s\S]*?<text>([^<]+)<\/text>[\s\S]*?<content\s+[^>]*src=["']([^"']+)["']/gi;
-      let npMatch;
-      while ((npMatch = navPointRegex.exec(ncxXml)) !== null) {
-        const title = decodeHtmlEntities(npMatch[1].trim());
-        const src = npMatch[2].split('#')[0]; // strip anchor
-        const filename = src.split('/').pop() || src;
-        tocTitlesMap.set(filename, title);
-        tocTitlesMap.set(src, title);
-      }
-    } catch {}
+  if (ncxPath) {
+    const ncxFile = findZipFile(zip, ncxPath);
+    if (ncxFile) {
+      try {
+        const ncxXml = await ncxFile.async('text');
+        const navPointRegex = /<navPoint\b[^>]*>[\s\S]*?<text\b[^>]*>([^<]+)<\/text>[\s\S]*?<content\b[^>]*src=["']([^"']+)["']/gi;
+        let npMatch;
+        while ((npMatch = navPointRegex.exec(ncxXml)) !== null) {
+          const title = decodeHtmlEntities(npMatch[1].trim());
+          const src = npMatch[2].split('#')[0];
+          const filename = src.split('/').pop() || src;
+          tocTitlesMap.set(filename, title);
+          tocTitlesMap.set(src, title);
+        }
+      } catch {}
+    }
+  }
+
+  // B. Try EPUB 3 Nav Document
+  const navItemKey = Array.from(manifestMap.entries()).find(([_, href]) => href.toLowerCase().includes('nav') || href.toLowerCase().includes('toc'));
+  if (navItemKey) {
+    const navFile = findZipFile(zip, resolveZipPath(opfDir, navItemKey[1]));
+    if (navFile) {
+      try {
+        const navXml = await navFile.async('text');
+        const aTagRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([^<]+)<\/a>/gi;
+        let aMatch;
+        while ((aMatch = aTagRegex.exec(navXml)) !== null) {
+          const src = aMatch[1].split('#')[0];
+          const title = decodeHtmlEntities(aMatch[2].trim());
+          const filename = src.split('/').pop() || src;
+          if (!tocTitlesMap.has(filename)) {
+            tocTitlesMap.set(filename, title);
+            tocTitlesMap.set(src, title);
+          }
+        }
+      } catch {}
+    }
   }
 
   // 8. Extract spine order (reading order of chapters)
   const spineItemRefs: string[] = [];
-  const spineRegex = /<itemref\s+[^>]*idref=["']([^"']+)["'][^>]*\/?>/gi;
-  while ((match = spineRegex.exec(opfXml)) !== null) {
-    spineItemRefs.push(match[1]);
+  const itemrefTagRegex = /<itemref\b[^>]*>/gi;
+  let itemrefTagMatch;
+  while ((itemrefTagMatch = itemrefTagRegex.exec(opfXml)) !== null) {
+    const tag = itemrefTagMatch[0];
+    const idrefMatch = tag.match(/\bidref=["']([^"']+)["']/i);
+    if (idrefMatch) {
+      spineItemRefs.push(idrefMatch[1]);
+    }
+  }
+
+  // If no spine items were found, discover all XHTML/HTML files in the archive
+  if (spineItemRefs.length === 0) {
+    const htmlFiles = Object.keys(zip.files)
+      .filter((name) => /\.(xhtml|html|htm)$/i.test(name) && !name.toLowerCase().includes('nav') && !name.toLowerCase().includes('toc'))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+    for (let i = 0; i < htmlFiles.length; i++) {
+      manifestMap.set(`auto_${i}`, htmlFiles[i]);
+      spineItemRefs.push(`auto_${i}`);
+    }
   }
 
   // 9. Read and format each spine chapter
@@ -147,19 +284,20 @@ export async function parseEpubArchive(
     const href = manifestMap.get(idref);
     if (!href) continue;
 
-    const chapterZipPath = resolveZipPath(opfDir, href);
-    const chapterFile = zip.file(chapterZipPath);
+    const targetPath = resolveZipPath(opfDir, href);
+    const chapterFile = findZipFile(zip, targetPath) || findZipFile(zip, href);
     if (!chapterFile) continue;
 
     const rawHtml = await chapterFile.async('text');
+    const filename = href.split('/').pop() || href;
     const { cleanHtml, chapterTitle, wordCount } = processChapterHtml(
       rawHtml,
       chapterIndex,
-      tocTitlesMap.get(href) || tocTitlesMap.get(href.split('/').pop() || '')
+      tocTitlesMap.get(href) || tocTitlesMap.get(filename)
     );
 
-    // Skip empty filler chapters (like blank title pages or stylesheet wrappers with 0 words)
-    if (wordCount === 0 && cleanHtml.length < 30) {
+    // Skip empty filler chapters (like blank title pages with 0 words and no heading)
+    if (wordCount === 0 && cleanHtml.length < 25) {
       continue;
     }
 
@@ -174,7 +312,7 @@ export async function parseEpubArchive(
     chapterIndex++;
   }
 
-  // Fallback if no spine chapters were found
+  // Fallback if no spine chapters were extractable
   if (chapters.length === 0) {
     return createSampleBookContent(bookTitle);
   }
@@ -185,6 +323,36 @@ export async function parseEpubArchive(
     chapters,
     totalWords,
   };
+}
+
+/**
+ * Searches a JSZip archive case-insensitively and with URI decoding.
+ */
+export function findZipFile(zip: JSZip, targetPath: string): JSZip.JSZipObject | null {
+  if (!targetPath) return null;
+
+  // 1. Exact match
+  if (zip.files[targetPath]) return zip.files[targetPath];
+
+  // 2. URI decoded match
+  try {
+    const decoded = decodeURIComponent(targetPath);
+    if (zip.files[decoded]) return zip.files[decoded];
+  } catch {}
+
+  // 3. Case-insensitive match
+  const lower = targetPath.toLowerCase();
+  const foundKey = Object.keys(zip.files).find((k) => k.toLowerCase() === lower);
+  if (foundKey) return zip.files[foundKey];
+
+  // 4. Match filename only
+  const filename = targetPath.split('/').pop()?.toLowerCase();
+  if (filename) {
+    const fnKey = Object.keys(zip.files).find((k) => k.split('/').pop()?.toLowerCase() === filename);
+    if (fnKey) return zip.files[fnKey];
+  }
+
+  return null;
 }
 
 /**
@@ -265,7 +433,7 @@ export function processChapterHtml(
       return clean.length > 0 ? `<p>• ${clean}</p>\n` : '';
     });
 
-  // Strip any remaining unwanted HTML tags
+  // Strip any remaining unsupported HTML tags
   const cleanMarkup = stripUnsupportedTags(html).trim();
   const decodedContent = decodeHtmlEntities(cleanMarkup);
 
