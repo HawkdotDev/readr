@@ -26,6 +26,7 @@ import { ReaderToolbar } from '../../src/components/reader/ReaderToolbar';
 import { FolioBar } from '../../src/components/reader/FolioBar';
 import { ReaderBottomCapsule } from '../../src/components/reader/ReaderBottomCapsule';
 import { EpubReader } from '../../src/components/reader/EpubReader';
+import { ModernEpubReader } from '../../src/components/reader/ModernEpubReader';
 
 // Modal Sheets
 import { TypographySheet } from '../../src/components/reader/TypographySheet';
@@ -57,6 +58,7 @@ export default function ReaderScreen() {
     currentChapterTitle,
     progressPercentage,
     minutesLeftInChapter,
+    readingEngine,
     activeSheet,
     selectedTextForDictionary,
     setCurrentBook,
@@ -288,15 +290,27 @@ export default function ReaderScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Interactive Core Reader (Spans 100% height - Zero layout shift) */}
       <View style={styles.readerArea}>
-        <EpubReader
-          bookId={book.id}
-          chapters={chapters}
-          activeChapterIndex={activeChapterIndex}
-          onChapterChange={(newIdx) => setActiveChapterIndex(newIdx)}
-          onToggleChrome={toggleChrome}
-          onSelectWordForDictionary={openDictionary}
-          onOpenAnnotations={() => setActiveSheet('annotations')}
-        />
+        {readingEngine === 'modern' ? (
+          <ModernEpubReader
+            bookId={book.id}
+            chapters={chapters}
+            activeChapterIndex={activeChapterIndex}
+            onChapterChange={(newIdx) => setActiveChapterIndex(newIdx)}
+            onToggleChrome={toggleChrome}
+            onSelectWordForDictionary={openDictionary}
+            onOpenAnnotations={() => setActiveSheet('annotations')}
+          />
+        ) : (
+          <EpubReader
+            bookId={book.id}
+            chapters={chapters}
+            activeChapterIndex={activeChapterIndex}
+            onChapterChange={(newIdx) => setActiveChapterIndex(newIdx)}
+            onToggleChrome={toggleChrome}
+            onSelectWordForDictionary={openDictionary}
+            onOpenAnnotations={() => setActiveSheet('annotations')}
+          />
+        )}
       </View>
 
       {/* Auto-Hiding Top Toolbar (Absolute Floating Overlay) */}

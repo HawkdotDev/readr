@@ -69,6 +69,7 @@ export interface ReaderState {
   navigationMode: NavigationMode;
   volumeKeysTurnPages: boolean;
   dualPageMode: boolean | 'auto';
+  readingEngine: 'modern' | 'native';
 
   // 9-Zone Touch Grid & Gestures
   touchZoneMappings: TouchZoneConfig;
@@ -140,6 +141,7 @@ export interface ReaderState {
   setNavigationMode: (mode: NavigationMode) => void;
   setVolumeKeysTurnPages: (enabled: boolean) => void;
   setDualPageMode: (mode: boolean | 'auto') => void;
+  setReadingEngine: (engine: 'modern' | 'native') => void;
 
   setTouchZoneMappings: (config: TouchZoneConfig) => void;
   updateTouchZoneAction: (zone: TouchZone, action: TouchAction) => void;
@@ -198,6 +200,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   navigationMode: 'both',
   volumeKeysTurnPages: false,
   dualPageMode: 'auto',
+  readingEngine: 'modern',
 
   touchZoneMappings: DEFAULT_TOUCH_ZONE_CONFIG,
   edgeBrightnessEnabled: true,
@@ -305,6 +308,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setNavigationMode: (navigationMode) => set({ navigationMode }),
   setVolumeKeysTurnPages: (volumeKeysTurnPages) => set({ volumeKeysTurnPages }),
   setDualPageMode: (dualPageMode) => set({ dualPageMode }),
+  setReadingEngine: (readingEngine) => set({ readingEngine }),
 
   setTouchZoneMappings: (touchZoneMappings) => set({ touchZoneMappings }),
   updateTouchZoneAction: (zone, action) =>

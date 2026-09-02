@@ -69,6 +69,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     paragraphSpacing,
     dropCaps,
     dualPageMode,
+    readingEngine,
     customFonts,
     pageTransition,
     edgeBrightnessEnabled,
@@ -99,6 +100,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
     setParagraphSpacing,
     setDropCaps,
     setDualPageMode,
+    setReadingEngine,
     setCustomFonts,
     addCustomFont,
     setEdgeBrightnessEnabled,
@@ -486,8 +488,92 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
         ) : activeTab === 'experience' ? (
           /* ================= TAB 2: READING EXPERIENCE ================= */
           <View>
+            {/* Reading Engine Architecture */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>READING ENGINE ARCHITECTURE</Text>
+            <View style={styles.directionGrid}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setReadingEngine('modern');
+                }}
+                style={[
+                  styles.directionCard,
+                  {
+                    backgroundColor: readingEngine === 'modern' ? colors.accent : colors.canvas,
+                    borderColor: readingEngine === 'modern' ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <Sparkles
+                  size={20}
+                  color={readingEngine === 'modern' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary}
+                  style={{ marginBottom: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.directionCardTitle,
+                    {
+                      color: readingEngine === 'modern' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+                    },
+                  ]}
+                >
+                  Bleeding Edge
+                </Text>
+                <Text
+                  style={[
+                    styles.directionCardSub,
+                    {
+                      color: readingEngine === 'modern' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                    },
+                  ]}
+                >
+                  Foliate engine, exact paging & CFIs
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setReadingEngine('native');
+                }}
+                style={[
+                  styles.directionCard,
+                  {
+                    backgroundColor: readingEngine === 'native' ? colors.accent : colors.canvas,
+                    borderColor: readingEngine === 'native' ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <Smartphone
+                  size={20}
+                  color={readingEngine === 'native' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary}
+                  style={{ marginBottom: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.directionCardTitle,
+                    {
+                      color: readingEngine === 'native' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+                    },
+                  ]}
+                >
+                  Classic Native
+                </Text>
+                <Text
+                  style={[
+                    styles.directionCardSub,
+                    {
+                      color: readingEngine === 'native' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                    },
+                  ]}
+                >
+                  Lightweight Hermes text layout
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Page Flow & Direction */}
-            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>PAGE FLOW & DIRECTION</Text>
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>PAGE FLOW & DIRECTION</Text>
             <View style={styles.directionGrid}>
               <TouchableOpacity
                 onPress={() => {
