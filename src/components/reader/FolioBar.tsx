@@ -32,7 +32,12 @@ export const FolioBar: React.FC<FolioBarProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.canvas,
+        },
+      ]}
       accessible={true}
       accessibilityRole="button"
       accessibilityLabel={`Reading progress: ${clampedProgress} percent, ${chapterLabel}, ${timeLabel}`}

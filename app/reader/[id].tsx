@@ -291,7 +291,16 @@ export default function ReaderScreen() {
       </Animated.View>
 
       {/* Signature Fluid Folio Bar (Bottom Margin Indicator) */}
-      <View style={styles.folioWrapper}>
+      <View
+        style={[
+          styles.folioWrapper,
+          {
+            backgroundColor: colors.canvas,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: colors.border,
+          },
+        ]}
+      >
         <FolioBar
           chapterTitle={currentChapterTitle}
           currentChapterNumber={currentChapterIndex + 1}

@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingTop: 84,
-    paddingBottom: 72,
+    paddingBottom: 88,
   },
   headerBlock: {
     alignItems: 'center',
