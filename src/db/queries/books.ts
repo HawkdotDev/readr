@@ -359,3 +359,31 @@ export async function updateBookRating(id: string, rating: number): Promise<void
   }
 }
 
+export async function batchDeleteBooks(ids: string[]): Promise<void> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite || ids.length === 0) return;
+  const placeholders = ids.map(() => '?').join(',');
+  await sqlite.runAsync(`DELETE FROM books WHERE id IN (${placeholders});`, ids);
+}
+
+export async function batchToggleFavorite(ids: string[], isFavorite: boolean): Promise<void> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite || ids.length === 0) return;
+  const placeholders = ids.map(() => '?').join(',');
+  const val = isFavorite ? 1 : 0;
+  await sqlite.runAsync(
+    `UPDATE books SET is_favorite = ?, updated_at = strftime('%s', 'now') WHERE id IN (${placeholders});`,
+    [val, ...ids]
+  );
+}
+
+export async function batchUpdateStatus(ids: string[], status: 'unread' | 'reading' | 'finished'): Promise<void> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite || ids.length === 0) return;
+  const progress = status === 'finished' ? 100 : status === 'unread' ? 0 : 50;
+  const placeholders = ids.map(() => '?').join(',');
+  await sqlite.runAsync(
+    `UPDATE books SET status = ?, progress_percentage = ?, updated_at = strftime('%s', 'now') WHERE id IN (${placeholders});`,
+    [status, progress, ...ids]
+  );
+}

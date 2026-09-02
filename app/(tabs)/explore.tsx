@@ -31,7 +31,15 @@ import {
   deleteOPDSServer,
   DEFAULT_OPDS_SERVERS,
 } from '../../src/db/queries/opds';
-import { getAllBooks } from '../../src/db/queries/books';
+import {
+  getAllBooks,
+  toggleBookFavorite,
+  deleteBook,
+  updateBookStatus,
+  batchDeleteBooks,
+  batchToggleFavorite,
+  batchUpdateStatus,
+} from '../../src/db/queries/books';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { BookCard } from '../../src/components/library/BookCard';
 import {
@@ -53,10 +61,27 @@ import {
   Sparkles,
   LayoutGrid,
   List,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Heart,
+  CheckCircle2,
+  Info,
+  SlidersHorizontal,
+  CheckSquare,
+  Square,
+  MoreVertical,
+  Layers,
+  Eye,
+  BookMarked,
+  FileText,
+  Star,
+  RotateCcw,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
-import { formatDurationSeconds } from '../../src/utils/time';
+import { formatDurationSeconds, formatRelativeDate } from '../../src/utils/time';
 
 const ALL_SERVERS_OPTION: OPDSServer = {
   id: 'all_servers',
@@ -78,6 +103,23 @@ export default function ExploreScreen() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [query, setQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(query));
+
+  // Shelf Filtering, Sorting, and Multi-Select States
+  const [shelfStatusFilter, setShelfStatusFilter] = useState<
+    'all' | 'reading' | 'unread' | 'completed' | 'favorites'
+  >('all');
+  const [shelfFormatFilter, setShelfFormatFilter] = useState<
+    'all' | 'epub' | 'pdf' | 'comic' | 'mobi' | 'txt'
+  >('all');
+  const [shelfSortBy, setShelfSortBy] = useState<
+    'recent_read' | 'recent_added' | 'title' | 'author' | 'progress' | 'size'
+  >('recent_read');
+  const [shelfSortDirection, setShelfSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
+  const [contextMenuBook, setContextMenuBook] = useState<Book | null>(null);
+  const [infoModalBook, setInfoModalBook] = useState<Book | null>(null);
 
   // OPDS State
   const [servers, setServers] = useState<OPDSServer[]>(DEFAULT_OPDS_SERVERS);
@@ -389,17 +431,223 @@ export default function ExploreScreen() {
     }
   };
 
-  // Filtered Device Books for Shelf View
+  // Shelf Statistics Breakdown
+  const shelfStats = useMemo(() => {
+    let reading = 0;
+    let completed = 0;
+    let unread = 0;
+    let favorites = 0;
+    let totalSizeBytes = 0;
+
+    for (const b of deviceBooks) {
+      const progress = b.progressPercentage || 0;
+      if (b.isFavorite) favorites++;
+      if (progress >= 99.5 || b.status === 'finished') {
+        completed++;
+      } else if (progress > 0 || b.status === 'reading') {
+        reading++;
+      } else {
+        unread++;
+      }
+      if (b.fileSizeBytes) {
+        totalSizeBytes += b.fileSizeBytes;
+      }
+    }
+
+    const totalMb = (totalSizeBytes / (1024 * 1024)).toFixed(1);
+    const totalSizeFormatted =
+      totalSizeBytes > 0 ? `${totalMb} MB` : `${(deviceBooks.length * 1.8).toFixed(1)} MB`;
+
+    return {
+      total: deviceBooks.length,
+      reading,
+      completed,
+      unread,
+      favorites,
+      totalSizeFormatted,
+    };
+  }, [deviceBooks]);
+
+  // Filtered & Sorted Device Books for Shelf View
   const filteredDeviceBooks = useMemo(() => {
-    if (!query.trim()) return deviceBooks;
-    const q = query.toLowerCase().trim();
-    return deviceBooks.filter(
-      (b) =>
-        b.title.toLowerCase().includes(q) ||
-        (b.authors && b.authors.some((a) => a.name.toLowerCase().includes(q))) ||
-        b.fileFormat.toLowerCase().includes(q)
+    let list = [...deviceBooks];
+
+    // Search query filter
+    if (query.trim()) {
+      const q = query.toLowerCase().trim();
+      list = list.filter(
+        (b) =>
+          b.title.toLowerCase().includes(q) ||
+          (b.authors && b.authors.some((a) => a.name.toLowerCase().includes(q))) ||
+          b.fileFormat?.toLowerCase().includes(q)
+      );
+    }
+
+    // Status filter
+    if (shelfStatusFilter === 'reading') {
+      list = list.filter(
+        (b) =>
+          ((b.progressPercentage || 0) > 0 && (b.progressPercentage || 0) < 99.5) ||
+          b.status === 'reading'
+      );
+    } else if (shelfStatusFilter === 'unread') {
+      list = list.filter(
+        (b) =>
+          ((b.progressPercentage || 0) === 0 || !b.progressPercentage) &&
+          b.status !== 'finished'
+      );
+    } else if (shelfStatusFilter === 'completed') {
+      list = list.filter(
+        (b) => (b.progressPercentage || 0) >= 99.5 || b.status === 'finished'
+      );
+    } else if (shelfStatusFilter === 'favorites') {
+      list = list.filter((b) => Boolean(b.isFavorite));
+    }
+
+    // Format filter
+    if (shelfFormatFilter === 'epub') {
+      list = list.filter((b) => b.fileFormat?.toLowerCase() === 'epub');
+    } else if (shelfFormatFilter === 'pdf') {
+      list = list.filter((b) => b.fileFormat?.toLowerCase() === 'pdf');
+    } else if (shelfFormatFilter === 'comic') {
+      list = list.filter((b) => ['cbz', 'cbr'].includes(b.fileFormat?.toLowerCase()));
+    } else if (shelfFormatFilter === 'mobi') {
+      list = list.filter((b) => ['mobi', 'fb2'].includes(b.fileFormat?.toLowerCase()));
+    } else if (shelfFormatFilter === 'txt') {
+      list = list.filter((b) => ['txt', 'docx'].includes(b.fileFormat?.toLowerCase()));
+    }
+
+    // Sorting
+    list.sort((a, b) => {
+      let comparison = 0;
+      if (shelfSortBy === 'recent_read') {
+        const timeA = a.lastReadAt ? new Date(a.lastReadAt).getTime() : 0;
+        const timeB = b.lastReadAt ? new Date(b.lastReadAt).getTime() : 0;
+        comparison = timeA - timeB;
+      } else if (shelfSortBy === 'recent_added') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        comparison = timeA - timeB;
+      } else if (shelfSortBy === 'title') {
+        comparison = a.title.localeCompare(b.title);
+      } else if (shelfSortBy === 'author') {
+        const authorA = a.authors?.[0]?.name || '';
+        const authorB = b.authors?.[0]?.name || '';
+        comparison = authorA.localeCompare(authorB);
+      } else if (shelfSortBy === 'progress') {
+        comparison = (a.progressPercentage || 0) - (b.progressPercentage || 0);
+      } else if (shelfSortBy === 'size') {
+        comparison = (a.fileSizeBytes || 0) - (b.fileSizeBytes || 0);
+      }
+
+      return shelfSortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return list;
+  }, [
+    deviceBooks,
+    query,
+    shelfStatusFilter,
+    shelfFormatFilter,
+    shelfSortBy,
+    shelfSortDirection,
+  ]);
+
+  // Multi-Select Handlers
+  const handleToggleSelectBook = (bookId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setSelectedBookIds((prev) =>
+      prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
     );
-  }, [deviceBooks, query]);
+  };
+
+  const handleSelectAll = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (selectedBookIds.length === filteredDeviceBooks.length) {
+      setSelectedBookIds([]);
+    } else {
+      setSelectedBookIds(filteredDeviceBooks.map((b) => b.id));
+    }
+  };
+
+  const handleBatchToggleFavorite = async () => {
+    if (selectedBookIds.length === 0) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const shouldFavorite = selectedBookIds.some(
+      (id) => !deviceBooks.find((b) => b.id === id)?.isFavorite
+    );
+    await batchToggleFavorite(selectedBookIds, shouldFavorite);
+    await loadDeviceBooks();
+  };
+
+  const handleBatchMarkStatus = async (status: 'unread' | 'reading' | 'finished') => {
+    if (selectedBookIds.length === 0) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    await batchUpdateStatus(selectedBookIds, status);
+    await loadDeviceBooks();
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedBookIds.length === 0) return;
+    Alert.alert(
+      'Delete Books',
+      `Are you sure you want to delete ${selectedBookIds.length} ${
+        selectedBookIds.length === 1 ? 'book' : 'books'
+      } from your device? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+            await batchDeleteBooks(selectedBookIds);
+            setSelectedBookIds([]);
+            setIsSelectMode(false);
+            await loadDeviceBooks();
+          },
+        },
+      ]
+    );
+  };
+
+  // Single Book Context Menu Handlers
+  const handleToggleFavoriteSingle = async (book: Book) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    await toggleBookFavorite(book.id, Boolean(book.isFavorite));
+    setContextMenuBook(null);
+    await loadDeviceBooks();
+  };
+
+  const handleUpdateStatusSingle = async (
+    book: Book,
+    status: 'unread' | 'reading' | 'finished'
+  ) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    await updateBookStatus(book.id, status);
+    setContextMenuBook(null);
+    await loadDeviceBooks();
+  };
+
+  const handleDeleteBookSingle = (book: Book) => {
+    Alert.alert(
+      'Delete Book',
+      `Are you sure you want to delete "${book.title}" from your device?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+            await deleteBook(book.id);
+            setContextMenuBook(null);
+            await loadDeviceBooks();
+          },
+        },
+      ]
+    );
+  };
 
   // 4 Popular books from the default server not on device
   const popularBooks = useMemo(() => {
@@ -669,6 +917,345 @@ export default function ExploreScreen() {
                   placeholder="Search books on your device..."
                   autoFocus={true}
                 />
+              </View>
+            )}
+
+            {/* Shelf Dashboard Controls (Stats, Filter Pills, Sort & Multi-Select) */}
+            {activeTab === 'shelf' && (
+              <View style={styles.shelfDashboardContainer}>
+                {/* 1. Shelf Summary Banner */}
+                <View
+                  style={[
+                    styles.shelfSummaryBanner,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <View style={styles.shelfSummaryLeft}>
+                    <View style={styles.shelfStatCountBadge}>
+                      <HardDrive size={13} color={colors.accent} style={{ marginRight: 5 }} />
+                      <Text style={[styles.shelfStatCountText, { color: colors.textPrimary }]}>
+                        {shelfStats.total} {shelfStats.total === 1 ? 'Book' : 'Books'}
+                      </Text>
+                    </View>
+                    <Text style={[styles.shelfStatDetails, { color: colors.textSecondary }]}>
+                      {shelfStats.reading > 0 ? `${shelfStats.reading} Reading \u00B7 ` : ''}
+                      {shelfStats.completed > 0 ? `${shelfStats.completed} Finished \u00B7 ` : ''}
+                      {shelfStats.totalSizeFormatted}
+                    </Text>
+                  </View>
+
+                  <View style={styles.shelfSummaryRightActions}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                        setIsSelectMode((prev) => {
+                          if (prev) setSelectedBookIds([]);
+                          return !prev;
+                        });
+                      }}
+                      style={[
+                        styles.shelfActionBtn,
+                        {
+                          backgroundColor: isSelectMode ? colors.accent : colors.surface,
+                          borderColor: isSelectMode ? colors.accent : colors.border,
+                        },
+                      ]}
+                      accessible={true}
+                      accessibilityLabel="Multi-select mode"
+                    >
+                      <CheckSquare
+                        size={13}
+                        color={
+                          isSelectMode
+                            ? colors.isDark
+                              ? '#000000'
+                              : '#FFFFFF'
+                            : colors.textPrimary
+                        }
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text
+                        style={[
+                          styles.shelfActionBtnText,
+                          {
+                            color: isSelectMode
+                              ? colors.isDark
+                                ? '#000000'
+                                : '#FFFFFF'
+                              : colors.textPrimary,
+                            fontFamily: isSelectMode ? FONTS.mona.bold : FONTS.mona.medium,
+                          },
+                        ]}
+                      >
+                        {isSelectMode ? 'Cancel' : 'Select'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Multi-Select Action Bar (Active when isSelectMode === true) */}
+                {isSelectMode && (
+                  <View
+                    style={[
+                      styles.batchActionBar,
+                      { backgroundColor: colors.surface, borderColor: colors.accent },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      onPress={handleSelectAll}
+                      style={styles.batchSelectAllBtn}
+                    >
+                      <Text style={[styles.batchSelectAllText, { color: colors.textPrimary }]}>
+                        {selectedBookIds.length === filteredDeviceBooks.length &&
+                        filteredDeviceBooks.length > 0
+                          ? 'Deselect All'
+                          : `Select All (${selectedBookIds.length}/${filteredDeviceBooks.length})`}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.batchActionIconsRow}>
+                      <TouchableOpacity
+                        onPress={handleBatchToggleFavorite}
+                        disabled={selectedBookIds.length === 0}
+                        style={[
+                          styles.batchMiniActionBtn,
+                          { opacity: selectedBookIds.length === 0 ? 0.35 : 1 },
+                        ]}
+                        accessible={true}
+                        accessibilityLabel="Favorite selected"
+                      >
+                        <Heart size={15} color={colors.accent} />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => handleBatchMarkStatus('finished')}
+                        disabled={selectedBookIds.length === 0}
+                        style={[
+                          styles.batchMiniActionBtn,
+                          { opacity: selectedBookIds.length === 0 ? 0.35 : 1 },
+                        ]}
+                        accessible={true}
+                        accessibilityLabel="Mark selected finished"
+                      >
+                        <CheckCircle2 size={15} color={colors.accent} />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={handleBatchDelete}
+                        disabled={selectedBookIds.length === 0}
+                        style={[
+                          styles.batchMiniActionBtn,
+                          { opacity: selectedBookIds.length === 0 ? 0.35 : 1 },
+                        ]}
+                        accessible={true}
+                        accessibilityLabel="Delete selected"
+                      >
+                        <Trash2 size={15} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* 2. Status Filter Pills */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.shelfFilterChipsScroll}
+                >
+                  {[
+                    { key: 'all', label: 'All', count: shelfStats.total },
+                    { key: 'reading', label: 'Reading', count: shelfStats.reading },
+                    { key: 'unread', label: 'Unread', count: shelfStats.unread },
+                    { key: 'completed', label: 'Finished', count: shelfStats.completed },
+                    { key: 'favorites', label: 'Favorites', count: shelfStats.favorites },
+                  ].map((tab) => {
+                    const isSelected = shelfStatusFilter === tab.key;
+                    return (
+                      <TouchableOpacity
+                        key={tab.key}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                          setShelfStatusFilter(tab.key as any);
+                        }}
+                        style={[
+                          styles.shelfFilterChip,
+                          {
+                            backgroundColor: isSelected ? colors.accent : colors.surface,
+                            borderColor: isSelected ? colors.accent : colors.border,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.shelfFilterChipText,
+                            {
+                              color: isSelected
+                                ? colors.isDark
+                                  ? '#000000'
+                                  : '#FFFFFF'
+                                : colors.textPrimary,
+                              fontFamily: isSelected ? FONTS.mona.bold : FONTS.mona.medium,
+                            },
+                          ]}
+                        >
+                          {tab.label}
+                        </Text>
+                        <View
+                          style={[
+                            styles.shelfFilterCountPill,
+                            {
+                              backgroundColor: isSelected
+                                ? colors.isDark
+                                  ? 'rgba(0,0,0,0.18)'
+                                  : 'rgba(255,255,255,0.25)'
+                                : colors.canvas,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.shelfFilterCountText,
+                              {
+                                color: isSelected
+                                  ? colors.isDark
+                                    ? '#000000'
+                                    : '#FFFFFF'
+                                  : colors.textSecondary,
+                              },
+                            ]}
+                          >
+                            {tab.count}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+
+                {/* 3. Format Filter Pills & Sort Row */}
+                <View style={styles.shelfFormatAndSortRow}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.shelfFormatScroll}
+                  >
+                    {[
+                      { key: 'all', label: 'All Formats' },
+                      { key: 'epub', label: 'EPUB' },
+                      { key: 'pdf', label: 'PDF' },
+                      { key: 'comic', label: 'Comics' },
+                      { key: 'mobi', label: 'MOBI/FB2' },
+                      { key: 'txt', label: 'TXT' },
+                    ].map((fmt) => {
+                      const isSelected = shelfFormatFilter === fmt.key;
+                      return (
+                        <TouchableOpacity
+                          key={fmt.key}
+                          onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                            setShelfFormatFilter(fmt.key as any);
+                          }}
+                          style={[
+                            styles.shelfFormatChip,
+                            {
+                              backgroundColor: isSelected ? colors.surface : 'transparent',
+                              borderColor: isSelected ? colors.accent : colors.border,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.shelfFormatChipText,
+                              {
+                                color: isSelected ? colors.accent : colors.textSecondary,
+                                fontFamily: isSelected ? FONTS.mona.bold : FONTS.mona.regular,
+                              },
+                            ]}
+                          >
+                            {fmt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+
+                  {/* Sort Trigger Button & Sort Direction Toggle */}
+                  <View style={styles.shelfSortActionsGroup}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                        setIsSortModalOpen(true);
+                      }}
+                      style={[
+                        styles.shelfSortBtn,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                      ]}
+                      accessible={true}
+                      accessibilityLabel="Sort options"
+                    >
+                      <ArrowUpDown size={11} color={colors.accent} style={{ marginRight: 4 }} />
+                      <Text
+                        style={[styles.shelfSortBtnText, { color: colors.textPrimary }]}
+                        numberOfLines={1}
+                      >
+                        {shelfSortBy === 'recent_read'
+                          ? 'Recent'
+                          : shelfSortBy === 'recent_added'
+                            ? 'Added'
+                            : shelfSortBy === 'title'
+                              ? 'Title'
+                              : shelfSortBy === 'author'
+                                ? 'Author'
+                                : shelfSortBy === 'progress'
+                                  ? 'Progress'
+                                  : 'Size'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                        setShelfSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                      }}
+                      style={[
+                        styles.shelfSortDirBtn,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                      ]}
+                      accessible={true}
+                      accessibilityLabel={`Sort direction: ${shelfSortDirection === 'asc' ? 'ascending' : 'descending'}`}
+                    >
+                      {shelfSortDirection === 'asc' ? (
+                        <ArrowUp size={12} color={colors.textPrimary} />
+                      ) : (
+                        <ArrowDown size={12} color={colors.textPrimary} />
+                      )}
+                    </TouchableOpacity>
+
+                    {(shelfStatusFilter !== 'all' ||
+                      shelfFormatFilter !== 'all' ||
+                      shelfSortBy !== 'recent_read' ||
+                      query.trim()) && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                          setShelfStatusFilter('all');
+                          setShelfFormatFilter('all');
+                          setShelfSortBy('recent_read');
+                          setShelfSortDirection('desc');
+                          setQuery('');
+                        }}
+                        style={[
+                          styles.shelfResetBtn,
+                          { backgroundColor: colors.surface, borderColor: colors.border },
+                        ]}
+                        accessible={true}
+                        accessibilityLabel="Reset all filters"
+                      >
+                        <RotateCcw size={11} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
               </View>
             )}
 
@@ -1245,12 +1832,13 @@ export default function ExploreScreen() {
                   <View style={styles.sectionHeadingLeft}>
                     <HardDrive size={16} color={colors.accent} style={{ marginRight: 6 }} />
                     <Text style={[styles.sectionHeadingTitle, { color: colors.textPrimary }]}>
-                      On Device
+                      {activeTab === 'shelf' ? 'Device Shelf' : 'On Device'}
                     </Text>
                   </View>
                   <View style={styles.sectionHeadingRightActions}>
                     <Text style={[styles.sectionHeadingBadge, { color: colors.textSecondary }]}>
-                      {deviceBooks.length} {deviceBooks.length === 1 ? 'BOOK' : 'BOOKS'}
+                      {filteredDeviceBooks.length}{' '}
+                      {filteredDeviceBooks.length === 1 ? 'BOOK' : 'BOOKS'}
                     </Text>
                     <TouchableOpacity
                       onPress={() => {
@@ -1332,7 +1920,11 @@ export default function ExploreScreen() {
                       <BookCard
                         book={shelfBook}
                         viewMode="grid"
+                        isSelectMode={isSelectMode}
+                        isSelected={selectedBookIds.includes(shelfBook.id)}
+                        onSelect={() => handleToggleSelectBook(shelfBook.id)}
                         onPress={() => router.push(`/reader/${shelfBook.id}` as any)}
+                        onLongPress={() => setContextMenuBook(shelfBook)}
                       />
                     </View>
                   ))}
@@ -1487,113 +2079,18 @@ export default function ExploreScreen() {
           // List View Mode
           if (isDefaultExploreView || activeTab === 'shelf') {
             const shelfBook = item as Book;
-            const progressPercent = Math.round(shelfBook.progressPercentage || 0);
-            const author =
-              shelfBook.authors && shelfBook.authors.length > 0
-                ? shelfBook.authors.map((a) => a.name).join(', ')
-                : 'Unknown Author';
 
             return (
-              <TouchableOpacity
-                activeOpacity={0.8}
+              <BookCard
+                key={shelfBook.id}
+                book={shelfBook}
+                viewMode="list"
+                isSelectMode={isSelectMode}
+                isSelected={selectedBookIds.includes(shelfBook.id)}
+                onSelect={() => handleToggleSelectBook(shelfBook.id)}
                 onPress={() => router.push(`/reader/${shelfBook.id}` as any)}
-                style={[
-                  styles.card,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                ]}
-              >
-                <View style={[styles.coverWrapper, { backgroundColor: colors.canvas }]}>
-                  {shelfBook.coverImagePath ? (
-                    <Image
-                      source={{ uri: shelfBook.coverImagePath }}
-                      style={styles.coverImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.placeholderCover,
-                        { backgroundColor: colors.accent },
-                      ]}
-                    >
-                      <BookOpen
-                        size={24}
-                        color={colors.isDark ? '#000000' : '#FFFFFF'}
-                      />
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.infoWrapper}>
-                  <View style={styles.titleRow}>
-                    <Text
-                      style={[styles.bookTitle, { color: colors.textPrimary }]}
-                      numberOfLines={2}
-                    >
-                      {shelfBook.title}
-                    </Text>
-                  </View>
-
-                  <Text
-                    style={[styles.bookAuthor, { color: colors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {author}
-                  </Text>
-
-                  <Text
-                    style={[styles.bookSummary, { color: colors.textSecondary }]}
-                    numberOfLines={2}
-                  >
-                    {shelfBook.description
-                      ? shelfBook.description
-                      : progressPercent > 0
-                        ? `${progressPercent}% finished \u00B7 ${formatDurationSeconds(shelfBook.totalTimeReadSeconds)} read time`
-                        : 'Installed on device \u00B7 Ready to read'}
-                  </Text>
-
-                  <View style={styles.cardFooter}>
-                    <View style={styles.badgeRow}>
-                      <Badge label={shelfBook.fileFormat.toUpperCase()} variant="secondary" />
-                      <Text
-                        style={[styles.publishedDate, { color: colors.textSecondary }]}
-                      >
-                        {progressPercent > 0 ? `${progressPercent}% read` : 'Unread'}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => router.push(`/reader/${shelfBook.id}` as any)}
-                      style={[
-                        styles.downloadBtn,
-                        {
-                          backgroundColor: colors.accent,
-                          borderColor: colors.accent,
-                        },
-                      ]}
-                      accessible={true}
-                      accessibilityLabel={`Read ${shelfBook.title}`}
-                    >
-                      <BookOpen
-                        size={14}
-                        color={colors.isDark ? '#000000' : '#FFFFFF'}
-                        style={{ marginRight: 4 }}
-                      />
-                      <Text
-                        style={[
-                          styles.downloadBtnText,
-                          {
-                            color: colors.isDark ? '#000000' : '#FFFFFF',
-                            fontFamily: FONTS.mona.bold,
-                          },
-                        ]}
-                      >
-                        Read
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                onLongPress={() => setContextMenuBook(shelfBook)}
+              />
             );
           }
 
@@ -1753,7 +2250,92 @@ export default function ExploreScreen() {
                 Loading catalog...
               </Text>
             </View>
-          ) : activeTab === 'explore' && serverCategory === 'custom' && customServers.length === 0 ? (
+          ) : activeTab === 'shelf' ? (
+            deviceBooks.length === 0 ? (
+              <View style={styles.emptyFeedContainer}>
+                <View
+                  style={[
+                    styles.emptyIconCircle,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <HardDrive size={32} color={colors.accent} />
+                </View>
+                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                  Your Device Shelf is Empty
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  Import EPUB, PDF, CBZ, or MOBI files from your storage or explore public domain catalogs.
+                </Text>
+                <TouchableOpacity
+                  onPress={handleImport}
+                  style={[styles.emptyAddServerBtn, { backgroundColor: colors.accent }]}
+                  accessible={true}
+                  accessibilityLabel="Import Book"
+                >
+                  <Plus
+                    size={16}
+                    color={colors.isDark ? '#000000' : '#FFFFFF'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.emptyAddServerBtnText,
+                      { color: colors.isDark ? '#000000' : '#FFFFFF' },
+                    ]}
+                  >
+                    Import Local Book
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.emptyFeedContainer}>
+                <View
+                  style={[
+                    styles.emptyIconCircle,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <Filter size={28} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                  No Matching Books
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  No books on your device match the current filter or search criteria.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    setShelfStatusFilter('all');
+                    setShelfFormatFilter('all');
+                    setShelfSortBy('recent_read');
+                    setShelfSortDirection('desc');
+                    setQuery('');
+                  }}
+                  style={[styles.emptyAddServerBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+                  accessible={true}
+                  accessibilityLabel="Reset Filters"
+                >
+                  <RotateCcw
+                    size={15}
+                    color={colors.textPrimary}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.emptyAddServerBtnText,
+                      { color: colors.textPrimary },
+                    ]}
+                  >
+                    Reset Filters
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )
+          ) : activeTab === 'explore' &&
+            serverCategory === 'custom' &&
+            customServers.length === 0 ? (
             <View style={styles.emptyFeedContainer}>
               <View
                 style={[
@@ -2144,6 +2726,392 @@ export default function ExploreScreen() {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Sort Options Modal */}
+      <Modal
+        visible={isSortModalOpen}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsSortModalOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownModalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsSortModalOpen(false)}
+        >
+          <View
+            style={[
+              styles.dropdownModalContent,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.dropdownHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ArrowUpDown size={18} color={colors.accent} />
+                <Text style={[styles.dropdownTitle, { color: colors.textPrimary }]}>
+                  Sort Books By
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsSortModalOpen(false)}
+                style={styles.closeBtn}
+              >
+                <X size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.categoryOptionsList}>
+              {[
+                { id: 'recent_read', label: 'Recently Read', desc: 'Sort by reading activity' },
+                { id: 'recent_added', label: 'Recently Added', desc: 'Sort by import date' },
+                { id: 'title', label: 'Title (A → Z)', desc: 'Alphabetical order' },
+                { id: 'author', label: 'Author (A → Z)', desc: 'Author name order' },
+                { id: 'progress', label: 'Reading Progress', desc: 'Highest completion percentage' },
+                { id: 'size', label: 'File Size', desc: 'Largest file footprint' },
+              ].map((opt) => {
+                const isSelected = shelfSortBy === opt.id;
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      setShelfSortBy(opt.id as any);
+                      setIsSortModalOpen(false);
+                    }}
+                    style={[
+                      styles.dropdownCategoryItem,
+                      {
+                        backgroundColor: isSelected ? colors.surface : 'transparent',
+                        borderColor: isSelected ? colors.accent : colors.border,
+                      },
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.dropdownServerTitle,
+                          {
+                            color: colors.textPrimary,
+                            fontFamily: isSelected ? FONTS.mona.bold : FONTS.mona.medium,
+                          },
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
+                      <Text
+                        style={[styles.dropdownServerUrl, { color: colors.textSecondary }]}
+                        numberOfLines={1}
+                      >
+                        {opt.desc}
+                      </Text>
+                    </View>
+                    {isSelected && <Check size={16} color={colors.accent} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Book Context Menu Modal */}
+      <Modal
+        visible={Boolean(contextMenuBook)}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setContextMenuBook(null)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownModalOverlay}
+          activeOpacity={1}
+          onPress={() => setContextMenuBook(null)}
+        >
+          {contextMenuBook && (
+            <View
+              style={[
+                styles.dropdownModalContent,
+                { backgroundColor: colors.canvas, borderColor: colors.border },
+              ]}
+              onStartShouldSetResponder={() => true}
+            >
+              {/* Header with cover and title */}
+              <View style={styles.contextBookHeader}>
+                <View style={[styles.contextCoverWrapper, { backgroundColor: colors.surface }]}>
+                  {contextMenuBook.coverImagePath ? (
+                    <Image
+                      source={{ uri: contextMenuBook.coverImagePath }}
+                      style={styles.contextCoverImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <BookOpen size={20} color={colors.accent} />
+                  )}
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text
+                    style={[styles.contextBookTitle, { color: colors.textPrimary }]}
+                    numberOfLines={2}
+                  >
+                    {contextMenuBook.title}
+                  </Text>
+                  <Text
+                    style={[styles.contextBookAuthor, { color: colors.textSecondary }]}
+                    numberOfLines={1}
+                  >
+                    {contextMenuBook.authors?.map((a) => a.name).join(', ') || 'Unknown Author'}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setContextMenuBook(null)}
+                  style={styles.closeBtn}
+                >
+                  <X size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.contextActionsList}>
+                {/* 1. Toggle Favorite */}
+                <TouchableOpacity
+                  onPress={() => handleToggleFavoriteSingle(contextMenuBook)}
+                  style={[styles.contextActionRow, { borderBottomColor: colors.border }]}
+                >
+                  <Heart
+                    size={18}
+                    color={contextMenuBook.isFavorite ? '#EF4444' : colors.textPrimary}
+                    fill={contextMenuBook.isFavorite ? '#EF4444' : 'none'}
+                    style={{ marginRight: 12 }}
+                  />
+                  <Text style={[styles.contextActionText, { color: colors.textPrimary }]}>
+                    {contextMenuBook.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* 2. Mark Finished / Reset Progress */}
+                <TouchableOpacity
+                  onPress={() =>
+                    handleUpdateStatusSingle(
+                      contextMenuBook,
+                      (contextMenuBook.progressPercentage || 0) >= 99.5 ? 'unread' : 'finished'
+                    )
+                  }
+                  style={[styles.contextActionRow, { borderBottomColor: colors.border }]}
+                >
+                  {(contextMenuBook.progressPercentage || 0) >= 99.5 ? (
+                    <RotateCcw size={18} color={colors.textPrimary} style={{ marginRight: 12 }} />
+                  ) : (
+                    <CheckCircle2 size={18} color={colors.accent} style={{ marginRight: 12 }} />
+                  )}
+                  <Text style={[styles.contextActionText, { color: colors.textPrimary }]}>
+                    {(contextMenuBook.progressPercentage || 0) >= 99.5
+                      ? 'Reset Progress to 0%'
+                      : 'Mark as Finished (100%)'}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* 3. View Book Info */}
+                <TouchableOpacity
+                  onPress={() => {
+                    const b = contextMenuBook;
+                    setContextMenuBook(null);
+                    setInfoModalBook(b);
+                  }}
+                  style={[styles.contextActionRow, { borderBottomColor: colors.border }]}
+                >
+                  <Info size={18} color={colors.textPrimary} style={{ marginRight: 12 }} />
+                  <Text style={[styles.contextActionText, { color: colors.textPrimary }]}>
+                    View Book Info & Metadata
+                  </Text>
+                </TouchableOpacity>
+
+                {/* 4. Delete Book */}
+                <TouchableOpacity
+                  onPress={() => handleDeleteBookSingle(contextMenuBook)}
+                  style={styles.contextActionRow}
+                >
+                  <Trash2 size={18} color="#EF4444" style={{ marginRight: 12 }} />
+                  <Text style={[styles.contextActionText, { color: '#EF4444' }]}>
+                    Delete from Device
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Book Info / Metadata Modal */}
+      <Modal
+        visible={Boolean(infoModalBook)}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setInfoModalBook(null)}
+      >
+        <View style={styles.modalOverlay}>
+          {infoModalBook && (
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: colors.canvas, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.modalHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Info size={20} color={colors.accent} />
+                  <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                    Book Details
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setInfoModalBook(null)}
+                  style={styles.closeBtn}
+                >
+                  <X size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.infoModalTopRow}>
+                  <View style={[styles.infoCoverWrapper, { backgroundColor: colors.surface }]}>
+                    {infoModalBook.coverImagePath ? (
+                      <Image
+                        source={{ uri: infoModalBook.coverImagePath }}
+                        style={styles.infoCoverImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <BookOpen size={36} color={colors.accent} />
+                    )}
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text
+                      style={[styles.infoTitle, { color: colors.textPrimary }]}
+                      numberOfLines={3}
+                    >
+                      {infoModalBook.title}
+                    </Text>
+                    <Text
+                      style={[styles.infoAuthor, { color: colors.textSecondary }]}
+                      numberOfLines={2}
+                    >
+                      {infoModalBook.authors?.map((a) => a.name).join(', ') || 'Unknown Author'}
+                    </Text>
+                    <View style={{ marginTop: 8, flexDirection: 'row', gap: 6 }}>
+                      <Badge label={infoModalBook.fileFormat.toUpperCase()} variant="secondary" />
+                      {infoModalBook.isFavorite && (
+                        <Badge label="FAVORITE" variant="accent" />
+                      )}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Metadata Properties Table */}
+                <View
+                  style={[
+                    styles.infoPropsCard,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <View style={styles.infoPropRow}>
+                    <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                      Reading Progress
+                    </Text>
+                    <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                      {Math.round(infoModalBook.progressPercentage || 0)}% (
+                      {infoModalBook.status || 'unread'})
+                    </Text>
+                  </View>
+
+                  <View style={styles.infoPropRow}>
+                    <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                      Time Spent Reading
+                    </Text>
+                    <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                      {formatDurationSeconds(infoModalBook.totalTimeReadSeconds || 0)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.infoPropRow}>
+                    <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                      File Format
+                    </Text>
+                    <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                      {infoModalBook.fileFormat.toUpperCase()}
+                    </Text>
+                  </View>
+
+                  {infoModalBook.fileSizeBytes ? (
+                    <View style={styles.infoPropRow}>
+                      <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                        File Size
+                      </Text>
+                      <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                        {(infoModalBook.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  <View style={styles.infoPropRow}>
+                    <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                      Date Added
+                    </Text>
+                    <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                      {new Date(infoModalBook.createdAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                  </View>
+
+                  <View style={styles.infoPropRow}>
+                    <Text style={[styles.infoPropLabel, { color: colors.textSecondary }]}>
+                      Last Read
+                    </Text>
+                    <Text style={[styles.infoPropValue, { color: colors.textPrimary }]}>
+                      {formatRelativeDate(infoModalBook.lastReadAt)}
+                    </Text>
+                  </View>
+                </View>
+
+                {infoModalBook.description ? (
+                  <View style={{ marginTop: 14 }}>
+                    <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                      Description / Summary
+                    </Text>
+                    <Text
+                      style={[
+                        styles.infoDescriptionText,
+                        { color: colors.textPrimary },
+                      ]}
+                    >
+                      {infoModalBook.description}
+                    </Text>
+                  </View>
+                ) : null}
+
+                <TouchableOpacity
+                  onPress={() => {
+                    const id = infoModalBook.id;
+                    setInfoModalBook(null);
+                    router.push(`/reader/${id}` as any);
+                  }}
+                  style={[styles.saveServerBtn, { backgroundColor: colors.accent, marginTop: 20 }]}
+                >
+                  <Text
+                    style={[
+                      styles.saveServerBtnText,
+                      { color: colors.isDark ? '#000000' : '#FFFFFF' },
+                    ]}
+                  >
+                    Open in Reader
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          )}
+        </View>
       </Modal>
     </View>
   );
@@ -2880,5 +3848,258 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mona.bold,
     fontSize: 11,
     letterSpacing: -0.1,
+  },
+  // Device Shelf Styles
+  shelfDashboardContainer: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  shelfSummaryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  shelfSummaryLeft: {
+    flex: 1,
+  },
+  shelfStatCountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  shelfStatCountText: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 13,
+    letterSpacing: -0.2,
+  },
+  shelfStatDetails: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 11,
+  },
+  shelfSummaryRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  shelfActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5.5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  shelfActionBtnText: {
+    fontSize: 11.5,
+  },
+  batchActionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    marginBottom: 10,
+  },
+  batchSelectAllBtn: {
+    paddingVertical: 4,
+  },
+  batchSelectAllText: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 12,
+  },
+  batchActionIconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  batchMiniActionBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shelfFilterChipsScroll: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 10,
+  },
+  shelfFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 12,
+    paddingRight: 6,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  shelfFilterChipText: {
+    fontSize: 12,
+    marginRight: 6,
+  },
+  shelfFilterCountPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  shelfFilterCountText: {
+    fontSize: 10.5,
+  },
+  shelfFormatAndSortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  shelfFormatScroll: {
+    flexDirection: 'row',
+    gap: 6,
+    flex: 1,
+  },
+  shelfFormatChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  shelfFormatChipText: {
+    fontSize: 11,
+  },
+  shelfSortActionsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  shelfSortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  shelfSortBtnText: {
+    fontSize: 11,
+  },
+  shelfSortDirBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shelfResetBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contextBookHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(128,128,128,0.15)',
+    marginBottom: 6,
+  },
+  contextCoverWrapper: {
+    width: 44,
+    height: 60,
+    borderRadius: 6,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contextCoverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  contextBookTitle: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 14,
+    letterSpacing: -0.2,
+  },
+  contextBookAuthor: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  contextActionsList: {
+    marginTop: 4,
+  },
+  contextActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  contextActionText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 13.5,
+  },
+  infoModalTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  infoCoverWrapper: {
+    width: 70,
+    height: 100,
+    borderRadius: 8,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoCoverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  infoTitle: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: -0.3,
+  },
+  infoAuthor: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  infoPropsCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  infoPropRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 9,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(128,128,128,0.12)',
+  },
+  infoPropLabel: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 12,
+  },
+  infoPropValue: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 12,
+  },
+  infoDescriptionText: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 12.5,
+    lineHeight: 18,
   },
 });

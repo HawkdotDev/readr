@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'rea
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
-import { BookOpen, Heart, Clock, Star } from 'lucide-react-native';
+import { BookOpen, Heart, Clock, Star, Check } from 'lucide-react-native';
 import { formatDurationSeconds } from '../../utils/time';
 import { FONTS } from '../../utils/typography';
 
@@ -15,6 +15,9 @@ export interface BookCardProps {
   viewMode?: 'grid' | 'list';
   onPress: () => void;
   onLongPress?: () => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export const BookCard = React.memo<BookCardProps>(({
@@ -22,27 +25,45 @@ export const BookCard = React.memo<BookCardProps>(({
   viewMode = 'grid',
   onPress,
   onLongPress,
+  isSelectMode,
+  isSelected,
+  onSelect,
 }) => {
   const { colors } = useTheme();
 
   const authorName = book.authors && book.authors.length > 0 ? book.authors.map((a) => a.name).join(', ') : 'Unknown Author';
   const progressPercent = Math.round(book.progressPercentage || 0);
 
+  const handlePress = () => {
+    if (isSelectMode && onSelect) {
+      onSelect();
+    } else {
+      onPress();
+    }
+  };
+
   if (viewMode === 'list') {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={onPress}
+        onPress={handlePress}
         onLongPress={onLongPress}
         delayLongPress={280}
         style={[
           styles.listContainer,
           {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
+            backgroundColor: isSelected ? (colors.isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.03)') : colors.surface,
+            borderColor: isSelected ? colors.accent : colors.border,
           },
         ] as any}
       >
+        {/* Selection checkbox when in select mode */}
+        {isSelectMode && (
+          <View style={[styles.listSelectCheckbox, { borderColor: isSelected ? colors.accent : colors.border, backgroundColor: isSelected ? colors.accent : 'transparent' }]}>
+            {isSelected && <Check size={12} color={colors.isDark ? '#000000' : '#FFFFFF'} />}
+          </View>
+        )}
+
         {/* Cover thumbnail with 2:3 aspect ratio */}
         <View style={[styles.listCoverWrapper, { backgroundColor: colors.canvas }] as any}>
           {book.coverImagePath ? (
@@ -98,7 +119,7 @@ export const BookCard = React.memo<BookCardProps>(({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={onPress}
+      onPress={handlePress}
       onLongPress={onLongPress}
       delayLongPress={280}
       style={[styles.gridContainer, { width: GRID_CARD_WIDTH }] as any}
@@ -109,7 +130,8 @@ export const BookCard = React.memo<BookCardProps>(({
           styles.gridCoverWrapper,
           {
             backgroundColor: colors.surface,
-            borderColor: colors.border,
+            borderColor: isSelected ? colors.accent : colors.border,
+            borderWidth: isSelected ? 2 : 1,
           },
         ] as any}
       >
@@ -124,8 +146,23 @@ export const BookCard = React.memo<BookCardProps>(({
           </View>
         )}
 
+        {/* Multi-Select Checkbox Badge */}
+        {isSelectMode && (
+          <View
+            style={[
+              styles.gridSelectBadge,
+              {
+                backgroundColor: isSelected ? colors.accent : (colors.isDark ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'),
+                borderColor: isSelected ? colors.accent : colors.border,
+              },
+            ]}
+          >
+            {isSelected && <Check size={12} color={colors.isDark ? '#000000' : '#FFFFFF'} />}
+          </View>
+        )}
+
         {/* Favorite Icon Badge */}
-        {book.isFavorite && (
+        {!isSelectMode && book.isFavorite && (
           <View style={[styles.favoriteBadge, { backgroundColor: colors.isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.75)' }]}>
             <Heart size={12} color={colors.isDark ? '#000000' : '#FFFFFF'} fill={colors.isDark ? '#000000' : '#FFFFFF'} />
           </View>
@@ -203,6 +240,27 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: -0.2,
     lineHeight: 16,
+  },
+  gridSelectBadge: {
+    position: 'absolute',
+    top: 7,
+    left: 7,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  listSelectCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   favoriteBadge: {
     position: 'absolute',
