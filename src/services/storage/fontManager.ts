@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import { copyFileResilient } from './fileManager';
 
 const FONTS_DIR = `${(FileSystem as any).documentDirectory || ''}fonts/`;
 
@@ -66,10 +67,7 @@ export async function pickAndImportCustomFont(): Promise<{ success: boolean; fon
     const cleanFontName = cleanFontFamilyName(fileName);
     const destPath = `${FONTS_DIR}${fileName}`;
 
-    await FileSystem.copyAsync({
-      from: file.uri,
-      to: destPath,
-    });
+    await copyFileResilient(file.uri, destPath);
 
     // Register with Expo Font dynamically
     try {

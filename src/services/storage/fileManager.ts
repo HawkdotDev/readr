@@ -56,11 +56,57 @@ export function detectFormatFromFilename(filename: string): BookFormat {
   }
 }
 
+export async function readUriAsBase64(uri: string): Promise<string> {
+  // 1. Try FileSystem.readAsStringAsync
+  if (FileSystem && typeof (FileSystem as any).readAsStringAsync === 'function') {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
+      });
+      if (base64 && base64.length > 0) return base64;
+    } catch (e) {
+      console.warn('[fileManager] readAsStringAsync failed, falling back to fetch stream:', e);
+    }
+  }
+
+  // 2. Try fetch(uri) -> blob -> FileReader -> base64
+  // Bypasses Android File.canRead() restrictions by accessing ContentResolver directly
+  const res = await fetch(uri);
+  const blob = await res.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      const b64 = result.includes(',') ? result.split(',')[1] : result;
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function copyFileResilient(sourceUri: string, destinationPath: string): Promise<void> {
+  // 1. First attempt: standard FileSystem.copyAsync
+  try {
+    await FileSystem.copyAsync({
+      from: sourceUri,
+      to: destinationPath,
+    });
+    return;
+  } catch (copyErr) {
+    console.warn('[fileManager] FileSystem.copyAsync rejected, attempting stream copy fallback:', copyErr);
+  }
+
+  // 2. Fallback: Stream read via readUriAsBase64 and write into app's writable document sandbox
+  const base64Data = await readUriAsBase64(sourceUri);
+  await FileSystem.writeAsStringAsync(destinationPath, base64Data, {
+    encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
+  });
+}
+
 export async function calculateFileHash(uri: string): Promise<string> {
   try {
-    const fileContent = await FileSystem.readAsStringAsync(uri, {
-      encoding: (FileSystem as any).EncodingType?.Base64 || 'base64',
-    });
+    const fileContent = await readUriAsBase64(uri);
     return await Crypto.digestStringAsync(
       Crypto.CryptoDigestAlgorithm.SHA256,
       fileContent
@@ -101,19 +147,30 @@ export async function importBookFromUri(
       };
     }
 
-    // 2. Deterministic file path in sandbox
+    // 2. Deterministic file path in sandbox with resilient copying
     const destinationPath = `${BOOKS_DIR}${fileHash}.${format}`;
-    await FileSystem.copyAsync({
-      from: sourceUri,
-      to: destinationPath,
-    });
+    await copyFileResilient(sourceUri, destinationPath);
 
     const fileInfo = await FileSystem.getInfoAsync(destinationPath);
     const fileSizeBytes = fileInfo.exists && 'size' in fileInfo ? (fileInfo as any).size || 1024 : 1024;
 
     const bookId = `book_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const cleanTitle = providedTitle || filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-    const authorName = providedAuthor || 'Unknown Author';
+    let cleanTitle = providedTitle || filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    let authorName = providedAuthor || 'Unknown Author';
+
+    // Auto-extract real title & author from EPUB archive if not explicitly provided
+    if (format === 'epub') {
+      try {
+        const { parseEpubArchive } = await import('../reader/epubParser');
+        const parsed = await parseEpubArchive(destinationPath, cleanTitle);
+        if (parsed.title && parsed.title.trim().length > 0 && parsed.title !== cleanTitle) {
+          cleanTitle = parsed.title;
+        }
+        if (parsed.author && parsed.author !== 'Unknown Author') {
+          authorName = parsed.author;
+        }
+      } catch {}
+    }
 
     // Auto-fetch public metadata and cover art if not explicitly provided
     let coverImagePath: string | undefined = providedCoverUrl;
