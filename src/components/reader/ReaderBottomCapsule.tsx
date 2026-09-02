@@ -127,13 +127,9 @@ export default ReaderBottomCapsule;
 
 const styles = StyleSheet.create({
   floatingContainer: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 76 : 68,
-    left: 0,
-    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
+    width: '100%',
   },
   capsule: {
     flexDirection: 'row',

@@ -215,6 +215,7 @@ export default function ReaderScreen() {
   }, [chromeVisible]);
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [folioBarHeight, setFolioBarHeight] = useState(54);
 
   useEffect(() => {
     if (id) {
@@ -342,6 +343,12 @@ export default function ReaderScreen() {
 
       {/* Signature Fluid Folio Bar (Bottom Margin Indicator) */}
       <View
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 0 && Math.abs(h - folioBarHeight) > 1) {
+            setFolioBarHeight(h);
+          }
+        }}
         style={[
           styles.folioWrapper,
           {
@@ -367,6 +374,7 @@ export default function ReaderScreen() {
         style={[
           styles.bottomCapsuleOverlay,
           {
+            bottom: folioBarHeight + 5,
             opacity: chromeAnim,
             transform: [
               {
@@ -493,7 +501,6 @@ const styles = StyleSheet.create({
   },
   bottomCapsuleOverlay: {
     position: 'absolute',
-    bottom: 50,
     left: 0,
     right: 0,
     alignItems: 'center',
