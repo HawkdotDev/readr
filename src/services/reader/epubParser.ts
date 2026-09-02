@@ -435,7 +435,7 @@ export function isFrontMatterSection(
 }
 
 /**
- * Searches a JSZip archive case-insensitively and with URI decoding.
+ * Case-insensitive and URI-decoded lookup of files inside a JSZip archive.
  */
 export function findZipFile(zip: JSZip, targetPath: string): JSZip.JSZipObject | null {
   if (!targetPath) return null;
