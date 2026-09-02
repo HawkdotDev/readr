@@ -10,6 +10,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   GestureResponderEvent,
+  Animated,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../common/ThemeProvider';
@@ -27,13 +28,13 @@ import { getFixationLength } from '../../utils/bionic';
 import { applyNameReplacements } from '../../utils/nameReplacer';
 import { resolveActionForTap } from '../../services/reader/touchZoneService';
 
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface EpubReaderProps {
   bookId: string;
   chapters: ParsedChapter[];
-  initialChapterIndex?: number;
+  activeChapterIndex?: number;
+  onChapterChange?: (newIndex: number) => void;
   onToggleChrome: () => void;
   onSelectWordForDictionary: (word: string) => void;
   onOpenAnnotations?: () => void;
@@ -42,16 +43,20 @@ export interface EpubReaderProps {
 export const EpubReader: React.FC<EpubReaderProps> = ({
   bookId,
   chapters,
-  initialChapterIndex = 0,
+  activeChapterIndex = 0,
+  onChapterChange,
   onToggleChrome,
   onSelectWordForDictionary,
   onOpenAnnotations,
 }) => {
   const { colors } = useTheme();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIndex);
-  const scrollRef = useRef<any>(null);
+  const [currentChapterIdx, setCurrentChapterIdx] = useState(activeChapterIndex);
+  const scrollRef = useRef<ScrollView | null>(null);
   const scrollOffsetRef = useRef<number>(0);
+
+  // Smooth Chapter Transition Animation
+  const chapterAnim = useRef(new Animated.Value(1)).current;
 
   const {
     fontFamily,
@@ -61,7 +66,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     textAlign,
     readingDirection,
     navigationMode,
-    pageTurnStyle,
     paragraphIndent,
     paragraphSpacing,
     dropCaps,
@@ -84,39 +88,85 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     setLocation,
   } = useReaderStore();
 
-
   const isDualPageActive =
     dualPageMode === true || (dualPageMode === 'auto' && windowWidth >= 640);
+
+  // Synchronize when parent changes activeChapterIndex (e.g. from TOC or Search)
+  useEffect(() => {
+    if (
+      activeChapterIndex !== undefined &&
+      activeChapterIndex !== currentChapterIdx &&
+      activeChapterIndex >= 0 &&
+      activeChapterIndex < chapters.length
+    ) {
+      animateToChapter(activeChapterIndex);
+    }
+  }, [activeChapterIndex]);
 
   const currentChapter = chapters[currentChapterIdx] || chapters[0];
 
   useEffect(() => {
     if (currentChapter) {
       setCurrentChapter(currentChapterIdx, currentChapter.title);
-      // Calculate approximate progress
-      const progress = chapters.length > 0 ? ((currentChapterIdx + 1) / chapters.length) * 100 : 0;
-      const minutesLeft = progressTracker.calculateMinutesLeft(currentChapter.wordCount || 300);
+      const progress =
+        chapters.length > 0
+          ? ((currentChapterIdx + 1) / chapters.length) * 100
+          : 0;
+      const minutesLeft = progressTracker.calculateMinutesLeft(
+        currentChapter.wordCount || 300
+      );
       setLocation(`chap_${currentChapterIdx}`, progress, minutesLeft);
-      progressTracker.recordProgress(bookId, `chap_${currentChapterIdx}`, progress);
+      progressTracker.recordProgress(
+        bookId,
+        `chap_${currentChapterIdx}`,
+        progress
+      );
     }
   }, [currentChapterIdx, chapters]);
 
-  const touchStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
-  const lastTapRef = useRef<number>(0);
+  // Smooth transition animation when changing chapters
+  const animateToChapter = (newIndex: number) => {
+    Animated.sequence([
+      Animated.timing(chapterAnim, {
+        toValue: 0,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.timing(chapterAnim, {
+        toValue: 1,
+        duration: 160,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setCurrentChapterIdx(newIndex);
+    if (onChapterChange) {
+      onChapterChange(newIndex);
+    }
+    scrollRef.current?.scrollTo?.({ y: 0, animated: false });
+  };
 
   const handleNextChapter = () => {
     if (currentChapterIdx < chapters.length - 1) {
-      setCurrentChapterIdx((prev) => prev + 1);
-      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      animateToChapter(currentChapterIdx + 1);
     }
   };
 
   const handlePrevChapter = () => {
     if (currentChapterIdx > 0) {
-      setCurrentChapterIdx((prev) => prev - 1);
-      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      animateToChapter(currentChapterIdx - 1);
     }
   };
+
+  // Touch Gesture Tracking for Tap & Swipe Page Turn
+  const touchStartRef = useRef<{ time: number; x: number; y: number }>({
+    time: 0,
+    x: 0,
+    y: 0,
+  });
+  const lastTapRef = useRef<number>(0);
 
   const handleTouchStart = (e: GestureResponderEvent) => {
     const { pageX, pageY } = e.nativeEvent;
@@ -127,19 +177,38 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     const { pageX, pageY } = e.nativeEvent;
     const now = Date.now();
     const duration = now - touchStartRef.current.time;
-    const dist = Math.hypot(pageX - touchStartRef.current.x, pageY - touchStartRef.current.y);
+    const deltaX = pageX - touchStartRef.current.x;
+    const deltaY = pageY - touchStartRef.current.y;
+    const dist = Math.hypot(deltaX, deltaY);
 
-    // If it was a quick stationary tap (duration < 280ms and moved < 15px)
-    if (duration < 280 && dist < 15) {
-      if (lastTapRef.current && now - lastTapRef.current < 350) {
-        // Double tap confirmed -> toggle chrome!
+    // 1. Horizontal Swipe Gesture (Swipe left -> Next, Swipe right -> Prev)
+    if (duration < 380 && Math.abs(deltaX) > 55 && Math.abs(deltaY) < 45) {
+      if (deltaX < 0) {
+        handleNextChapter();
+      } else {
+        handlePrevChapter();
+      }
+      return;
+    }
+
+    // 2. Stationary Tap (duration < 280ms and moved < 12px)
+    if (duration < 280 && dist < 12) {
+      if (lastTapRef.current && now - lastTapRef.current < 320) {
+        // Double Tap -> Toggle Chrome
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         onToggleChrome();
         lastTapRef.current = 0;
       } else {
         lastTapRef.current = now;
         // Resolve 9-Zone touch mapping
-        const { action } = resolveActionForTap(pageX, pageY, windowWidth, windowHeight, touchZoneMappings);
+        const { action } = resolveActionForTap(
+          pageX,
+          pageY,
+          windowWidth,
+          windowHeight,
+          touchZoneMappings
+        );
+
         switch (action) {
           case 'nextPage':
             handleNextChapter();
@@ -172,7 +241,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   };
 
-  // Extract clean display title
+  // Clean formatted display title
   const displayTitle = useMemo(() => {
     if (!currentChapter) return 'Beginning';
     const raw = currentChapter.title || `Chapter ${currentChapterIdx + 1}`;
@@ -187,20 +256,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     const blocks = parseChapterContent(currentChapter.content);
 
     return blocks.map((block, bIdx) => {
-      const processedBlockText = applyNameReplacements(block.text, nameReplacements);
+      const processedBlockText = applyNameReplacements(
+        block.text,
+        nameReplacements
+      );
 
       if (block.type === 'h1') {
         return (
           <Text
             key={`h1_${bIdx}`}
             style={[
-              styles.subHeading,
+              styles.heading1,
               {
                 color: colors.textPrimary,
-                fontSize: fontSize * 1.35,
+                fontSize: fontSize * 1.38,
                 lineHeight: fontSize * 1.7,
                 textAlign,
-                fontFamily: fontFamily === 'System' ? undefined : fontFamily,
+                fontFamily:
+                  fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
               },
             ]}
           >
@@ -214,13 +287,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <Text
             key={`h2_${bIdx}`}
             style={[
-              styles.subHeading,
+              styles.heading2,
               {
                 color: colors.textPrimary,
-                fontSize: fontSize * 1.18,
+                fontSize: fontSize * 1.2,
                 lineHeight: fontSize * 1.5,
                 textAlign,
-                fontFamily: fontFamily === 'System' ? undefined : fontFamily,
+                fontFamily:
+                  fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
               },
             ]}
           >
@@ -229,17 +303,70 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         );
       }
 
-      const words = processedBlockText.split(/\s+/).filter(Boolean);
+      if (block.type === 'h3') {
+        return (
+          <Text
+            key={`h3_${bIdx}`}
+            style={[
+              styles.heading3,
+              {
+                color: colors.textPrimary,
+                fontSize: fontSize * 1.08,
+                lineHeight: fontSize * 1.4,
+                textAlign,
+                fontFamily:
+                  fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+              },
+            ]}
+          >
+            {processedBlockText}
+          </Text>
+        );
+      }
 
-      // Check if block has highlighted style (e.g. quote / first paragraph block)
-      const isQuoteHighlight = bIdx === 0 && processedBlockText.length > 20 && processedBlockText.length < 240;
+      if (block.type === 'blockquote') {
+        return (
+          <View
+            key={`bq_${bIdx}`}
+            style={[
+              styles.blockquoteWrapper,
+              {
+                borderLeftColor: colors.accent,
+                backgroundColor: colors.isDark
+                  ? 'rgba(255,255,255,0.04)'
+                  : 'rgba(0,0,0,0.03)',
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.blockquoteText,
+                {
+                  color: colors.textSecondary,
+                  fontSize: fontSize * 0.95,
+                  lineHeight: fontSize * lineHeight,
+                  textAlign,
+                  fontFamily:
+                    fontFamily === 'System' ? undefined : fontFamily,
+                  fontStyle: 'italic',
+                },
+              ]}
+            >
+              {processedBlockText}
+            </Text>
+          </View>
+        );
+      }
+
+      const words = block.words || processedBlockText.split(/\s+/).filter(Boolean);
 
       // Handle Drop Caps for the very first paragraph of chapter
-      const shouldApplyDropCap = dropCaps && bIdx === 0 && words.length > 0 && words[0].length > 0;
+      const shouldApplyDropCap =
+        dropCaps && bIdx === 0 && words.length > 0 && words[0].length > 0;
       const firstLetter = shouldApplyDropCap ? words[0].charAt(0) : '';
       const restOfFirstWord = shouldApplyDropCap ? words[0].slice(1) : '';
 
-      // First-line indentation for non-initial paragraphs
+      // First-line indentation for subsequent paragraphs
       const shouldIndent = paragraphIndent > 0 && bIdx > 0;
 
       return (
@@ -251,10 +378,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               marginBottom: 14 * paragraphSpacing,
               paddingLeft: shouldIndent ? paragraphIndent * 14 : 0,
             },
-            isQuoteHighlight && [
-              styles.highlightQuoteBox,
-              { backgroundColor: colors.isDark ? 'rgba(234, 179, 8, 0.16)' : 'rgba(254, 240, 138, 0.45)' },
-            ],
           ]}
         >
           <Text
@@ -277,34 +400,53 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                       styles.dropCapLetter,
                       {
                         color: colors.accent,
-                        fontSize: fontSize * 2.6,
-                        lineHeight: fontSize * 2.8,
-                        fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                        fontSize: fontSize * 2.5,
+                        lineHeight: fontSize * 2.7,
+                        fontFamily:
+                          fontFamily === 'System'
+                            ? FONTS.mona.bold
+                            : fontFamily,
                       },
                     ]}
                   >
                     {firstLetter}
                   </Text>
                 )}
-                {shouldApplyDropCap && restOfFirstWord ? `${restOfFirstWord} ` : ''}
-                {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => {
-                  if (w && w.trim().length > 0) {
-                    const fixLen = getFixationLength(w.length, bionicFixation);
-                    const boldPart = w.slice(0, fixLen);
-                    const normalPart = w.slice(fixLen);
-                    return (
-                      <Text
-                        key={`w_${bIdx}_${wIdx}`}
-                        onLongPress={() => onSelectWordForDictionary(w)}
-                        suppressHighlighting={true}
-                      >
-                        <Text style={{ fontFamily: FONTS.mona.bold, fontWeight: '700' }}>{boldPart}</Text>
-                        {normalPart}{' '}
-                      </Text>
-                    );
+                {shouldApplyDropCap && restOfFirstWord
+                  ? `${restOfFirstWord} `
+                  : ''}
+                {(shouldApplyDropCap ? words.slice(1) : words).map(
+                  (w, wIdx) => {
+                    if (w && w.trim().length > 0) {
+                      const fixLen = getFixationLength(w.length, bionicFixation);
+                      const boldPart = w.slice(0, fixLen);
+                      const normalPart = w.slice(fixLen);
+                      return (
+                        <Text
+                          key={`w_${bIdx}_${wIdx}`}
+                          onLongPress={() => {
+                            Haptics.impactAsync(
+                              Haptics.ImpactFeedbackStyle.Light
+                            ).catch(() => {});
+                            onSelectWordForDictionary(w);
+                          }}
+                          suppressHighlighting={true}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: FONTS.mona.bold,
+                              fontWeight: '700',
+                            }}
+                          >
+                            {boldPart}
+                          </Text>
+                          {normalPart}{' '}
+                        </Text>
+                      );
+                    }
+                    return null;
                   }
-                  return null;
-                })}
+                )}
               </>
             ) : shouldApplyDropCap ? (
               <>
@@ -313,9 +455,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                     styles.dropCapLetter,
                     {
                       color: colors.accent,
-                      fontSize: fontSize * 2.6,
-                      lineHeight: fontSize * 2.8,
-                      fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                      fontSize: fontSize * 2.5,
+                      lineHeight: fontSize * 2.7,
+                      fontFamily:
+                        fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
                     },
                   ]}
                 >
@@ -346,17 +489,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     onSelectWordForDictionary,
   ]);
 
-
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     scrollOffsetRef.current = contentOffset.y;
     const totalScrollable = contentSize.height - layoutMeasurement.height;
     if (totalScrollable > 0) {
-      const scrollPercent = Math.max(0, Math.min(1, contentOffset.y / totalScrollable));
-      const baseProgress = (currentChapterIdx / Math.max(1, chapters.length)) * 100;
+      const scrollPercent = Math.max(
+        0,
+        Math.min(1, contentOffset.y / totalScrollable)
+      );
+      const baseProgress =
+        (currentChapterIdx / Math.max(1, chapters.length)) * 100;
       const chapterWeight = (1 / Math.max(1, chapters.length)) * 100;
       const totalProgress = baseProgress + scrollPercent * chapterWeight;
-      progressTracker.recordProgress(bookId, `chap_${currentChapterIdx}_pos_${Math.round(contentOffset.y)}`, totalProgress);
+      progressTracker.recordProgress(
+        bookId,
+        `chap_${currentChapterIdx}_pos_${Math.round(contentOffset.y)}`,
+        totalProgress
+      );
     }
   };
 
@@ -382,97 +532,134 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onScroll={handleScroll}
-        scrollEventThrottle={200}
+        scrollEventThrottle={16}
       >
-        {/* Editorial Chapter Header (CHAPTER X | Title | Divider) */}
-        <View style={styles.headerBlock}>
-          <Text style={[styles.chapterKicker, { color: colors.textSecondary }]}>
-            CHAPTER {currentChapterIdx + 1}
-          </Text>
-          <Text
-            style={[
-              styles.chapterHeroTitle,
+        <Animated.View
+          style={{
+            opacity: chapterAnim,
+            transform: [
               {
-                color: colors.textPrimary,
-                fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                translateY: chapterAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [10, 0],
+                }),
               },
-            ]}
-          >
-            {displayTitle}
-          </Text>
-          <View style={[styles.dividerBar, { backgroundColor: colors.border }]} />
-        </View>
-
-        {/* Center Content View (Supports Adaptive Dual-Page Spread on Landscape/Tablets) */}
-        <View style={styles.tapArea}>
-          {isDualPageActive ? (
-            <View style={styles.dualPageSpread}>
-              <View style={styles.dualPageColumn}>{renderChapterContent}</View>
-            </View>
-          ) : (
-            renderChapterContent
-          )}
-
-          {/* Floating Highlights Action Pill */}
-          {onOpenAnnotations && (
-            <TouchableOpacity
-              onPress={onOpenAnnotations}
+            ],
+          }}
+        >
+          {/* Editorial Chapter Header (CHAPTER X | Title | Divider) */}
+          <View style={styles.headerBlock}>
+            <Text
+              style={[styles.chapterKicker, { color: colors.textSecondary }]}
+            >
+              CHAPTER {currentChapterIdx + 1}
+            </Text>
+            <Text
               style={[
-                styles.highlightsPill,
+                styles.chapterHeroTitle,
+                {
+                  color: colors.textPrimary,
+                  fontFamily:
+                    fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                },
+              ]}
+            >
+              {displayTitle}
+            </Text>
+            <View
+              style={[styles.dividerBar, { backgroundColor: colors.border }]}
+            />
+          </View>
+
+          {/* Center Content View (Supports Adaptive Dual-Page Spread on Landscape/Tablets) */}
+          <View style={styles.tapArea}>
+            {isDualPageActive ? (
+              <View style={styles.dualPageSpread}>
+                <View style={styles.dualPageColumn}>
+                  {renderChapterContent}
+                </View>
+              </View>
+            ) : (
+              renderChapterContent
+            )}
+
+            {/* Floating Highlights Action Pill */}
+            {onOpenAnnotations && (
+              <TouchableOpacity
+                onPress={onOpenAnnotations}
+                style={[
+                  styles.highlightsPill,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
+                accessible={true}
+                accessibilityLabel="View Highlights and Notes"
+              >
+                <Sparkles
+                  size={13}
+                  color={colors.accent}
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={[
+                    styles.highlightsPillText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Highlights
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Chapter Navigation Buttons */}
+          <View style={[styles.navRow, { borderTopColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={handlePrevChapter}
+              disabled={currentChapterIdx === 0}
+              style={[
+                styles.navBtn,
                 {
                   backgroundColor: colors.surface,
                   borderColor: colors.border,
+                  opacity: currentChapterIdx === 0 ? 0.3 : 1,
                 },
               ]}
-              accessible={true}
-              accessibilityLabel="View Highlights and Notes"
             >
-              <Sparkles size={13} color={colors.accent} style={{ marginRight: 4 }} />
-              <Text style={[styles.highlightsPillText, { color: colors.textSecondary }]}>
-                Highlights
+              <ChevronLeft size={18} color={colors.textPrimary} />
+              <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>
+                Prev Chapter
               </Text>
             </TouchableOpacity>
-          )}
-        </View>
 
-        {/* Chapter Navigation Buttons */}
-        <View style={[styles.navRow, { borderTopColor: colors.border }]}>
-          <TouchableOpacity
-            onPress={handlePrevChapter}
-            disabled={currentChapterIdx === 0}
-            style={[
-              styles.navBtn,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                opacity: currentChapterIdx === 0 ? 0.3 : 1,
-              },
-            ]}
-          >
-            <ChevronLeft size={18} color={colors.textPrimary} />
-            <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>Prev Chapter</Text>
-          </TouchableOpacity>
+            <Text
+              style={[styles.chapterCounter, { color: colors.textSecondary }]}
+            >
+              {currentChapterIdx + 1} of {chapters.length || 1}
+            </Text>
 
-          <Text style={[styles.chapterCounter, { color: colors.textSecondary }]}>
-            {currentChapterIdx + 1} of {chapters.length || 1}
-          </Text>
-
-          <TouchableOpacity
-            onPress={handleNextChapter}
-            disabled={currentChapterIdx >= chapters.length - 1}
-            style={[
-              styles.navBtn,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                opacity: currentChapterIdx >= chapters.length - 1 ? 0.3 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>Next Chapter</Text>
-            <ChevronRight size={18} color={colors.textPrimary} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              onPress={handleNextChapter}
+              disabled={currentChapterIdx >= chapters.length - 1}
+              style={[
+                styles.navBtn,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  opacity:
+                    currentChapterIdx >= chapters.length - 1 ? 0.3 : 1,
+                },
+              ]}
+            >
+              <Text style={[styles.navBtnText, { color: colors.textPrimary }]}>
+                Next Chapter
+              </Text>
+              <ChevronRight size={18} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </ScrollView>
 
       {/* On-Screen Floating Turn Buttons */}
@@ -483,7 +670,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             disabled={currentChapterIdx === 0}
             style={[
               styles.floatingNavBtn,
-              { left: 16, backgroundColor: colors.surface, borderColor: colors.border },
+              {
+                left: 16,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
               currentChapterIdx === 0 && { opacity: 0.2 },
             ]}
             accessible={true}
@@ -497,7 +688,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             disabled={currentChapterIdx >= chapters.length - 1}
             style={[
               styles.floatingNavBtn,
-              { right: 16, backgroundColor: colors.surface, borderColor: colors.border },
+              {
+                right: 16,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
               currentChapterIdx >= chapters.length - 1 && { opacity: 0.2 },
             ]}
             accessible={true}
@@ -521,8 +716,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         onScrollTick={(deltaY) => {
           scrollOffsetRef.current += deltaY;
           if (scrollRef.current) {
-            if (typeof scrollRef.current.scrollTo === 'function') {
-              scrollRef.current.scrollTo({ y: scrollOffsetRef.current, animated: false });
+            if (typeof (scrollRef.current as any).scrollTo === 'function') {
+              (scrollRef.current as any).scrollTo({
+                y: scrollOffsetRef.current,
+                animated: false,
+              });
             }
           }
         }}
@@ -538,8 +736,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingTop: 84,
+    paddingBottom: 72,
   },
   headerBlock: {
     alignItems: 'center',
@@ -554,10 +752,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chapterHeroTitle: {
-    fontSize: 28,
-    lineHeight: 36,
+    fontSize: 26,
+    lineHeight: 34,
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
   },
   dividerBar: {
     width: 28,
@@ -572,15 +770,29 @@ const styles = StyleSheet.create({
   paragraphWrapper: {
     marginBottom: 16,
   },
-  highlightQuoteBox: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  subHeading: {
-    fontFamily: FONTS.mona.bold,
-    marginTop: 18,
+  heading1: {
+    marginTop: 22,
     marginBottom: 12,
+    letterSpacing: -0.3,
+  },
+  heading2: {
+    marginTop: 18,
+    marginBottom: 10,
+    letterSpacing: -0.2,
+  },
+  heading3: {
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  blockquoteWrapper: {
+    borderLeftWidth: 3,
+    paddingLeft: 14,
+    paddingVertical: 8,
+    marginVertical: 12,
+    borderRadius: 4,
+  },
+  blockquoteText: {
+    letterSpacing: -0.1,
   },
   paragraph: {
     letterSpacing: -0.1,

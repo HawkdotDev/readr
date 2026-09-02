@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  Animated,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { getWarmthOverlayColor } from '../../src/utils/theme';
 import { getBookById } from '../../src/db/queries/books';
@@ -30,7 +37,6 @@ import { AnnotationSheet } from '../../src/components/reader/AnnotationSheet';
 import { SearchSheet } from '../../src/components/reader/SearchSheet';
 import { NameReplacementModal } from '../../src/components/reader/NameReplacementModal';
 
-
 export default function ReaderScreen() {
   useKeepAwake();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -41,6 +47,10 @@ export default function ReaderScreen() {
   const [chapters, setChapters] = useState<ParsedChapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [chromeVisible, setChromeVisible] = useState(true);
+  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+
+  // Animated Chrome (Zero layout-shift smooth fade & translate)
+  const chromeAnim = useRef(new Animated.Value(1)).current;
 
   const {
     currentChapterIndex,
@@ -49,23 +59,13 @@ export default function ReaderScreen() {
     minutesLeftInChapter,
     activeSheet,
     selectedTextForDictionary,
-    fontFamily,
-    fontSize,
-    lineHeight,
-    marginHorizontal,
-    textAlign,
-    activeTheme,
-    paragraphIndent,
-    paragraphSpacing,
-    dropCaps,
-    readingRulerEnabled,
-    readingRulerMode,
     setCurrentBook,
     setActiveSheet,
     closeSheet,
     openDictionary,
   } = useReaderStore();
 
+  // Load Book & Per-Book Settings on Mount
   useEffect(() => {
     async function load() {
       if (!id) return;
@@ -132,6 +132,17 @@ export default function ReaderScreen() {
         const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
         setChapters(parsed.chapters);
 
+        // Resume from last saved chapter if available
+        if (b.lastReadLocation) {
+          const match = b.lastReadLocation.match(/chap_(\d+)/);
+          if (match) {
+            const savedIdx = parseInt(match[1], 10);
+            if (savedIdx >= 0 && savedIdx < parsed.chapters.length) {
+              setActiveChapterIndex(savedIdx);
+            }
+          }
+        }
+
         // Feed TTS service with initial chapter text (applying active name replacements)
         if (parsed.chapters.length > 0) {
           const plainText = parsed.chapters[0].content.replace(/<[^>]+>/g, ' ');
@@ -174,12 +185,27 @@ export default function ReaderScreen() {
     };
   }, [id]);
 
+  // Smooth Chrome Visibility Animation
+  useEffect(() => {
+    Animated.timing(chromeAnim, {
+      toValue: chromeVisible ? 1 : 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [chromeVisible]);
+
   const toggleChrome = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setChromeVisible((prev) => !prev);
   };
 
   const handleSelectChapter = (chapIdx: number) => {
     if (chapters[chapIdx]) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      setActiveChapterIndex(chapIdx);
+      closeSheet();
+
+      // Update TTS content with newly chosen chapter
       const plainText = chapters[chapIdx].content.replace(/<[^>]+>/g, ' ');
       const activeRules = useReaderStore.getState().nameReplacements;
       const substituted = applyNameReplacements(plainText, activeRules);
@@ -206,33 +232,47 @@ export default function ReaderScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      {/* Auto-Hiding Top Toolbar */}
-      {chromeVisible && (
-        <View style={styles.topToolbarWrapper}>
-          <ReaderToolbar
-            title={book.title}
-            onBack={() => router.back()}
-            onOpenTTS={() => setActiveSheet('tts')}
-            onOpenSearch={() => setActiveSheet('search')}
-            onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
-          />
-        </View>
-      )}
-
-
-      {/* Interactive Core Reader */}
+      {/* Interactive Core Reader (Spans 100% height - Zero layout shift) */}
       <View style={styles.readerArea}>
         <EpubReader
           bookId={book.id}
           chapters={chapters}
-          initialChapterIndex={0}
+          activeChapterIndex={activeChapterIndex}
+          onChapterChange={(newIdx) => setActiveChapterIndex(newIdx)}
           onToggleChrome={toggleChrome}
           onSelectWordForDictionary={openDictionary}
           onOpenAnnotations={() => setActiveSheet('annotations')}
         />
       </View>
 
-      {/* Signature Fluid Folio Bar */}
+      {/* Auto-Hiding Top Toolbar (Absolute Floating Overlay) */}
+      <Animated.View
+        pointerEvents={chromeVisible ? 'auto' : 'none'}
+        style={[
+          styles.topToolbarOverlay,
+          {
+            opacity: chromeAnim,
+            transform: [
+              {
+                translateY: chromeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-36, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <ReaderToolbar
+          title={book.title}
+          onBack={() => router.back()}
+          onOpenTTS={() => setActiveSheet('tts')}
+          onOpenSearch={() => setActiveSheet('search')}
+          onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
+        />
+      </Animated.View>
+
+      {/* Signature Fluid Folio Bar (Bottom Margin Indicator) */}
       <View style={styles.folioWrapper}>
         <FolioBar
           chapterTitle={currentChapterTitle}
@@ -243,6 +283,32 @@ export default function ReaderScreen() {
           onPress={toggleChrome}
         />
       </View>
+
+      {/* Auto-Hiding Floating Bottom Control Capsule (Absolute Floating Overlay) */}
+      <Animated.View
+        pointerEvents={chromeVisible ? 'auto' : 'none'}
+        style={[
+          styles.bottomCapsuleOverlay,
+          {
+            opacity: chromeAnim,
+            transform: [
+              {
+                translateY: chromeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [36, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <ReaderBottomCapsule
+          onOpenTheme={() => setActiveSheet('theme')}
+          onOpenTypography={() => setActiveSheet('typography')}
+          onOpenTOC={() => setActiveSheet('toc')}
+          onOpenAnnotations={() => setActiveSheet('annotations')}
+        />
+      </Animated.View>
 
       {/* Blue Light Night Protection Overlay */}
       {warmthLevel > 0.01 && (
@@ -255,16 +321,6 @@ export default function ReaderScreen() {
               zIndex: 35,
             },
           ]}
-        />
-      )}
-
-      {/* Auto-Hiding Floating Bottom Control Capsule */}
-      {chromeVisible && (
-        <ReaderBottomCapsule
-          onOpenTheme={() => setActiveSheet('theme')}
-          onOpenTypography={() => setActiveSheet('typography')}
-          onOpenTOC={() => setActiveSheet('toc')}
-          onOpenAnnotations={() => setActiveSheet('annotations')}
         />
       )}
 
@@ -323,10 +379,10 @@ export default function ReaderScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,
@@ -338,13 +394,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  topToolbarWrapper: {
+  topToolbarOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingTop: 48,
+    paddingHorizontal: 4,
+    zIndex: 100,
   },
   readerArea: {
     flex: 1,
   },
   folioWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingBottom: 6,
+    zIndex: 40,
+  },
+  bottomCapsuleOverlay: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
   },
 });
