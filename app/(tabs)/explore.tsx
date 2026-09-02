@@ -190,8 +190,32 @@ export default function ExploreScreen() {
       setCatalogError(null);
 
       try {
-        if (server.id === 'all_servers' || server.id === 'opds_standard_ebooks') {
-          const res = await fetchOPDSCatalog(searchTerms || query);
+        if (server.id === 'all_servers') {
+          const res = await fetchOPDSCatalog('all_servers', searchTerms || query);
+
+          if (customServers.length > 0) {
+            const customResults = await Promise.allSettled(
+              customServers.map((s) =>
+                fetchRemoteOPDSCatalog(s.url, s.username, s.password, searchTerms || query)
+              )
+            );
+            const customEntries = customResults
+              .filter(
+                (r): r is PromiseFulfilledResult<{ entries: OPDSBookEntry[] }> =>
+                  r.status === 'fulfilled' && !r.value.error
+              )
+              .flatMap((r) => r.value.entries);
+
+            const seenTitles = new Set(res.map((b) => b.title.toLowerCase().trim()));
+            const uniqueCustom = customEntries.filter(
+              (b) => !seenTitles.has(b.title.toLowerCase().trim())
+            );
+            setCatalog([...res, ...uniqueCustom]);
+          } else {
+            setCatalog(res);
+          }
+        } else if (DEFAULT_OPDS_SERVERS.some((d) => d.id === server.id)) {
+          const res = await fetchOPDSCatalog(server.id, searchTerms || query);
           setCatalog(res);
         } else {
           const res = await fetchRemoteOPDSCatalog(
@@ -202,8 +226,7 @@ export default function ExploreScreen() {
           );
           if (res.error) {
             setCatalogError(res.error);
-            // Fallback to local curated catalog
-            setCatalog(CURATED_PUBLIC_DOMAIN_BOOKS);
+            setCatalog([]);
           } else {
             setCatalog(res.entries);
           }
@@ -215,7 +238,7 @@ export default function ExploreScreen() {
         setIsLoadingCatalog(false);
       }
     },
-    [query]
+    [query, customServers]
   );
 
   useEffect(() => {
