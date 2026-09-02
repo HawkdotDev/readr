@@ -141,6 +141,11 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     paddingHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 3,
   },
   tabItem: {
     flex: 1,
