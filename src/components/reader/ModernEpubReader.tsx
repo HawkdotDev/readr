@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Animated,
+  Easing,
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
@@ -125,23 +126,23 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
 
   const animateToChapter = (newIndex: number, direction: 'start' | 'end' = 'start') => {
     setTransitionDirection(direction);
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 90,
-        useNativeDriver: true,
-      }),
+    Animated.timing(fadeAnim, {
+      toValue: 0.25,
+      duration: 100,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentChapterIdx(newIndex);
+      if (onChapterChange) {
+        onChapterChange(newIndex);
+      }
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 160,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
-      }),
-    ]).start();
-
-    setCurrentChapterIdx(newIndex);
-    if (onChapterChange) {
-      onChapterChange(newIndex);
-    }
+      }).start();
+    });
   };
 
   const handleNextChapter = () => {

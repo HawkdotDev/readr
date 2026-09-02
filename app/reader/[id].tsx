@@ -205,11 +205,13 @@ export default function ReaderScreen() {
     };
   }, [id]);
 
-  // Smooth Chrome Visibility Animation
+  // Smooth Chrome Visibility Animation (Apple iOS Spring Physics)
   useEffect(() => {
-    Animated.timing(chromeAnim, {
+    Animated.spring(chromeAnim, {
       toValue: chromeVisible ? 1 : 0,
-      duration: 220,
+      damping: 24,
+      stiffness: 260,
+      mass: 0.8,
       useNativeDriver: true,
     }).start();
   }, [chromeVisible]);
@@ -325,7 +327,13 @@ export default function ReaderScreen() {
               {
                 translateY: chromeAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [-36, 0],
+                  outputRange: [-16, 0],
+                }),
+              },
+              {
+                scale: chromeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.96, 1],
                 }),
               },
             ],
@@ -380,7 +388,13 @@ export default function ReaderScreen() {
               {
                 translateY: chromeAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [36, 0],
+                  outputRange: [14, 0],
+                }),
+              },
+              {
+                scale: chromeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.92, 1],
                 }),
               },
             ],
