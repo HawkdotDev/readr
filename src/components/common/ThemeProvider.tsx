@@ -46,24 +46,37 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setWarmthLevelState(readerStoreWarmth);
   }, [readerStoreWarmth]);
 
-  const setThemeMode = (mode: ThemeMode) => {
+  const setThemeMode = React.useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
     useReaderStore.getState().setActiveTheme(mode);
     updateUserSettings({ activeTheme: mode });
-  };
+  }, []);
 
-  const setWarmthLevel = (level: number) => {
+  const setWarmthLevel = React.useCallback((level: number) => {
     const clamped = Math.max(0, Math.min(1, level));
     setWarmthLevelState(clamped);
     useReaderStore.getState().setWarmthLevel(clamped);
     updateUserSettings({ warmthLevel: clamped });
-  };
+  }, []);
 
-  const colors = getResolvedThemeColors(themeMode, systemIsDark);
-  const warmthColor = getWarmthOverlayColor(warmthLevel);
+  const colors = React.useMemo(() => {
+    return getResolvedThemeColors(themeMode, systemIsDark);
+  }, [themeMode, systemIsDark]);
+
+  const warmthColor = React.useMemo(() => {
+    return getWarmthOverlayColor(warmthLevel);
+  }, [warmthLevel]);
+
+  const contextValue = React.useMemo<ThemeContextValue>(() => ({
+    themeMode,
+    colors,
+    warmthLevel,
+    setThemeMode,
+    setWarmthLevel,
+  }), [themeMode, colors, warmthLevel, setThemeMode, setWarmthLevel]);
 
   return (
-    <ThemeContext.Provider value={{ themeMode, colors, warmthLevel, setThemeMode, setWarmthLevel }}>
+    <ThemeContext.Provider value={contextValue}>
       <View style={[styles.root, { backgroundColor: colors.canvas }] as any}>
         {children}
         {warmthLevel > 0.01 && (

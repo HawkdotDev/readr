@@ -9,7 +9,7 @@
 [![React Native](https://img.shields.io/badge/React_Native-0.86.3-000000.svg?style=flat-square&logo=react)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0_Strict-000000.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Package Manager](https://img.shields.io/badge/Package_Manager-Bun_1.3-000000.svg?style=flat-square&logo=bun)](https://bun.sh)
-[![Tests](https://img.shields.io/badge/Tests-15_Passed-000000.svg?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-111_Passed-000000.svg?style=flat-square)](tests/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-000000.svg?style=flat-square)](#contributing)
 
 <br />
@@ -18,52 +18,53 @@
 
 ## Overview
 
-**Readr** is an open-source mobile reading application built with Expo SDK 57, React Native 0.86, and Drizzle ORM. Unlike commercial reading apps that trap readers in walled gardens or collect reading telemetry, Readr is **100% local**:
+**Readr** is an open-source, privacy-first mobile reading application built with Expo SDK 57, React Native 0.86, and Drizzle ORM. Unlike commercial reading apps that lock readers into cloud walled gardens or harvest personal reading telemetry, Readr operates **100% offline**:
 
-- **Zero Cloud Databases**: All reading history, bookmarks, highlights, and preferences live strictly on your device in SQLite.
-- **Zero Mandatory Accounts**: No logins, no telemetry trackers, no remote analytics.
-- **Universal Multi-Format Support**: Reads EPUB, PDF, plain text, and Markdown files.
-- **2:3 Classic Book Proportions**: All book covers enforce classic 2:3 aspect ratios across grid and list views.
-- **Triple-Typeface Hierarchy**: Engineered with *Mona Sans*, *Hubot Sans*, and *Mona Sans Mono* for modern typography.
-- **Monochromatic Aesthetic**: Calibrated grey, white, and black palettes with an independent color-temperature warmth overlay.
+- **Zero Cloud Databases**: All reading sessions, bookmarks, highlights, character replacements, and preferences live strictly on your device in SQLite with WAL mode enabled.
+- **Zero Mandatory Accounts**: No logins, no remote trackers, and no telemetry analytics.
+- **Universal Multi-Format Engine**: Native rendering support for EPUB 2/3, PDF, TXT, Markdown, CBZ, CBR, MOBI, AZW3, FB2, DOCX, RTF, and HTML.
 
 ## Key Features
 
-### Library & Organization
-- **Grid & List Views**: Switch between responsive 2-column cover grids and detailed reading list modes.
-- **Instant Toggle Search**: Quick header search button with an auto-focusing collapsible query bar and real-time title/author filtering.
-- **Multi-Criteria Filtering**: Filter by reading status (*Reading*, *Completed*, *Want to Read*) and file formats (*EPUB*, *PDF*, *MD*, *TXT*).
-- **1-Tap Import**: Fast file picker supporting single and batch imports with SHA-256 deduplication.
+### Immersive Reading Engine & Typography
+- **Universal Format Drivers**: Modular SOLID driver architecture supporting major digital book and comic formats.
+- **12 Curated Reading Palettes**: Light, Sepia, Dark, OLED Pure Black, Forest Emerald, Slate, Solarized Dark, Solarized Light, Rosé Pine, Nord, Parchment, and Amber Glow.
+- **Blue-Light Warmth Spectrum**: Independent color-temperature warmth overlay slider for night reading comfort.
+- **Granular Typography Picker**: Custom controls for reading typefaces (*Mona Sans*, *Hubot Sans*, *Mona Sans Mono*, *Literata*, *Atkinson Hyperlegible*, *Merriweather*, *JetBrains Mono*, *System*), paragraph indentation, line-height, margin width, text alignment, and custom drop caps.
+- **Per-Book Settings Persistence**: SQLite automatically preserves independent font size, theme, margins, bionic reading, orientation, and auto-scroll settings per book.
 
-### Immersive Reading Engine
-- **Universal Format Parser**: Native support for EPUB 2/3, PDF, Markdown, and TXT files.
-- **The Fluid Folio Bar**: An unobtrusive bottom margin indicator displaying chapter title, mini-progress track, and velocity-calculated reading time estimates.
-- **Dynamic Theming**: 4 calibrated palettes (**Crisp White**, **Parchment Grey**, **Charcoal Dusk**, and **OLED Pure Black**) paired with a color-temperature warmth overlay.
-- **Granular Typography Picker**: Custom controls for reading typefaces (*Mona Sans*, *Hubot Sans*, *Mona Sans Mono*, *Literata*, *Atkinson Hyperlegible*, *Merriweather*, *JetBrains Mono*, *System*), font size stepper, line-height, text alignment, and margins.
-- **Debounced Progress Persistence**: Reading location auto-saves every 500ms and flushes atomically to SQLite whenever the app is backgrounded.
+### Advanced Reading Aids & Mechanics
+- **Bionic Reading Transformation Engine**: Highlights initial fixation points of words with adjustable intensity (Low, Medium, High) while preserving punctuation and HTML formatting.
+- **9-Zone Touch Grid Customizer**: Fully interactive 3x3 touch grid allowing readers to remap screen zones to custom actions (Page Forward/Back, Table of Contents, Bookmark, Focus Mode, Audio Narration).
+- **Auto-Scroll Suite & HUD Telemetry**: 5 auto-scroll modes (Smooth Continuous, Line-by-Line, Page Countdown Timer, Pixel-Step, Wave) with a floating speedometer overlay.
+- **Reading Ruler Guide**: Draggable eye-tracking focus guide with 3 display modes (*Underline*, *Line Highlight*, and *Inverted Window Mask*).
+- **Sensor Gestures**: Tilt-to-turn pages with sensitivity thresholds, shake-to-speech audio narration toggle, and edge-swipe vertical brightness adjustments.
+
+### Character Name Replacements & Role Reversal
+- **Live Name Replacement Engine**: Dynamically substitutes character names, pronouns, and custom terms across chapter text, headings, drop caps, and audio narration.
+- **Collision-Free Multi-Term Algorithm**: Simultaneous single-pass substitution preventing cascading collisions when swapping character roles (e.g. Character A $\leftrightarrow$ Character B).
+- **Built-in Role Reversal Presets**: One-tap presets for *Sherlock & Watson Swap*, *Cyberpunk Sci-Fi Twist*, *Modern Tech Investigator*, and *Regal Title Swap*.
 
 ### Highlights, Notes & Dictionary
-- **Monochromatic Highlighting**: High-contrast, greyscale marker shades (Charcoal, Graphite, Silver, Platinum, Smoke).
-- **Text-Anchored Notes**: Attach rich notes to any highlight and export them to clean Markdown.
-- **Instant Offline Dictionary**: Long-press definition overlay complete with phonetics, parts of speech, usage examples, and audio pronunciation.
+- **Text Highlighting & Anchored Notes**: High-contrast highlight markers with Markdown note attachments and export capability.
+- **Instant Offline Dictionary**: Built-in definition lookup overlay complete with phonetics, parts of speech, usage examples, and web search fallback.
 
 ### Audio Narration (Text-to-Speech)
-- **Background Read-Aloud**: Sentence-by-sentence text-to-speech engine powered by `expo-speech`.
-- **Playback and Speed Controls**: 0.5x to 2.0x playback speed adjustments.
-- **Configurable Sleep Timer**: 15, 30, 45, or 60-minute automatic shutoff timer.
+- **Background Read-Aloud**: Sentence-by-sentence text-to-speech engine powered by `expo-speech` with dynamic character name substitution support.
+- **Playback & Speed Controls**: Variable speech rate (0.5x to 2.5x) with pitch and sleep timer controls (15, 30, 45, or 60 minutes).
 
-### Reading Insights & Habit Tracking
-- **16-Week Consistency Heatmap**: Monochromatic activity squares tracking daily reading frequency.
-- **Streak & Velocity Metrics**: Track daily reading streaks, total minutes read, and completed books.
-- **Customizable Daily Goals**: Set daily reading targets (time and pages) with milestone achievements.
+### Reading Insights & Habit Analytics
+- **365-Day Activity Heatmap**: Visual consistency calendar tracking daily reading frequency and session counts.
+- **Streak & Velocity Metrics**: Calculates active reading streaks, lifetime reading hours, words consumed, and reading velocity (WPM).
+- **Daily Reading Goals**: Configurable daily target minutes and page milestones with streak preservation logic.
+
+### OPDS Catalogs & Public Domain Library
+- **Curated Open Classics**: Instant access to curated public-domain masterpieces (*Meditations*, *Pride and Prejudice*, *The Great Gatsby*, *Frankenstein*, *Walden*) stored directly in your local sandbox.
+- **Custom OPDS 1.2 / 2.0 Feeds**: Add and browse custom personal OPDS book catalogs and local network libraries.
 
 ### Portable Local Backup & Restore
-- **Single-File Data Portability**: Export your entire library, annotations, and reading history into a portable `.readr` container archive.
-- **Native OS Sharing**: AirDrop, save to files, or back up to your personal cloud drive without a server.
-- **Full Restore Engine**: Merge `.readr` backups with automatic checksum validation and deduplication.
-
-### Curated Open Catalogs
-- **1-Tap Classic Downloads**: Instant access to curated public-domain masterpieces (*Pride and Prejudice*, *Meditations*, *The Great Gatsby*, *Frankenstein*, *Walden*) stored directly in your local sandbox.
+- **Single-File Container Archive**: Export and import your entire library, annotations, settings, and reading history into a portable `.readr` archive.
+- **Zero-Cloud Data Sovereignty**: Merge backups with automatic SHA-256 checksum validation and duplicate prevention.
 
 ## Quick Start
 
@@ -91,10 +92,10 @@ bun run android    # Launch on Android Emulator
 bun run web        # Launch in Browser Preview
 ```
 
-### 4. Run Typecheck and Test Suites
+### 4. Run Typecheck and Automated Test Suites
 ```bash
-bun run typecheck  # Run strict TypeScript compiler verification (0 errors)
-bun test           # Run 15 automated unit test suites (100% pass)
+bun run typecheck  # Strict TypeScript compiler verification (0 errors)
+bun test           # Run 111 automated tests across 25 test suites (100% pass)
 ```
 
 ## Contributing
@@ -115,3 +116,4 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more details
 <div align="center">
   Crafted with care by <b>HawkdotDev</b>.
 </div>
+

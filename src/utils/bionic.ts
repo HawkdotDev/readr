@@ -15,11 +15,18 @@ export function getFixationLength(wordLength: number, fixation: BionicFixation =
   return Math.max(1, Math.min(wordLength, count));
 }
 
+const BIONIC_WORD_CACHE = new Map<string, string>();
+const MAX_BIONIC_CACHE_SIZE = 2000;
+
 /**
  * Transforms a single plain text word into Bionic Reading HTML (<b>fixation</b>rest)
  */
 export function bionicWord(word: string, fixation: BionicFixation = 'medium'): string {
   if (!word || word.trim().length === 0) return word;
+
+  const cacheKey = `${word}_${fixation}`;
+  const cached = BIONIC_WORD_CACHE.get(cacheKey);
+  if (cached !== undefined) return cached;
 
   // Separate leading punctuation (e.g. quotes, brackets)
   const leadMatch = word.match(/^([^a-zA-Z0-9]+)/);
@@ -31,13 +38,28 @@ export function bionicWord(word: string, fixation: BionicFixation = 'medium'): s
   const trail = trailMatch ? trailMatch[1] : '';
   const core = coreWithTrail.slice(0, coreWithTrail.length - trail.length);
 
-  if (!core) return word;
+  if (!core) {
+    if (BIONIC_WORD_CACHE.size >= MAX_BIONIC_CACHE_SIZE) {
+      const firstKey = BIONIC_WORD_CACHE.keys().next().value;
+      if (firstKey) BIONIC_WORD_CACHE.delete(firstKey);
+    }
+    BIONIC_WORD_CACHE.set(cacheKey, word);
+    return word;
+  }
 
   const fixLen = getFixationLength(core.length, fixation);
   const boldPart = core.slice(0, fixLen);
   const normalPart = core.slice(fixLen);
 
-  return `${lead}<b>${boldPart}</b>${normalPart}${trail}`;
+  const result = `${lead}<b>${boldPart}</b>${normalPart}${trail}`;
+
+  if (BIONIC_WORD_CACHE.size >= MAX_BIONIC_CACHE_SIZE) {
+    const firstKey = BIONIC_WORD_CACHE.keys().next().value;
+    if (firstKey) BIONIC_WORD_CACHE.delete(firstKey);
+  }
+  BIONIC_WORD_CACHE.set(cacheKey, result);
+
+  return result;
 }
 
 /**

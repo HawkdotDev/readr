@@ -6,11 +6,13 @@ import { useTheme } from '../../src/components/common/ThemeProvider';
 import { getWarmthOverlayColor } from '../../src/utils/theme';
 import { getBookById } from '../../src/db/queries/books';
 import { getBookSettings, saveBookSettings } from '../../src/db/queries/bookSettings';
+import { getBookNameReplacements } from '../../src/db/queries/nameReplacements';
 import { Book } from '../../src/types';
 import { parseBookFile, ParsedChapter } from '../../src/services/reader/epubParser';
 import { progressTracker } from '../../src/services/reader/progressTracker';
 import { ttsService } from '../../src/services/tts/ttsService';
 import { useReaderStore } from '../../src/store/readerStore';
+import { applyNameReplacements } from '../../src/utils/nameReplacer';
 
 // Reader Components
 import { ReaderToolbar } from '../../src/components/reader/ReaderToolbar';
@@ -26,6 +28,8 @@ import { DictionarySheet } from '../../src/components/reader/DictionarySheet';
 import { TOCSheet } from '../../src/components/reader/TOCSheet';
 import { AnnotationSheet } from '../../src/components/reader/AnnotationSheet';
 import { SearchSheet } from '../../src/components/reader/SearchSheet';
+import { NameReplacementModal } from '../../src/components/reader/NameReplacementModal';
+
 
 export default function ReaderScreen() {
   useKeepAwake();
@@ -95,15 +99,44 @@ export default function ReaderScreen() {
           if (customSettings.readingRulerMode) {
             useReaderStore.getState().setReadingRulerMode(customSettings.readingRulerMode as any);
           }
+          if (customSettings.bionicReadingEnabled !== null && customSettings.bionicReadingEnabled !== undefined) {
+            useReaderStore.getState().setBionicReadingEnabled(customSettings.bionicReadingEnabled);
+          }
+          if (customSettings.bionicFixation) {
+            useReaderStore.getState().setBionicFixation(customSettings.bionicFixation as any);
+          }
+          if (customSettings.readingDirection) {
+            useReaderStore.getState().setReadingDirection(customSettings.readingDirection as any);
+          }
+          if (customSettings.pageTurnStyle) {
+            useReaderStore.getState().setPageTurnStyle(customSettings.pageTurnStyle as any);
+          }
+          if (customSettings.dualPageMode !== undefined && customSettings.dualPageMode !== null) {
+            useReaderStore.getState().setDualPageMode(customSettings.dualPageMode);
+          }
+          if (customSettings.warmthLevel !== undefined && customSettings.warmthLevel !== null) {
+            useReaderStore.getState().setWarmthLevel(customSettings.warmthLevel);
+          }
+          if (customSettings.autoScrollSpeed !== undefined && customSettings.autoScrollSpeed !== null) {
+            useReaderStore.getState().setAutoScrollSpeed(customSettings.autoScrollSpeed);
+          }
+          if (customSettings.autoScrollMode) {
+            useReaderStore.getState().setAutoScrollMode(customSettings.autoScrollMode as any);
+          }
         }
+
+        // Load custom per-book name replacements
+        const replacements = await getBookNameReplacements(id);
+        useReaderStore.getState().setNameReplacements(replacements);
 
         const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
         setChapters(parsed.chapters);
 
-        // Feed TTS service with initial chapter text
+        // Feed TTS service with initial chapter text (applying active name replacements)
         if (parsed.chapters.length > 0) {
           const plainText = parsed.chapters[0].content.replace(/<[^>]+>/g, ' ');
-          ttsService.setContent(plainText);
+          const substituted = applyNameReplacements(plainText, replacements);
+          ttsService.setContent(substituted);
         }
       }
       setLoading(false);
@@ -127,6 +160,14 @@ export default function ReaderScreen() {
           dropCaps: state.dropCaps,
           readingRulerEnabled: state.readingRulerEnabled,
           readingRulerMode: state.readingRulerMode,
+          bionicReadingEnabled: state.bionicReadingEnabled,
+          bionicFixation: state.bionicFixation,
+          readingDirection: state.readingDirection,
+          pageTurnStyle: state.pageTurnStyle,
+          dualPageMode: state.dualPageMode,
+          warmthLevel: state.warmthLevel,
+          autoScrollSpeed: state.autoScrollSpeed,
+          autoScrollMode: state.autoScrollMode,
         }).catch(() => {});
       }
       ttsService.stop();
@@ -140,7 +181,9 @@ export default function ReaderScreen() {
   const handleSelectChapter = (chapIdx: number) => {
     if (chapters[chapIdx]) {
       const plainText = chapters[chapIdx].content.replace(/<[^>]+>/g, ' ');
-      ttsService.setContent(plainText);
+      const activeRules = useReaderStore.getState().nameReplacements;
+      const substituted = applyNameReplacements(plainText, activeRules);
+      ttsService.setContent(substituted);
     }
   };
 
@@ -171,9 +214,11 @@ export default function ReaderScreen() {
             onBack={() => router.back()}
             onOpenTTS={() => setActiveSheet('tts')}
             onOpenSearch={() => setActiveSheet('search')}
+            onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
           />
         </View>
       )}
+
 
       {/* Interactive Core Reader */}
       <View style={styles.readerArea}>
@@ -268,9 +313,16 @@ export default function ReaderScreen() {
         onSelectResult={handleSelectChapter}
         onClose={closeSheet}
       />
+
+      <NameReplacementModal
+        visible={activeSheet === 'nameReplacement'}
+        bookId={book.id}
+        onClose={closeSheet}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

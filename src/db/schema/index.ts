@@ -203,5 +203,30 @@ export const bookSettings = sqliteTable('book_settings', {
   dropCaps: integer('drop_caps', { mode: 'boolean' }),
   readingRulerEnabled: integer('reading_ruler_enabled', { mode: 'boolean' }),
   readingRulerMode: text('reading_ruler_mode'),
+  bionicReadingEnabled: integer('bionic_reading_enabled', { mode: 'boolean' }),
+  bionicFixation: text('bionic_fixation', { enum: ['low', 'medium', 'high'] }),
+  readingDirection: text('reading_direction', { enum: ['horizontal', 'vertical'] }),
+  pageTurnStyle: text('page_turn_style', { enum: ['slide', 'curl', 'fade', 'none'] }),
+  dualPageMode: text('dual_page_mode'),
+  warmthLevel: real('warmth_level'),
+  autoScrollSpeed: integer('auto_scroll_speed'),
+  autoScrollMode: text('auto_scroll_mode', { enum: ['smooth', 'line', 'pageTimer', 'pixel', 'wave'] }),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 });
+
+
+// 11. Per-Book Name Replacements & Role Reversal Rules
+export const bookNameReplacements = sqliteTable('book_name_replacements', {
+  id: text('id').primaryKey(),
+  bookId: text('book_id').notNull().references(() => books.id, { onDelete: 'cascade' }),
+  findText: text('find_text').notNull(),
+  replaceText: text('replace_text').notNull(),
+  matchCase: integer('match_case', { mode: 'boolean' }).default(false).notNull(),
+  wholeWord: integer('whole_word', { mode: 'boolean' }).default(true).notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => [
+  index('book_name_replacements_book_idx').on(table.bookId, table.isActive),
+]);
+

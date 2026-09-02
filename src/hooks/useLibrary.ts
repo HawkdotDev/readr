@@ -206,7 +206,7 @@ export function useLibrary(): UseLibraryResult {
     });
 
     // Apply sorting
-    return list.sort((a, b) => {
+    return [...list].sort((a, b) => {
       if (sortOption === 'rating') {
         return (b.rating || 0) - (a.rating || 0);
       }
@@ -222,8 +222,12 @@ export function useLibrary(): UseLibraryResult {
         return (b.progressPercentage || 0) - (a.progressPercentage || 0);
       }
       // 'recent' default
-      const timeA = a.lastReadAt ? new Date(a.lastReadAt).getTime() : new Date(a.updatedAt).getTime();
-      const timeB = b.lastReadAt ? new Date(b.lastReadAt).getTime() : new Date(b.updatedAt).getTime();
+      const timeA = a.lastReadAt
+        ? typeof a.lastReadAt === 'number' ? a.lastReadAt * 1000 : new Date(a.lastReadAt).getTime()
+        : typeof a.updatedAt === 'number' ? a.updatedAt * 1000 : new Date(a.updatedAt).getTime();
+      const timeB = b.lastReadAt
+        ? typeof b.lastReadAt === 'number' ? b.lastReadAt * 1000 : new Date(b.lastReadAt).getTime()
+        : typeof b.updatedAt === 'number' ? b.updatedAt * 1000 : new Date(b.updatedAt).getTime();
       return timeB - timeA;
     });
   }, [books, searchQuery, selectedStatus, selectedFormat, selectedTagId, sortOption]);

@@ -35,15 +35,13 @@ export async function generateBackup(): Promise<{ uri: string; filename: string;
   const collections = await getAllCollections();
   const sessions = await getRecentSessions(200);
 
-  const allBookmarks: any[] = [];
-  const allHighlights: any[] = [];
+  const [bookmarksArrays, highlightsArrays] = await Promise.all([
+    Promise.all(allBooks.map((b) => getBookmarks(b.id))),
+    Promise.all(allBooks.map((b) => getHighlights(b.id))),
+  ]);
 
-  for (const b of allBooks) {
-    const bms = await getBookmarks(b.id);
-    const hls = await getHighlights(b.id);
-    allBookmarks.push(...bms);
-    allHighlights.push(...hls);
-  }
+  const allBookmarks = bookmarksArrays.flat();
+  const allHighlights = highlightsArrays.flat();
 
   const lifeStats = await getLifetimeStats();
 

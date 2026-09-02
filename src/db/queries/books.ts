@@ -8,45 +8,61 @@ export async function getAllBooks(): Promise<Book[]> {
     const { db } = await getDatabase();
     if (!db) return [];
 
-    const rawBooks = await db.select().from(schema.books).orderBy(desc(schema.books.lastReadAt), desc(schema.books.createdAt));
+    const rawBooks = await db
+      .select()
+      .from(schema.books)
+      .orderBy(desc(schema.books.lastReadAt), desc(schema.books.createdAt));
 
-    const result: Book[] = [];
-    for (const b of rawBooks) {
-      const bookAuthorsList = await db
-        .select({
-          id: schema.authors.id,
-          name: schema.authors.name,
-          sortName: schema.authors.sortName,
-        })
-        .from(schema.bookAuthors)
-        .innerJoin(schema.authors, eq(schema.bookAuthors.authorId, schema.authors.id))
-        .where(eq(schema.bookAuthors.bookId, b.id))
-        .orderBy(asc(schema.bookAuthors.orderIndex));
+    if (rawBooks.length === 0) return [];
 
-      // Get tags for book
-      const bookTagsList = await db
-        .select({
-          id: schema.tags.id,
-          name: schema.tags.name,
-          color: schema.tags.color,
-        })
-        .from(schema.bookTags)
-        .innerJoin(schema.tags, eq(schema.bookTags.tagId, schema.tags.id))
-        .where(eq(schema.bookTags.bookId, b.id));
+    // Batch fetch all authors for all books in one single query
+    const allBookAuthors = await db
+      .select({
+        bookId: schema.bookAuthors.bookId,
+        id: schema.authors.id,
+        name: schema.authors.name,
+        sortName: schema.authors.sortName,
+      })
+      .from(schema.bookAuthors)
+      .innerJoin(schema.authors, eq(schema.bookAuthors.authorId, schema.authors.id))
+      .orderBy(asc(schema.bookAuthors.orderIndex));
 
-      result.push({
-        ...b,
-        progressPercentage: b.progressPercentage ?? 0,
-        pageCount: b.pageCount ?? 0,
-        totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
-        isFavorite: Boolean(b.isFavorite),
-        rating: b.rating ?? 0,
-        authors: bookAuthorsList,
-        tags: bookTagsList,
-      });
+    // Batch fetch all tags for all books in one single query
+    const allBookTags = await db
+      .select({
+        bookId: schema.bookTags.bookId,
+        id: schema.tags.id,
+        name: schema.tags.name,
+        color: schema.tags.color,
+      })
+      .from(schema.bookTags)
+      .innerJoin(schema.tags, eq(schema.bookTags.tagId, schema.tags.id));
+
+    // Group authors and tags by bookId in O(N) map
+    const authorsByBook = new Map<string, Author[]>();
+    for (const ba of allBookAuthors) {
+      const list = authorsByBook.get(ba.bookId) || [];
+      list.push({ id: ba.id, name: ba.name, sortName: ba.sortName });
+      authorsByBook.set(ba.bookId, list);
     }
 
-    return result;
+    const tagsByBook = new Map<string, { id: string; name: string; color?: string | null }[]>();
+    for (const bt of allBookTags) {
+      const list = tagsByBook.get(bt.bookId) || [];
+      list.push({ id: bt.id, name: bt.name, color: bt.color });
+      tagsByBook.set(bt.bookId, list);
+    }
+
+    return rawBooks.map((b) => ({
+      ...b,
+      progressPercentage: b.progressPercentage ?? 0,
+      pageCount: b.pageCount ?? 0,
+      totalTimeReadSeconds: b.totalTimeReadSeconds ?? 0,
+      isFavorite: Boolean(b.isFavorite),
+      rating: b.rating ?? 0,
+      authors: authorsByBook.get(b.id) || [],
+      tags: tagsByBook.get(b.id) || [],
+    }));
   } catch (error) {
     console.warn('Failed to get all books:', error);
     return [];
@@ -256,23 +272,21 @@ export async function getHighlights(bookId: string): Promise<Highlight[]> {
   const { db } = await getDatabase();
   if (!db) return [];
 
-  const rawHighlights = await db
-    .select()
+  const rawRows = await db
+    .select({
+      highlight: schema.highlights,
+      note: schema.notes,
+    })
     .from(schema.highlights)
+    .leftJoin(schema.notes, eq(schema.highlights.id, schema.notes.highlightId))
     .where(eq(schema.highlights.bookId, bookId))
     .orderBy(desc(schema.highlights.createdAt));
 
-  const result: Highlight[] = [];
-  for (const h of rawHighlights) {
-    const noteRows = await db.select().from(schema.notes).where(eq(schema.notes.highlightId, h.id)).limit(1);
-    result.push({
-      ...h,
-      color: h.color as HighlightColor,
-      note: noteRows.length > 0 ? noteRows[0] : null,
-    });
-  }
-
-  return result;
+  return rawRows.map(({ highlight, note }) => ({
+    ...highlight,
+    color: highlight.color as HighlightColor,
+    note: note || null,
+  }));
 }
 
 export async function addHighlight(

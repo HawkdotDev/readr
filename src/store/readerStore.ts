@@ -14,6 +14,7 @@ import {
   NavigationMode,
   ReadingRulerMode,
   PaperTexture,
+  NameReplacementRule,
 } from '../types';
 import {
   TouchZone,
@@ -22,7 +23,17 @@ import {
   DEFAULT_TOUCH_ZONE_CONFIG,
 } from '../services/reader/touchZoneService';
 
-export type ActiveSheet = 'none' | 'toc' | 'typography' | 'theme' | 'tts' | 'annotations' | 'dictionary' | 'search';
+export type ActiveSheet =
+  | 'none'
+  | 'toc'
+  | 'typography'
+  | 'theme'
+  | 'tts'
+  | 'annotations'
+  | 'dictionary'
+  | 'search'
+  | 'nameReplacement';
+
 
 export interface ReaderState {
   currentBook: Book | null;
@@ -88,6 +99,9 @@ export interface ReaderState {
   readingRulerHeight: number;
   readingRulerOpacity: number;
 
+  // Name Replacement & Role Reversal Rules
+  nameReplacements: NameReplacementRule[];
+
   // Actions
   setCurrentBook: (book: Book | null) => void;
   setCurrentChapter: (index: number, title: string) => void;
@@ -98,7 +112,14 @@ export interface ReaderState {
   openDictionary: (word: string) => void;
   closeSheet: () => void;
 
+  setNameReplacements: (rules: NameReplacementRule[]) => void;
+  addNameReplacement: (rule: NameReplacementRule) => void;
+  updateNameReplacement: (id: string, updates: Partial<NameReplacementRule>) => void;
+  removeNameReplacement: (id: string) => void;
+  toggleNameReplacement: (id: string) => void;
+
   setFontFamily: (font: string) => void;
+
   setFontSize: (size: number) => void;
   setLineHeight: (height: number) => void;
   setMarginHorizontal: (margin: number) => void;
@@ -201,6 +222,8 @@ export const useReaderStore = create<ReaderState>((set) => ({
   readingRulerHeight: 38,
   readingRulerOpacity: 0.55,
 
+  nameReplacements: [],
+
   setCurrentBook: (book) =>
     set({
       currentBook: book,
@@ -210,6 +233,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
       isFocusMode: false,
       activeSheet: 'none',
       isAutoScrolling: false,
+      nameReplacements: [],
     }),
 
   setCurrentChapter: (index, title) =>
@@ -234,6 +258,27 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setActiveSheet: (sheet) => set({ activeSheet: sheet }),
   openDictionary: (word) => set({ activeSheet: 'dictionary', selectedTextForDictionary: word }),
   closeSheet: () => set({ activeSheet: 'none', selectedTextForDictionary: null }),
+
+  setNameReplacements: (rules) => set({ nameReplacements: rules }),
+  addNameReplacement: (rule) =>
+    set((state) => ({
+      nameReplacements: [...state.nameReplacements.filter((r) => r.id !== rule.id), rule],
+    })),
+  updateNameReplacement: (id, updates) =>
+    set((state) => ({
+      nameReplacements: state.nameReplacements.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+    })),
+  removeNameReplacement: (id) =>
+    set((state) => ({
+      nameReplacements: state.nameReplacements.filter((r) => r.id !== id),
+    })),
+  toggleNameReplacement: (id) =>
+    set((state) => ({
+      nameReplacements: state.nameReplacements.map((r) =>
+        r.id === id ? { ...r, isActive: !r.isActive } : r
+      ),
+    })),
+
 
   setFontFamily: (fontFamily) => set({ fontFamily }),
   setFontSize: (fontSize) => set({ fontSize: Math.max(12, Math.min(36, fontSize)) }),

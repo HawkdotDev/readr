@@ -24,7 +24,9 @@ import { EdgeBrightnessGesture } from './EdgeBrightnessGesture';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import { getFixationLength } from '../../utils/bionic';
+import { applyNameReplacements } from '../../utils/nameReplacer';
 import { resolveActionForTap } from '../../services/reader/touchZoneService';
+
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -72,6 +74,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     readingRulerOpacity,
     touchZoneMappings,
     edgeBrightnessEnabled,
+    nameReplacements,
     setBrightness,
     setReadingRulerEnabled,
     setBionicReadingEnabled,
@@ -80,6 +83,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     setCurrentChapter,
     setLocation,
   } = useReaderStore();
+
 
   const isDualPageActive =
     dualPageMode === true || (dualPageMode === 'auto' && windowWidth >= 640);
@@ -172,8 +176,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const displayTitle = useMemo(() => {
     if (!currentChapter) return 'Beginning';
     const raw = currentChapter.title || `Chapter ${currentChapterIdx + 1}`;
-    return raw.replace(/^chapter\s*\d+[:.\s-]*/i, '').trim() || raw;
-  }, [currentChapter, currentChapterIdx]);
+    const clean = raw.replace(/^chapter\s*\d+[:.\s-]*/i, '').trim() || raw;
+    return applyNameReplacements(clean, nameReplacements);
+  }, [currentChapter, currentChapterIdx, nameReplacements]);
 
   // Convert HTML / Paragraph content into formatted interactive text blocks
   const renderChapterContent = useMemo(() => {
@@ -182,6 +187,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     const blocks = parseChapterContent(currentChapter.content);
 
     return blocks.map((block, bIdx) => {
+      const processedBlockText = applyNameReplacements(block.text, nameReplacements);
+
       if (block.type === 'h1') {
         return (
           <Text
@@ -197,7 +204,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               },
             ]}
           >
-            {block.text}
+            {processedBlockText}
           </Text>
         );
       }
@@ -217,15 +224,15 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               },
             ]}
           >
-            {block.text}
+            {processedBlockText}
           </Text>
         );
       }
 
-      const words = block.words || block.text.split(/\s+/);
+      const words = processedBlockText.split(/\s+/).filter(Boolean);
 
       // Check if block has highlighted style (e.g. quote / first paragraph block)
-      const isQuoteHighlight = bIdx === 0 && block.text.length > 20 && block.text.length < 240;
+      const isQuoteHighlight = bIdx === 0 && processedBlockText.length > 20 && processedBlockText.length < 240;
 
       // Handle Drop Caps for the very first paragraph of chapter
       const shouldApplyDropCap = dropCaps && bIdx === 0 && words.length > 0 && words[0].length > 0;
@@ -262,49 +269,63 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               },
             ]}
           >
-            {shouldApplyDropCap && (
-              <Text
-                style={[
-                  styles.dropCapLetter,
-                  {
-                    color: colors.accent,
-                    fontSize: fontSize * 2.6,
-                    lineHeight: fontSize * 2.8,
-                    fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
-                  },
-                ]}
-              >
-                {firstLetter}
-              </Text>
-            )}
-            {shouldApplyDropCap && restOfFirstWord ? `${restOfFirstWord} ` : ''}
-            {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => {
-              if (bionicReadingEnabled && w && w.trim().length > 0) {
-                const fixLen = getFixationLength(w.length, bionicFixation);
-                const boldPart = w.slice(0, fixLen);
-                const normalPart = w.slice(fixLen);
-                return (
+            {bionicReadingEnabled ? (
+              <>
+                {shouldApplyDropCap && (
                   <Text
-                    key={`w_${bIdx}_${wIdx}`}
-                    onLongPress={() => onSelectWordForDictionary(w)}
-                    suppressHighlighting={true}
+                    style={[
+                      styles.dropCapLetter,
+                      {
+                        color: colors.accent,
+                        fontSize: fontSize * 2.6,
+                        lineHeight: fontSize * 2.8,
+                        fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                      },
+                    ]}
                   >
-                    <Text style={{ fontFamily: FONTS.mona.bold, fontWeight: '700' }}>{boldPart}</Text>
-                    {normalPart}{' '}
+                    {firstLetter}
                   </Text>
-                );
-              }
-
-              return (
+                )}
+                {shouldApplyDropCap && restOfFirstWord ? `${restOfFirstWord} ` : ''}
+                {(shouldApplyDropCap ? words.slice(1) : words).map((w, wIdx) => {
+                  if (w && w.trim().length > 0) {
+                    const fixLen = getFixationLength(w.length, bionicFixation);
+                    const boldPart = w.slice(0, fixLen);
+                    const normalPart = w.slice(fixLen);
+                    return (
+                      <Text
+                        key={`w_${bIdx}_${wIdx}`}
+                        onLongPress={() => onSelectWordForDictionary(w)}
+                        suppressHighlighting={true}
+                      >
+                        <Text style={{ fontFamily: FONTS.mona.bold, fontWeight: '700' }}>{boldPart}</Text>
+                        {normalPart}{' '}
+                      </Text>
+                    );
+                  }
+                  return null;
+                })}
+              </>
+            ) : shouldApplyDropCap ? (
+              <>
                 <Text
-                  key={`w_${bIdx}_${wIdx}`}
-                  onLongPress={() => onSelectWordForDictionary(w)}
-                  suppressHighlighting={true}
+                  style={[
+                    styles.dropCapLetter,
+                    {
+                      color: colors.accent,
+                      fontSize: fontSize * 2.6,
+                      lineHeight: fontSize * 2.8,
+                      fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                    },
+                  ]}
                 >
-                  {w}{' '}
+                  {firstLetter}
                 </Text>
-              );
-            })}
+                {processedBlockText.slice(1)}
+              </>
+            ) : (
+              processedBlockText
+            )}
           </Text>
         </View>
       );
@@ -320,9 +341,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     dropCaps,
     bionicReadingEnabled,
     bionicFixation,
+    nameReplacements,
     colors,
     onSelectWordForDictionary,
   ]);
+
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;

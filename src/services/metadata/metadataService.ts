@@ -90,25 +90,50 @@ export async function fetchOpenLibraryMetadata(query: string): Promise<BookMetad
   }
 }
 
+const METADATA_CACHE = new Map<string, BookMetadataResult | null>();
+const MAX_METADATA_CACHE = 128;
+
 /**
  * Unified public API book search: checks Google Books first, then falls back to Open Library
  */
 export async function fetchBookMetadataOnline(title: string, author?: string): Promise<BookMetadataResult | null> {
   const cleanTitle = title.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').trim();
+  const cacheKey = `${cleanTitle.toLowerCase()}_${(author || '').toLowerCase()}`;
+
+  if (METADATA_CACHE.has(cacheKey)) {
+    return METADATA_CACHE.get(cacheKey) || null;
+  }
   
   // 1. Try Google Books API
   const googleResult = await fetchGoogleBooksMetadata(cleanTitle, author);
   if (googleResult && googleResult.coverUrl) {
+    if (METADATA_CACHE.size >= MAX_METADATA_CACHE) {
+      const oldestKey = METADATA_CACHE.keys().next().value;
+      if (oldestKey) METADATA_CACHE.delete(oldestKey);
+    }
+    METADATA_CACHE.set(cacheKey, googleResult);
     return googleResult;
   }
 
   // 2. Fallback to Open Library API
   const openLibResult = await fetchOpenLibraryMetadata(`${cleanTitle} ${author || ''}`);
   if (openLibResult && openLibResult.coverUrl) {
+    if (METADATA_CACHE.size >= MAX_METADATA_CACHE) {
+      const oldestKey = METADATA_CACHE.keys().next().value;
+      if (oldestKey) METADATA_CACHE.delete(oldestKey);
+    }
+    METADATA_CACHE.set(cacheKey, openLibResult);
     return openLibResult;
   }
 
-  return googleResult || openLibResult;
+  const finalResult = googleResult || openLibResult;
+  if (METADATA_CACHE.size >= MAX_METADATA_CACHE) {
+    const oldestKey = METADATA_CACHE.keys().next().value;
+    if (oldestKey) METADATA_CACHE.delete(oldestKey);
+  }
+  METADATA_CACHE.set(cacheKey, finalResult);
+
+  return finalResult;
 }
 
 /**

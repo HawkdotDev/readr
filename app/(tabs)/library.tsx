@@ -7,6 +7,7 @@ import {
   RefreshControl,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -127,7 +128,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      {/* Top Header */}
+      {/* Top Header — matches Settings/Stats design language */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Readr</Text>
 
@@ -153,18 +154,6 @@ export default function HomeScreen() {
             accessibilityLabel="Search Library"
           >
             <Search size={18} color={isSearchOpen ? colors.accent : colors.textPrimary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setIsOPDSModalOpen(true)}
-            style={[
-              styles.iconBtn,
-              { backgroundColor: colors.canvas, borderColor: colors.border },
-            ]}
-            accessible={true}
-            accessibilityLabel="OPDS & Net Library"
-          >
-            <Globe size={18} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -216,8 +205,8 @@ export default function HomeScreen() {
         {/* Pick Up Where You Left Off Section Header & Hero Card */}
         {featuredBook && !searchQuery.trim() && (
           <View style={styles.heroSection}>
-            <Text style={[styles.heroSectionTitle, { color: colors.textSecondary }]}>
-              Pick up where you left off
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+              CONTINUE READING
             </Text>
             <ContinueReadingCard
               book={featuredBook}
@@ -246,26 +235,30 @@ export default function HomeScreen() {
           />
         )}
 
-        {/* Favourites Section Header */}
+        {/* Your Library Section Header */}
         {books.length > 0 && (
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionHeading, { color: colors.textPrimary }]}>Favourites</Text>
-            <TouchableOpacity
-              onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              style={styles.viewModeToggle}
-              accessible={true}
-              accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-            >
-              {viewMode === 'grid' ? (
-                <List size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-              ) : (
-                <LayoutGrid size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-              )}
-              <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
-                {viewMode === 'grid' ? 'View list' : 'View grid'}
+          <>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+                YOUR LIBRARY
               </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                style={styles.viewModeToggle}
+                accessible={true}
+                accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+              >
+                {viewMode === 'grid' ? (
+                  <List size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                ) : (
+                  <LayoutGrid size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                )}
+                <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>
+                  {viewMode === 'grid' ? 'List' : 'Grid'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
 
         <FilterBar
@@ -408,9 +401,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
     elevation: 3,
   },
   listContent: {
@@ -422,12 +415,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   heroSection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  heroSectionTitle: {
-    fontFamily: FONTS.mono.semiBold,
+  sectionLabel: {
+    fontFamily: FONTS.mono.bold,
     fontSize: 11,
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 10,
   },
@@ -435,13 +428,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
-    marginTop: 2,
-  },
-  sectionHeading: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 18,
-    letterSpacing: -0.3,
+    marginBottom: 10,
+    marginTop: 4,
   },
   viewModeToggle: {
     flexDirection: 'row',
@@ -451,7 +439,7 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     fontFamily: FONTS.mona.medium,
-    fontSize: 13,
+    fontSize: 12,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -472,6 +460,7 @@ const styles = StyleSheet.create({
   },
   noResultsText: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

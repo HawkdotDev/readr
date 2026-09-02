@@ -28,7 +28,9 @@ import {
   ArrowUpDown,
   Smartphone,
   Columns,
+  UserCheck,
 } from 'lucide-react-native';
+
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../utils/typography';
 import {
@@ -931,9 +933,36 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
                 </View>
               )}
             </View>
+
+            {/* Dynamic Role Reversal & Name Replacer */}
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+              CHARACTER MODS & ROLE REVERSAL
+            </Text>
+            <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  useReaderStore.getState().setActiveSheet('nameReplacement');
+                }}
+                style={[
+                  styles.startAutoScrollBtn,
+                  { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+                ]}
+                accessible={true}
+                accessibilityLabel="Open Role Reversal and Name Replacer"
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <UserCheck size={16} color={colors.accent} style={{ marginRight: 6 }} />
+                  <Text style={[styles.startAutoScrollText, { color: colors.textPrimary }]}>
+                    Open Character Name Replacer
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           /* ================= TAB 3: FOCUS & 12 THEMES ================= */
+
           <View>
             {/* Reading Ruler Focus Tool */}
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>READING RULER (FOCUS TOOL)</Text>

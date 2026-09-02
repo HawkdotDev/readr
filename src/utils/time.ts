@@ -9,9 +9,14 @@ export function formatDurationSeconds(seconds: number): string {
 
 export function formatRelativeDate(date: Date | number | null | undefined): string {
   if (!date) return 'Never';
-  const d = typeof date === 'number' ? new Date(date * 1000) : new Date(date);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
+  const timestamp =
+    typeof date === 'number'
+      ? date > 1e11 ? date : date * 1000
+      : date instanceof Date ? date.getTime() : new Date(date).getTime();
+
+  if (isNaN(timestamp)) return 'Never';
+
+  const diffMs = Date.now() - timestamp;
   const diffSec = Math.floor(diffMs / 1000);
   const diffMins = Math.floor(diffSec / 60);
   const diffHours = Math.floor(diffMins / 60);
@@ -22,5 +27,7 @@ export function formatRelativeDate(date: Date | number | null | undefined): stri
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
+
+  const d = new Date(timestamp);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }

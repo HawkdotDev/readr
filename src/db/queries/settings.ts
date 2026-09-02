@@ -3,8 +3,14 @@ import { getDatabase } from '../client';
 import * as schema from '../schema';
 import { UserSettings, ReadingGoal } from '../../types';
 
+let cachedUserSettings: UserSettings | null = null;
+let cachedReadingGoals: ReadingGoal | null = null;
+
 export async function getUserSettings(): Promise<UserSettings> {
-  const { db, sqlite } = await getDatabase();
+  if (cachedUserSettings) {
+    return { ...cachedUserSettings };
+  }
+
   const defaultSettings: UserSettings = {
     id: 'default_user',
     activeTheme: 'light',
@@ -21,13 +27,17 @@ export async function getUserSettings(): Promise<UserSettings> {
     onlineMetadataEnabled: false,
   };
 
+  const { db } = await getDatabase();
   if (!db) return defaultSettings;
 
   try {
     const rows = await db.select().from(schema.userSettings).where(eq(schema.userSettings.id, 'default_user')).limit(1);
-    if (rows.length === 0) return defaultSettings;
+    if (rows.length === 0) {
+      cachedUserSettings = defaultSettings;
+      return defaultSettings;
+    }
     const r = rows[0];
-    return {
+    const resolved: UserSettings = {
       ...r,
       activeTheme: r.activeTheme as any,
       textAlign: r.textAlign as any,
@@ -35,17 +45,20 @@ export async function getUserSettings(): Promise<UserSettings> {
       hapticFeedback: Boolean(r.hapticFeedback),
       onlineMetadataEnabled: Boolean(r.onlineMetadataEnabled),
     };
+    cachedUserSettings = resolved;
+    return resolved;
   } catch {
     return defaultSettings;
   }
 }
 
 export async function updateUserSettings(partial: Partial<UserSettings>): Promise<void> {
-  const { sqlite } = await getDatabase();
-  if (!sqlite) return;
-
   const current = await getUserSettings();
   const next = { ...current, ...partial };
+  cachedUserSettings = next;
+
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return;
 
   await sqlite.runAsync(
     `INSERT OR REPLACE INTO user_settings (
@@ -70,7 +83,10 @@ export async function updateUserSettings(partial: Partial<UserSettings>): Promis
 }
 
 export async function getReadingGoals(): Promise<ReadingGoal> {
-  const { db } = await getDatabase();
+  if (cachedReadingGoals) {
+    return { ...cachedReadingGoals };
+  }
+
   const defaultGoals: ReadingGoal = {
     id: 'default_user',
     targetDailyMinutes: 30,
@@ -80,11 +96,16 @@ export async function getReadingGoals(): Promise<ReadingGoal> {
     lastActiveDate: null,
   };
 
+  const { db } = await getDatabase();
   if (!db) return defaultGoals;
 
   try {
     const rows = await db.select().from(schema.readingGoals).where(eq(schema.readingGoals.id, 'default_user')).limit(1);
-    if (rows.length === 0) return defaultGoals;
+    if (rows.length === 0) {
+      cachedReadingGoals = defaultGoals;
+      return defaultGoals;
+    }
+    cachedReadingGoals = rows[0];
     return rows[0];
   } catch {
     return defaultGoals;
@@ -92,11 +113,12 @@ export async function getReadingGoals(): Promise<ReadingGoal> {
 }
 
 export async function updateReadingGoals(partial: Partial<ReadingGoal>): Promise<void> {
-  const { sqlite } = await getDatabase();
-  if (!sqlite) return;
-
   const current = await getReadingGoals();
   const next = { ...current, ...partial };
+  cachedReadingGoals = next;
+
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return;
 
   await sqlite.runAsync(
     `INSERT OR REPLACE INTO reading_goals (

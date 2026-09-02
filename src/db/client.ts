@@ -191,12 +191,40 @@ export const TABLE_CREATION_STATEMENTS = [
     drop_caps INTEGER,
     reading_ruler_enabled INTEGER,
     reading_ruler_mode TEXT,
+    bionic_reading_enabled INTEGER,
+    bionic_fixation TEXT,
+    reading_direction TEXT,
+    page_turn_style TEXT,
+    dual_page_mode TEXT,
+    warmth_level REAL,
+    auto_scroll_speed INTEGER,
+    auto_scroll_mode TEXT,
+    updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS book_name_replacements (
+    id TEXT PRIMARY KEY,
+    book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+    find_text TEXT NOT NULL,
+    replace_text TEXT NOT NULL,
+    match_case INTEGER DEFAULT 0 NOT NULL,
+    whole_word INTEGER DEFAULT 1 NOT NULL,
+    is_active INTEGER DEFAULT 1 NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL,
     updated_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
 ];
 
 export const MIGRATION_STATEMENTS = [
   'ALTER TABLE books ADD COLUMN rating INTEGER DEFAULT 0 NOT NULL;',
+  'ALTER TABLE book_settings ADD COLUMN bionic_reading_enabled INTEGER;',
+  'ALTER TABLE book_settings ADD COLUMN bionic_fixation TEXT;',
+  'ALTER TABLE book_settings ADD COLUMN reading_direction TEXT;',
+  'ALTER TABLE book_settings ADD COLUMN page_turn_style TEXT;',
+  'ALTER TABLE book_settings ADD COLUMN dual_page_mode TEXT;',
+  'ALTER TABLE book_settings ADD COLUMN warmth_level REAL;',
+  'ALTER TABLE book_settings ADD COLUMN auto_scroll_speed INTEGER;',
+  'ALTER TABLE book_settings ADD COLUMN auto_scroll_mode TEXT;',
 ];
 
 export const INDEX_STATEMENTS = [
@@ -214,6 +242,7 @@ export const INDEX_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_bookmarks_book ON bookmarks (book_id, created_at);`,
   `CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights (book_id);`,
   `CREATE INDEX IF NOT EXISTS idx_notes_highlight ON notes (highlight_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_book_name_replacements_book ON book_name_replacements (book_id, is_active);`,
 ];
 
 export const SEED_STATEMENTS = [

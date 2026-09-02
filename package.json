@@ -1,39 +1,77 @@
 {
   "name": "readr",
-  "version": "1.1.0-beta",
+  "version": "1.1.0",
+  "description": "A fast, 100% local, distraction-free mobile e-reader crafted for serious readers.",
   "main": "expo-router/entry",
+  "homepage": "https://github.com/hawkdotdev/readr#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hawkdotdev/readr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hawkdotdev/readr/issues"
+  },
+  "license": "MIT",
+  "author": "HawkdotDev",
+  "keywords": [
+    "ebook-reader",
+    "epub",
+    "pdf",
+    "offline-first",
+    "sqlite",
+    "expo",
+    "react-native",
+    "drizzle-orm",
+    "speed-reading",
+    "bionic-reading",
+    "privacy-first"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.2.0"
+  },
+  "private": true,
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "bun test",
-    "db:generate": "drizzle-kit generate"
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "check": "bun run typecheck && bun test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "clean": "rimraf .expo node_modules/.cache"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo-google-fonts/space-mono": "^0.4.2",
-    "@expo/metro-runtime": "~57.0.14",
+    "@expo/metro-runtime": "~57.0.15",
     "@expo/vector-icons": "^15.0.2",
     "@fontsource/hubot-sans": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/mona-sans": "^5.3.0",
     "buffer": "^6.0.3",
     "drizzle-orm": "^0.38.4",
-    "expo": "~57.0.18",
-    "expo-constants": "~57.0.16",
+    "expo": "~57.0.19",
+    "expo-constants": "~57.0.17",
     "expo-crypto": "~57.0.2",
     "expo-document-picker": "~57.0.1",
     "expo-file-system": "~57.0.6",
-    "expo-font": "~57.0.2",
+    "expo-font": "~57.0.3",
     "expo-haptics": "~57.0.2",
     "expo-keep-awake": "~57.0.1",
-    "expo-linking": "~57.0.8",
-    "expo-router": "~57.0.17",
+    "expo-linking": "~57.0.9",
+    "expo-router": "~57.0.18",
     "expo-screen-orientation": "~57.0.2",
-    "expo-sharing": "~57.0.16",
+    "expo-sharing": "~57.0.17",
     "expo-speech": "~57.0.2",
     "expo-splash-screen": "~57.0.8",
     "expo-sqlite": "~57.0.2",
@@ -63,6 +101,5 @@
     "@types/react-native": "^0.72.8",
     "drizzle-kit": "^0.30.4",
     "typescript": "~6.0.3"
-  },
-  "private": true
+  }
 }

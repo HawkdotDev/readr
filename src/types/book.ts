@@ -141,5 +141,15 @@ export interface BookSettings {
   dropCaps?: boolean | null;
   readingRulerEnabled?: boolean | null;
   readingRulerMode?: string | null;
+  bionicReadingEnabled?: boolean | null;
+  bionicFixation?: 'low' | 'medium' | 'high' | null;
+  readingDirection?: 'horizontal' | 'vertical' | null;
+  pageTurnStyle?: 'slide' | 'curl' | 'fade' | 'none' | null;
+  dualPageMode?: boolean | 'auto' | null;
+  warmthLevel?: number | null;
+  autoScrollSpeed?: number | null;
+  autoScrollMode?: 'smooth' | 'line' | 'pageTimer' | 'pixel' | 'wave' | null;
   updatedAt?: Date;
 }
+
+

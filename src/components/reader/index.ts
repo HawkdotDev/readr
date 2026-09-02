@@ -13,3 +13,5 @@ export * from './annotations/BookmarkList';
 export * from './annotations/ColorPickerRow';
 export * from './annotations/HighlightList';
 export * from './annotations/NoteEditorModal';
+export * from './NameReplacementModal';
+

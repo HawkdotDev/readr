@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   Search,
   Volume2,
+  UserCheck,
 } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
@@ -13,6 +14,7 @@ export interface ReaderToolbarProps {
   onBack: () => void;
   onOpenTTS: () => void;
   onOpenSearch: () => void;
+  onOpenNameReplacement?: () => void;
   onOpenTypography?: () => void;
   onOpenTOC?: () => void;
   onOpenTheme?: () => void;
@@ -24,6 +26,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onBack,
   onOpenTTS,
   onOpenSearch,
+  onOpenNameReplacement,
 }) => {
   const { colors } = useTheme();
 
@@ -46,8 +49,21 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         <ChevronLeft size={20} color={colors.textPrimary} />
       </TouchableOpacity>
 
-      {/* Top Actions: Audio TTS & In-Book Search */}
+      {/* Top Actions: Role Reversal / Name Replacer, Audio TTS & In-Book Search */}
       <View style={styles.actionGroup}>
+        {/* Name Replacement / Role Reversal */}
+        {onOpenNameReplacement && (
+          <TouchableOpacity
+            onPress={onOpenNameReplacement}
+            style={styles.iconBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+            accessible={true}
+            accessibilityLabel="Role Reversal and Name Replacer"
+          >
+            <UserCheck size={19} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+
         {/* Audio TTS */}
         <TouchableOpacity
           onPress={onOpenTTS}
@@ -73,6 +89,7 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
     </View>
   );
 };
+
 
 export default ReaderToolbar;
 
