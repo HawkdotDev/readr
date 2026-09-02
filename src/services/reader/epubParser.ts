@@ -296,7 +296,8 @@ export async function parseEpubArchive(
     const chapterFile = findZipFile(zip, targetPath) || findZipFile(zip, href);
     if (!chapterFile) continue;
 
-    const rawHtml = await chapterFile.async('text');
+    const rawHtmlText = await chapterFile.async('text');
+    const rawHtml = await resolveEmbeddedImages(rawHtmlText, targetPath, zip);
     const filename = href.split('/').pop() || href;
     const { cleanHtml, chapterTitle, wordCount } = processChapterHtml(
       rawHtml,
@@ -577,11 +578,75 @@ export function stripTags(str: string): string {
 }
 
 /**
- * Keeps only essential reader tags (h1, h2, h3, p, blockquote, em, strong).
+ * Resolves all relative image sources into self-contained Base64 Data URIs directly from the ZIP archive.
+ */
+export async function resolveEmbeddedImages(
+  rawHtml: string,
+  chapterPath: string,
+  zip: JSZip
+): Promise<string> {
+  const chapterDir = chapterPath.includes('/')
+    ? chapterPath.substring(0, chapterPath.lastIndexOf('/') + 1)
+    : '';
+
+  // 1. Convert SVG images into standard <img> tags
+  let html = rawHtml.replace(
+    /<svg\b[^>]*>[\s\S]*?<image\b[^>]*(?:xlink:href|href)=["']([^"']+)["'][^>]*\/?>(?:[\s\S]*?<\/image>)?[\s\S]*?<\/svg>/gi,
+    '<img src="$1" alt="Illustration" />'
+  );
+
+  // 2. Find all <img src="..."> tags
+  const imgRegex = /<img\b([^>]*)\bsrc=["']([^"']+)["']([^>]*)>/gi;
+  const matches: Array<{ fullTag: string; prefix: string; src: string; suffix: string }> = [];
+  let m;
+  while ((m = imgRegex.exec(html)) !== null) {
+    matches.push({ fullTag: m[0], prefix: m[1], src: m[2], suffix: m[3] });
+  }
+
+  for (const match of matches) {
+    const origSrc = match.src;
+    if (origSrc.startsWith('data:') || origSrc.startsWith('http://') || origSrc.startsWith('https://')) {
+      continue;
+    }
+
+    const resolvedPath = resolveZipPath(chapterDir, origSrc);
+    const imgFile =
+      findZipFile(zip, resolvedPath) ||
+      findZipFile(zip, origSrc) ||
+      findZipFile(zip, origSrc.split('/').pop() || '');
+
+    if (imgFile) {
+      try {
+        const mimeType = getImageMimeType(resolvedPath);
+        const base64Data = await imgFile.async('base64');
+        const dataUri = `data:${mimeType};base64,${base64Data}`;
+        const newTag = `<img${match.prefix} src="${dataUri}"${match.suffix}>`;
+        html = html.replace(match.fullTag, newTag);
+      } catch (err) {
+        console.warn(`[epubParser] Failed to extract image ${origSrc}:`, err);
+      }
+    }
+  }
+
+  return html;
+}
+
+export function getImageMimeType(filePath: string): string {
+  const lower = filePath.toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.svg')) return 'image/svg+xml';
+  return 'image/jpeg';
+}
+
+/**
+ * Keeps essential reader typography and media tags.
  */
 function stripUnsupportedTags(str: string): string {
   return str
-    .replace(/<(?!\/?(h1|h2|h3|p|blockquote|em|strong)\b)[^>]+>/gi, ' ')
+    .replace(/<(?!\/?(h1|h2|h3|p|blockquote|em|strong|img|hr|figure|figcaption|pre|code|sup|a)\b)[^>]+>/gi, ' ')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n+/g, '\n\n');
 }

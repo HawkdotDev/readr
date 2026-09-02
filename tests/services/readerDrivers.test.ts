@@ -116,4 +116,39 @@ describe('Reader Format Drivers (SOLID / OCP)', () => {
     expect(isFrontMatterSection('Book I: Debts and Lessons', 'chap_1.xhtml', 1500)).toBe(false);
     expect(isFrontMatterSection('Letter 1', 'letter-1.xhtml', 800)).toBe(false);
   });
+
+  it('parses embedded illustrations, dividers, and preformatted code blocks', () => {
+    const richHtml = `
+      <h1>Chapter 2: The Pool of Tears</h1>
+      <figure>
+        <img src="data:image/png;base64,iVBORw0KGgo=" alt="Alice growing tall" />
+        <figcaption>Curiouser and curiouser!</figcaption>
+      </figure>
+      <p>She was now more than nine feet high.</p>
+      <hr />
+      <pre>function wonderland() { return true; }</pre>
+    `;
+    const blocks = parseChapterContent(richHtml);
+
+    expect(blocks.length).toBe(5);
+    expect(blocks[0].type).toBe('h1');
+    expect(blocks[1].type).toBe('image');
+    expect(blocks[1].imageSrc).toBe('data:image/png;base64,iVBORw0KGgo=');
+    expect(blocks[1].imageCaption).toBe('Curiouser and curiouser!');
+    expect(blocks[2].type).toBe('paragraph');
+    expect(blocks[3].type).toBe('hr');
+    expect(blocks[4].type).toBe('code');
+    expect(blocks[4].text).toContain('function wonderland');
+  });
+
+  it('correctly detects image MIME types for embedded assets', () => {
+    const { getImageMimeType } = require('../../src/services/reader/epubParser');
+
+    expect(getImageMimeType('images/cover.png')).toBe('image/png');
+    expect(getImageMimeType('OEBPS/illus.jpg')).toBe('image/jpeg');
+    expect(getImageMimeType('fig.jpeg')).toBe('image/jpeg');
+    expect(getImageMimeType('vector.svg')).toBe('image/svg+xml');
+    expect(getImageMimeType('pic.webp')).toBe('image/webp');
+    expect(getImageMimeType('anim.gif')).toBe('image/gif');
+  });
 });

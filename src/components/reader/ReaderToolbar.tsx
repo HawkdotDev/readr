@@ -6,6 +6,7 @@ import {
   Search,
   Volume2,
   UserCheck,
+  Bookmark,
 } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
@@ -15,6 +16,8 @@ export interface ReaderToolbarProps {
   onOpenTTS: () => void;
   onOpenSearch: () => void;
   onOpenNameReplacement?: () => void;
+  onToggleBookmark?: () => void;
+  isBookmarked?: boolean;
   onOpenTypography?: () => void;
   onOpenTOC?: () => void;
   onOpenTheme?: () => void;
@@ -27,6 +30,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onOpenTTS,
   onOpenSearch,
   onOpenNameReplacement,
+  onToggleBookmark,
+  isBookmarked,
 }) => {
   const { colors } = useTheme();
 
@@ -74,6 +79,23 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
         >
           <Volume2 size={19} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        {/* 1-Tap Bookmark */}
+        {onToggleBookmark && (
+          <TouchableOpacity
+            onPress={onToggleBookmark}
+            style={styles.iconBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+            accessible={true}
+            accessibilityLabel={isBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
+          >
+            <Bookmark
+              size={18}
+              color={isBookmarked ? colors.accent : colors.textSecondary}
+              fill={isBookmarked ? colors.accent : 'transparent'}
+            />
+          </TouchableOpacity>
+        )}
 
         {/* In-Book Search */}
         <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,10 +11,10 @@ import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { getWarmthOverlayColor } from '../../src/utils/theme';
-import { getBookById } from '../../src/db/queries/books';
+import { getBookById, getBookmarks, addBookmark, deleteBookmark } from '../../src/db/queries/books';
 import { getBookSettings, saveBookSettings } from '../../src/db/queries/bookSettings';
 import { getBookNameReplacements } from '../../src/db/queries/nameReplacements';
-import { Book } from '../../src/types';
+import { Book, Bookmark } from '../../src/types';
 import { parseBookFile, ParsedChapter, createSampleBookContent } from '../../src/services/reader/epubParser';
 import { progressTracker } from '../../src/services/reader/progressTracker';
 import { ttsService } from '../../src/services/tts/ttsService';
@@ -212,6 +212,42 @@ export default function ReaderScreen() {
     }).start();
   }, [chromeVisible]);
 
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+
+  useEffect(() => {
+    if (id) {
+      getBookmarks(id).then(setBookmarks).catch(() => {});
+    }
+  }, [id]);
+
+  const isCurrentChapterBookmarked = useMemo(() => {
+    return bookmarks.some((b) => b.locationCfi === `chap_${currentChapterIndex}`);
+  }, [bookmarks, currentChapterIndex]);
+
+  const handleToggleBookmark = async () => {
+    if (!id) return;
+    try {
+      if (isCurrentChapterBookmarked) {
+        const existing = bookmarks.find((b) => b.locationCfi === `chap_${currentChapterIndex}`);
+        if (existing) {
+          await deleteBookmark(existing.id);
+          setBookmarks((prev) => prev.filter((b) => b.id !== existing.id));
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+        }
+      } else {
+        const newBm = await addBookmark(
+          id,
+          `chap_${currentChapterIndex}`,
+          currentChapterTitle || `Chapter ${currentChapterIndex + 1}`
+        );
+        setBookmarks((prev) => [newBm, ...prev]);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Toggle bookmark error:', e);
+    }
+  };
+
   const toggleChrome = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setChromeVisible((prev) => !prev);
@@ -287,6 +323,8 @@ export default function ReaderScreen() {
           onOpenTTS={() => setActiveSheet('tts')}
           onOpenSearch={() => setActiveSheet('search')}
           onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
+          onToggleBookmark={handleToggleBookmark}
+          isBookmarked={isCurrentChapterBookmarked}
         />
       </Animated.View>
 

@@ -62,6 +62,7 @@
     "buffer": "^6.0.3",
     "drizzle-orm": "^0.38.4",
     "expo": "~57.0.19",
+    "expo-clipboard": "^57.0.1",
     "expo-constants": "~57.0.17",
     "expo-crypto": "~57.0.2",
     "expo-document-picker": "~57.0.1",
