@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   textBlock: {
-    paddingRight: 26, // Leave space for options button
+    paddingRight: 26,
   },
   title: {
     fontFamily: FONTS.mona.bold,

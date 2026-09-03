@@ -10,7 +10,7 @@ import { ThemeProvider, useTheme } from '../src/components/common/ThemeProvider'
 import { getDatabase } from '../src/db/client';
 import { ensureAppDirectories } from '../src/services/storage/fileManager';
 import { bootstrapSampleBooksIfEmpty } from '../src/services/storage/sampleBooks';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Image } from 'react-native';
 import { useFonts } from 'expo-font';
 import { APP_FONTS } from '../src/utils/typography';
 
@@ -40,8 +40,25 @@ function RootNavigation() {
 
   if (!isReady || (!fontsLoaded && !fontError)) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.canvas,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Image
+          source={require('../assets/images/Logo.png')}
+          style={{
+            width: 140,
+            height: 140,
+            resizeMode: 'contain',
+            marginBottom: 24,
+          }}
+          accessibilityLabel="Readr Logo"
+        />
+        <ActivityIndicator size="small" color={colors.accent} />
       </View>
     );
   }

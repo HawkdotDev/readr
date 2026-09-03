@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { Home, BookOpen, BarChart2, Settings } from 'lucide-react-native';
+import { Home, BookOpen, Compass, BarChart2, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 
@@ -49,7 +49,7 @@ function CustomFloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
               : route.name.charAt(0).toUpperCase() + route.name.slice(1);
 
           let icon = null;
-          if (route.name === 'library') {
+          if (route.name === 'home') {
             icon = (
               <Home
                 size={20}
@@ -58,9 +58,18 @@ function CustomFloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
                 strokeWidth={isFocused ? 2.4 : 1.8}
               />
             );
-          } else if (route.name === 'explore') {
+          } else if (route.name === 'library') {
             icon = (
               <BookOpen
+                size={20}
+                color={iconColor}
+                fill={isFocused ? iconColor : 'transparent'}
+                strokeWidth={isFocused ? 2.4 : 1.8}
+              />
+            );
+          } else if (route.name === 'explore') {
+            icon = (
+              <Compass
                 size={20}
                 color={iconColor}
                 fill={isFocused ? iconColor : 'transparent'}
@@ -127,15 +136,21 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="library"
+        name="home"
         options={{
           title: 'Home',
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="library"
         options={{
           title: 'Library',
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
         }}
       />
       <Tabs.Screen
@@ -175,8 +190,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    width: '88%',
-    maxWidth: 360,
+    width: '92%',
+    maxWidth: 390,
     height: 64,
     borderRadius: 32,
     borderWidth: 1,
@@ -184,7 +199,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 16,
     elevation: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   tabItem: {
     flex: 1,

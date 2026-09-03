@@ -91,7 +91,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "clean": "expo start --clear",
-    "clean:cache": "bun -e \"require('fs').rmSync('.expo', { recursive: true, force: true }); require('fs').rmSync('node_modules/.cache', { recursive: true, force: true })\""
+    "clean:cache": "bun -e \"require('fs').rmSync('.expo', { recursive: true, force: true }); require('fs').rmSync('node_modules/.cache', { recursive: true, force: true })\"",
+    "postinstall": "node scripts/fix-metro-windows.js"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",

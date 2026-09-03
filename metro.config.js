@@ -8,4 +8,8 @@ config.resolver.extraNodeModules = {
   buffer: require.resolve("buffer"),
 };
 
+if (!config.resolver.assetExts.includes("wasm")) {
+  config.resolver.assetExts.push("wasm");
+}
+
 module.exports = withNativeWind(config, { input: "./global.css" });

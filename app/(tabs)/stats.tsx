@@ -79,6 +79,7 @@ export default function StatsScreen() {
   const todayAct = activity.find((a) => a.date === todayStr);
   const todayMinutes = todayAct ? todayAct.minutesRead : 0;
   const todayPages = todayAct ? todayAct.pagesRead : 0;
+  const todaySessions = todayAct ? todayAct.count : 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
@@ -111,6 +112,9 @@ export default function StatsScreen() {
           targetMinutes={goals.targetDailyMinutes}
           currentPages={todayPages}
           targetPages={goals.targetDailyPages}
+          currentStreak={goals.currentStreakDays}
+          longestStreak={goals.longestStreakDays}
+          todaySessionsCount={todaySessions}
         />
 
         {/* 16-Week Consistency & Habit Graph */}
@@ -120,8 +124,7 @@ export default function StatsScreen() {
           longestStreak={goals.longestStreakDays}
         />
 
-        {/* Lifetime Metrics Section */}
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>LIFETIME METRICS</Text>
+        {/* Metrics Grid */}
         <View style={styles.metricsGrid}>
           <View style={styles.metricRow}>
             <StatCard
