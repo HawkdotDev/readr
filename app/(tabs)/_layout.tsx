@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { Home, BookOpen, Compass, BarChart2, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -10,19 +15,63 @@ type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tab
 
 function CustomFloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
   const { colors } = useTheme();
+  const [capsuleWidth, setCapsuleWidth] = useState(0);
+
+  // Filter visible tabs (excluding hidden index)
+  const validRoutes = state.routes.filter((r) => r.name !== 'index');
+  const activeTabRoute = state.routes[state.index];
+  const activeValidIndex = validRoutes.findIndex((r) => r.key === activeTabRoute?.key);
+
+  const tabCount = Math.max(1, validRoutes.length);
+  const tabWidth = capsuleWidth > 0 ? (capsuleWidth - 12) / tabCount : 0;
+  const animatedIndex = useSharedValue(Math.max(0, activeValidIndex));
+
+  useEffect(() => {
+    if (activeValidIndex >= 0) {
+      animatedIndex.value = withSpring(activeValidIndex, {
+        damping: 18,
+        stiffness: 220,
+      });
+    }
+  }, [activeValidIndex, animatedIndex]);
+
+  const pillAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: animatedIndex.value * tabWidth }],
+    };
+  });
 
   return (
     <View style={styles.floatingContainer} pointerEvents="box-none">
       <View
+        onLayout={(e) => setCapsuleWidth(e.nativeEvent.layout.width)}
         style={[
           styles.capsule,
           {
-            backgroundColor: colors.surface,
+            backgroundColor: colors.isDark
+              ? 'rgba(39, 39, 42, 0.92)'
+              : 'rgba(241, 239, 234, 0.92)',
             borderColor: colors.border,
             shadowOpacity: colors.isDark ? 0.35 : 0.08,
           },
         ]}
       >
+        {/* Animated Sliding Pill Indicator */}
+        {tabWidth > 0 && (
+          <Animated.View
+            style={[
+              styles.activePill,
+              {
+                width: tabWidth,
+                backgroundColor: colors.isDark
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.05)',
+              },
+              pillAnimatedStyle,
+            ]}
+            pointerEvents="none"
+          />
+        )}
         {state.routes.map((route, index) => {
           if (route.name === 'index') return null;
 
@@ -201,12 +250,21 @@ const styles = StyleSheet.create({
     elevation: 8,
     paddingHorizontal: 6,
   },
+  activePill: {
+    position: 'absolute',
+    left: 6,
+    top: 6,
+    bottom: 6,
+    borderRadius: 26,
+    zIndex: 1,
+  },
   tabItem: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
+    zIndex: 2,
   },
   tabLabel: {
     fontSize: 10,

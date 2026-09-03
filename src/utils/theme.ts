@@ -31,7 +31,7 @@ export const THEME_PALETTES: Record<
     border: '#E3DFD5',
     textPrimary: '#1A1918',
     textSecondary: '#7A766D',
-    accent: '#1A1918',
+    accent: '#C2410C', // Warm Editorial Terracotta
     isDark: false,
   },
   sepia: {
@@ -40,7 +40,7 @@ export const THEME_PALETTES: Record<
     border: '#DFD8CA',
     textPrimary: '#262421',
     textSecondary: '#7A756D',
-    accent: '#262421',
+    accent: '#262421', // Charcoal Black
     isDark: false,
   },
   dark: {
@@ -49,7 +49,7 @@ export const THEME_PALETTES: Record<
     border: '#3F3F46',
     textPrimary: '#FAFAFA',
     textSecondary: '#A1A1AA',
-    accent: '#FAFAFA',
+    accent: '#FB923C', // Soft Amber Flame
     isDark: true,
   },
   oled: {
@@ -58,7 +58,7 @@ export const THEME_PALETTES: Record<
     border: '#27272A',
     textPrimary: '#F4F4F5',
     textSecondary: '#71717A',
-    accent: '#FFFFFF',
+    accent: '#F97316', // High-Contrast Radiant Amber
     isDark: true,
   },
   forest: {

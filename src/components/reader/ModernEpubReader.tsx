@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
+  Text,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   Animated,
@@ -12,12 +14,14 @@ import { useReaderStore } from '../../store/readerStore';
 import { ParsedChapter } from '../../services/reader/epubParser';
 import { generateFoliateHtml } from '../../services/reader/engine/foliateRuntime';
 import { progressTracker } from '../../services/reader/progressTracker';
+import { formatRelativeDate } from '../../utils/time';
 import { ImageLightboxModal } from './ImageLightboxModal';
 import { FootnotePopover } from './FootnotePopover';
 import { QuickHighlightMenu } from './QuickHighlightMenu';
 import { addHighlight, getHighlights } from '../../db/queries/books';
 import { Highlight, HighlightColor } from '../../types';
 import { ttsService } from '../../services/tts/ttsService';
+import { FONTS } from '../../utils/typography';
 
 export interface ModernEpubReaderProps {
   bookId: string;
@@ -64,6 +68,10 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
   // Smooth Transition Animation
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
+  // Catch-Up Glance Re-entry Banner
+  const glanceOpacity = useRef(new Animated.Value(0)).current;
+  const [glanceText, setGlanceText] = useState<string | null>(null);
+
   const {
     fontFamily,
     fontSize,
@@ -77,9 +85,36 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
     bionicReadingEnabled,
     bionicFixation,
     nameReplacements,
+    currentBook,
     setCurrentChapter,
     setLocation,
   } = useReaderStore();
+
+  // Trigger Catch-Up Glance if returning after >24 hours
+  useEffect(() => {
+    if (currentBook?.lastReadAt) {
+      const lastReadTime = new Date(currentBook.lastReadAt).getTime();
+      const hoursSince = (Date.now() - lastReadTime) / (1000 * 60 * 60);
+      if (hoursSince >= 24) {
+        const rel = formatRelativeDate(new Date(currentBook.lastReadAt));
+        setGlanceText(`Resuming Chapter ${currentChapterIdx + 1} · Last read ${rel}`);
+        Animated.sequence([
+          Animated.delay(600),
+          Animated.timing(glanceOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.delay(4200),
+          Animated.timing(glanceOpacity, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    }
+  }, [bookId]);
 
   // Load saved highlights
   useEffect(() => {
@@ -277,6 +312,45 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+      {/* Catch-Up Glance Re-entry Capsule */}
+      {glanceText && (
+        <Animated.View
+          style={[
+            styles.glanceCapsule,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              opacity: glanceOpacity,
+            },
+          ]}
+          pointerEvents="box-none"
+        >
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              Animated.timing(glanceOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+              }).start();
+            }}
+            style={[
+              styles.glanceContent,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            accessible={true}
+            accessibilityLabel={glanceText}
+          >
+            <Text style={[styles.glanceText, { color: colors.textPrimary }]}>
+              {glanceText}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+
       <Animated.View style={[styles.innerArea, { opacity: fadeAnim }]}>
         <WebView
           ref={webViewRef}
@@ -315,10 +389,12 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
         onClose={() => setIsFootnoteVisible(false)}
       />
 
-      {/* In-Line Highlight Action Menu */}
+      {/* In-Line Highlight Action Menu & Social Marginalia */}
       <QuickHighlightMenu
         visible={isHighlightMenuVisible}
         selectedText={selectedHighlightText}
+        bookTitle={currentBook?.title}
+        author={currentBook?.authors?.map((a) => a.name).join(', ')}
         onHighlight={handleSaveHighlight}
         onAddNote={() => {
           setIsHighlightMenuVisible(false);
@@ -342,6 +418,30 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  glanceCapsule: {
+    position: 'absolute',
+    top: 56,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  glanceContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  glanceText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 12,
+    letterSpacing: -0.1,
   },
   innerArea: {
     flex: 1,

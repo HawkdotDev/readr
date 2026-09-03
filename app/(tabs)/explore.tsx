@@ -402,6 +402,52 @@ export default function ExploreScreen() {
         </View>
       </View>
 
+      {/* Sticky OPDS Server Hub Toolbar */}
+      <View
+        style={[
+          styles.stickyServerHubContainer,
+          {
+            backgroundColor: colors.canvas,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
+        <ServerHub
+          serverCategory={serverCategory}
+          selectedServer={selectedServer}
+          visibleServers={visibleServers}
+          isServerSearchOpen={isServerSearchOpen}
+          searchQuery={query}
+          catalogError={catalogError}
+          onOpenCategoryDropdown={() => setIsServerDropdownOpen(true)}
+          onToggleSearch={() => {
+            setIsServerSearchOpen((prev) => {
+              const next = !prev;
+              if (!next) {
+                setQuery('');
+                if (selectedServer) fetchServerCatalog(selectedServer, '');
+              }
+              return next;
+            });
+          }}
+          onChangeSearchQuery={setQuery}
+          onSubmitSearch={() => {
+            if (selectedServer) fetchServerCatalog(selectedServer, query);
+          }}
+          onSelectServer={(server) => setSelectedServer(server)}
+          onLongPressServer={(server) => {
+            const isDefault =
+              DEFAULT_OPDS_SERVERS.some((d) => d.id === server.id) ||
+              server.id === 'all_servers';
+            if (!isDefault) handleDeleteServer(server);
+          }}
+          onOpenAddServer={() => setIsAddServerOpen(true)}
+          onRefreshServer={() => {
+            if (selectedServer) fetchServerCatalog(selectedServer, query);
+          }}
+        />
+      </View>
+
       {/* Main FlatList Container */}
       <FlatList
         data={renderedListData as any}
@@ -415,42 +461,6 @@ export default function ExploreScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.searchHeader}>
-            {/* OPDS Server Hub Toolbar */}
-            <ServerHub
-              serverCategory={serverCategory}
-              selectedServer={selectedServer}
-              visibleServers={visibleServers}
-              isServerSearchOpen={isServerSearchOpen}
-              searchQuery={query}
-              catalogError={catalogError}
-              onOpenCategoryDropdown={() => setIsServerDropdownOpen(true)}
-              onToggleSearch={() => {
-                setIsServerSearchOpen((prev) => {
-                  const next = !prev;
-                  if (!next) {
-                    setQuery('');
-                    if (selectedServer) fetchServerCatalog(selectedServer, '');
-                  }
-                  return next;
-                });
-              }}
-              onChangeSearchQuery={setQuery}
-              onSubmitSearch={() => {
-                if (selectedServer) fetchServerCatalog(selectedServer, query);
-              }}
-              onSelectServer={(server) => setSelectedServer(server)}
-              onLongPressServer={(server) => {
-                const isDefault =
-                  DEFAULT_OPDS_SERVERS.some((d) => d.id === server.id) ||
-                  server.id === 'all_servers';
-                if (!isDefault) handleDeleteServer(server);
-              }}
-              onOpenAddServer={() => setIsAddServerOpen(true)}
-              onRefreshServer={() => {
-                if (selectedServer) fetchServerCatalog(selectedServer, query);
-              }}
-            />
-
             {/* Popular Section */}
             {isDefaultExploreView && (
               <PopularBooksSection
@@ -667,9 +677,16 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 110,
   },
+  stickyServerHubContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    zIndex: 10,
+  },
   searchHeader: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 8,
   },
   sectionHeaderRow: {
     marginBottom: 10,

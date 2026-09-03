@@ -4,3 +4,4 @@ export * from './SearchBar';
 export * from './Sheet';
 export * from './Slider';
 export * from './ThemeProvider';
+export * from './GenerativeEditorialCover';

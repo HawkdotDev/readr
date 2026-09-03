@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'rea
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
+import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import { BookOpen, Heart, Clock, Star, Check } from 'lucide-react-native';
 import { formatDurationSeconds } from '../../utils/time';
 import { FONTS } from '../../utils/typography';
@@ -69,10 +70,13 @@ export const BookCard = React.memo<BookCardProps>(({
           {book.coverImagePath ? (
             <Image source={{ uri: book.coverImagePath }} style={styles.listCoverImage} resizeMode="cover" />
           ) : (
-            <View style={[styles.placeholderCover, { backgroundColor: colors.accent }] as any}>
-              <BookOpen size={20} color={colors.isDark ? '#000000' : '#FFFFFF'} />
-            </View>
+            <GenerativeEditorialCover
+              title={book.title}
+              author={authorName}
+              isCompact={true}
+            />
           )}
+          <View style={styles.spineSheen} pointerEvents="none" />
         </View>
 
         {/* Details */}
@@ -138,13 +142,13 @@ export const BookCard = React.memo<BookCardProps>(({
         {book.coverImagePath ? (
           <Image source={{ uri: book.coverImagePath }} style={styles.gridCoverImage} resizeMode="cover" />
         ) : (
-          <View style={[styles.gridPlaceholderCover, { backgroundColor: colors.accent }] as any}>
-            <BookOpen size={32} color={colors.isDark ? '#000000' : '#FFFFFF'} />
-            <Text style={[styles.gridPlaceholderTitle, { color: colors.isDark ? '#000000' : '#FFFFFF' }] as any} numberOfLines={3}>
-              {book.title}
-            </Text>
-          </View>
+          <GenerativeEditorialCover
+            title={book.title}
+            author={authorName}
+            isCompact={false}
+          />
         )}
+        <View style={styles.spineSheen} pointerEvents="none" />
 
         {/* Multi-Select Checkbox Badge */}
         {isSelectMode && (
@@ -221,25 +225,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
     elevation: 3,
   },
   gridCoverImage: {
     width: '100%',
     height: '100%',
   },
-  gridPlaceholderCover: {
-    flex: 1,
-    padding: 13,
-    justifyContent: 'space-between',
-  },
-  gridPlaceholderTitle: {
-    fontFamily: FONTS.hubot.bold,
-    fontSize: 13,
-    letterSpacing: -0.2,
-    lineHeight: 16,
+  spineSheen: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: 'rgba(0, 0, 0, 0.25)',
+    zIndex: 4,
   },
   gridSelectBadge: {
     position: 'absolute',
@@ -274,8 +278,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 3.5,
+    height: 2.5,
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    zIndex: 5,
   },
   coverProgressBarFill: {
     height: '100%',

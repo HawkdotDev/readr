@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { Book } from '../../types';
+import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import { BookOpen, ChevronRight, MoreHorizontal } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
@@ -67,10 +68,13 @@ export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
           {book.coverImagePath ? (
             <Image source={{ uri: book.coverImagePath }} style={styles.coverImage} resizeMode="cover" />
           ) : (
-            <View style={[styles.placeholderCover, { backgroundColor: colors.accent }]}>
-              <BookOpen size={32} color={colors.isDark ? '#000000' : '#FFFFFF'} />
-            </View>
+            <GenerativeEditorialCover
+              title={book.title}
+              author={authorName}
+              isCompact={false}
+            />
           )}
+          <View style={styles.spineSheen} pointerEvents="none" />
         </View>
       </View>
 
@@ -98,7 +102,7 @@ export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
               <Text style={[styles.pagesLeftText, { color: colors.textSecondary }]}>
                 {progress >= 100
                   ? 'Completed'
-                  : `${pagesLeft} ${pagesLeft === 1 ? 'page' : 'pages'} left`}
+                  : `${pagesLeft} ${pagesLeft === 1 ? 'page' : 'pages'} left · ~${Math.max(1, Math.ceil(pagesLeft * 1.6))}m`}
               </Text>
             </View>
 
@@ -181,10 +185,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  placeholderCover: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  spineSheen: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: 'rgba(0, 0, 0, 0.25)',
+    zIndex: 4,
   },
   infoCol: {
     flex: 1,

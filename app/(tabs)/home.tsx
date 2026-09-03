@@ -15,12 +15,13 @@ import {
   ContinueStartedSection,
   YouMightLikeSection,
   GenresSection,
+  SpotlightBookCard,
+  SpotlightAuthorCard,
 } from '../../src/components/home';
 import {
   RadialOptionsMenu,
   FileBrowserModal,
   EmptyLibrary,
-  CustomOPDSModal,
 } from '../../src/components/library';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
 import { useLibrary } from '../../src/hooks/useLibrary';
@@ -31,16 +32,10 @@ import {
 } from '../../src/services/recommendations/recommendationService';
 import { updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book, ReadingGoal } from '../../src/types';
-import { Plus, FolderOpen, Flame, Clock, BookOpen, Bookmark, FileText } from 'lucide-react-native';
+import { Plus, FolderOpen, Flame, BookOpen } from 'lucide-react-native';
 import { FONTS } from '../../src/utils/typography';
-import { formatDurationSeconds } from '../../src/utils/time';
-import { GoalProgressRing } from '../../src/components/stats/GoalProgressRing';
-import { StreakHeatmap } from '../../src/components/stats/StreakHeatmap';
-import { StatCard } from '../../src/components/stats/StatCard';
 import {
-  getLifetimeStats,
   getActivityHistory,
-  LifetimeStats,
   DayActivity,
 } from '../../src/db/queries/stats';
 import { getReadingGoals } from '../../src/db/queries/settings';
@@ -62,19 +57,9 @@ export default function HomeScreen() {
 
   const [selectedWheelBook, setSelectedWheelBook] = useState<Book | null>(null);
   const [loadingRecId, setLoadingRecId] = useState<string | null>(null);
-  const [isOPDSModalOpen, setIsOPDSModalOpen] = useState(false);
   const [isFileBrowserOpen, setIsFileBrowserOpen] = useState(false);
 
   // Reading Stats State
-  const [lifetime, setLifetime] = useState<LifetimeStats>({
-    totalBooksRead: 0,
-    totalTimeSeconds: 0,
-    totalHighlights: 0,
-    totalNotes: 0,
-    totalPages: 0,
-    currentStreakDays: 0,
-  });
-
   const [activity, setActivity] = useState<DayActivity[]>([]);
   const [goals, setGoals] = useState<ReadingGoal>({
     id: 'default_user',
@@ -86,12 +71,10 @@ export default function HomeScreen() {
 
   const loadStats = useCallback(async () => {
     try {
-      const [lStats, act, g] = await Promise.all([
-        getLifetimeStats(),
+      const [act, g] = await Promise.all([
         getActivityHistory(112),
         getReadingGoals(),
       ]);
-      setLifetime(lStats);
       setActivity(act);
       setGoals(g);
     } catch (e) {
@@ -263,16 +246,9 @@ export default function HomeScreen() {
           />
         )}
 
-        {/* Daily Goal & Momentum Hero Card */}
-        <GoalProgressRing
-          currentMinutes={todayMinutes}
-          targetMinutes={goals.targetDailyMinutes}
-          currentPages={todayPages}
-          targetPages={goals.targetDailyPages}
-          currentStreak={goals.currentStreakDays}
-          longestStreak={goals.longestStreakDays}
-          todaySessionsCount={todaySessions}
-        />
+        {/* Contemporary Editorial Spotlights: Spotlight Book & Spotlight Author */}
+        <SpotlightBookCard />
+        <SpotlightAuthorCard />
 
         {/* You Might Like Side-Scrolling Section */}
         <YouMightLikeSection
@@ -287,45 +263,6 @@ export default function HomeScreen() {
           onBookPress={handleRecommendedBookPress}
           loadingBookId={loadingRecId}
         />
-
-        {/* 16-Week Consistency & Habit Graph */}
-        <StreakHeatmap
-          activity={activity}
-          currentStreak={goals.currentStreakDays}
-          longestStreak={goals.longestStreakDays}
-        />
-
-        {/* Metrics Grid */}
-        <View style={styles.metricsGrid}>
-          <View style={styles.metricRow}>
-            <StatCard
-              label="Reading Time"
-              value={formatDurationSeconds(lifetime.totalTimeSeconds)}
-              icon={<Clock size={16} color={colors.accent} />}
-            />
-            <StatCard
-              label="Completed"
-              value={lifetime.totalBooksRead}
-              subtitle="books finished"
-              icon={<BookOpen size={16} color="#16A34A" />}
-            />
-          </View>
-
-          <View style={styles.metricRow}>
-            <StatCard
-              label="Highlights"
-              value={lifetime.totalHighlights}
-              subtitle="saved passages"
-              icon={<Bookmark size={16} color="#F59E0B" />}
-            />
-            <StatCard
-              label="Pages Read"
-              value={lifetime.totalPages}
-              subtitle="total pages"
-              icon={<FileText size={16} color="#8B5CF6" />}
-            />
-          </View>
-        </View>
 
         {/* Empty State Prompt if no books in library */}
         {books.length === 0 && (
@@ -366,16 +303,6 @@ export default function HomeScreen() {
           await deleteBook(b.id);
           await Promise.all([loadBooks(), loadStats()]);
           setSelectedWheelBook(null);
-        }}
-      />
-
-      {/* OPDS & Net Library Catalog Modal */}
-      <CustomOPDSModal
-        visible={isOPDSModalOpen}
-        onClose={() => setIsOPDSModalOpen(false)}
-        onBookImported={() => {
-          loadBooks();
-          loadStats();
         }}
       />
 
@@ -462,13 +389,5 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 10,
-  },
-  metricsGrid: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  metricRow: {
-    flexDirection: 'row',
-    gap: 12,
   },
 });

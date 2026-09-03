@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Dimensions,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import {
@@ -26,8 +26,7 @@ import { FONTS } from '../../utils/typography';
 import { RecommendedBook } from '../../services/recommendations/recommendationService';
 import * as Haptics from 'expo-haptics';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = Math.min(360, SCREEN_WIDTH - 32);
+const CARD_GAP = 14;
 
 export interface GenreBook {
   id: string;
@@ -466,6 +465,8 @@ export const GenresSection = React.memo<GenresSectionProps>(({
   loadingBookId,
 }) => {
   const { colors } = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.max(280, screenWidth - 32);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const cardListRef = useRef<FlatList>(null);
@@ -499,7 +500,10 @@ export const GenresSection = React.memo<GenresSectionProps>(({
       Haptics.selectionAsync();
     } catch {}
     setActiveIndex(index);
-    cardListRef.current?.scrollToIndex({ index, animated: true });
+    cardListRef.current?.scrollToOffset({
+      offset: index * (cardWidth + CARD_GAP),
+      animated: true,
+    });
     tabListRef.current?.scrollToIndex({
       index,
       animated: true,
@@ -532,7 +536,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
 
   const onMomentumScrollEnd = useCallback((event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / (CARD_WIDTH + 12));
+    const index = Math.round(offsetX / (cardWidth + CARD_GAP));
     if (index >= 0 && index < GENRE_SHOWCASE_CATALOG.length && index !== activeIndex) {
       setActiveIndex(index);
       tabListRef.current?.scrollToIndex({
@@ -541,7 +545,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
         viewPosition: 0.5,
       });
     }
-  }, [activeIndex]);
+  }, [activeIndex, cardWidth]);
 
   return (
     <View style={styles.container}>
@@ -616,9 +620,14 @@ export const GenresSection = React.memo<GenresSectionProps>(({
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.cardScrollList}
-        snapToInterval={CARD_WIDTH + 12}
+        snapToInterval={cardWidth + CARD_GAP}
         snapToAlignment="start"
         decelerationRate="fast"
+        getItemLayout={(_, index) => ({
+          length: cardWidth + CARD_GAP,
+          offset: (cardWidth + CARD_GAP) * index,
+          index,
+        })}
         onMomentumScrollEnd={onMomentumScrollEnd}
         renderItem={({ item }) => {
           const topBook = item.topBook;
@@ -629,7 +638,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
               style={[
                 styles.genreCard,
                 {
-                  width: CARD_WIDTH,
+                  width: cardWidth,
                   backgroundColor: colors.surface,
                   borderColor: colors.border,
                   shadowColor: '#000',
@@ -942,22 +951,22 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   cardScrollList: {
-    paddingHorizontal: 4,
-    gap: 12,
+    paddingHorizontal: 0,
+    gap: CARD_GAP,
   },
   genreCard: {
-    padding: 14,
-    borderRadius: 18,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
     elevation: 3,
   },
   genreCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   genreCardHeaderLeft: {
     flexDirection: 'row',
@@ -965,21 +974,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   genreIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   genreCardTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 14.5,
+    fontSize: 16,
     letterSpacing: -0.2,
   },
   genreCardSubtitle: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 11,
+    fontSize: 11.5,
     letterSpacing: -0.1,
     marginTop: 1,
   },
@@ -997,15 +1006,15 @@ const styles = StyleSheet.create({
   },
   topBookCard: {
     flexDirection: 'row',
-    borderRadius: 13,
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 11,
-    marginBottom: 12,
+    padding: 13,
+    marginBottom: 14,
   },
   topCoverContainer: {
-    width: 86,
-    height: 128,
-    borderRadius: 8,
+    width: 94,
+    height: 140,
+    borderRadius: 9,
     borderWidth: 1,
     overflow: 'hidden',
     position: 'relative',
@@ -1040,7 +1049,7 @@ const styles = StyleSheet.create({
   },
   topBookDetails: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
     justifyContent: 'space-between',
   },
   badgeRow: {
@@ -1066,20 +1075,20 @@ const styles = StyleSheet.create({
   },
   topBookTitle: {
     fontFamily: FONTS.mona.bold,
-    fontSize: 14.5,
-    lineHeight: 18.5,
+    fontSize: 15,
+    lineHeight: 19,
     letterSpacing: -0.2,
     marginBottom: 2,
   },
   topBookAuthor: {
     fontFamily: FONTS.mona.medium,
-    fontSize: 11.5,
+    fontSize: 12,
     marginBottom: 4,
   },
   topBookSummary: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 10.5,
-    lineHeight: 14.5,
+    fontSize: 11,
+    lineHeight: 15.5,
   },
   topCardActionRow: {
     flexDirection: 'row',
@@ -1120,12 +1129,12 @@ const styles = StyleSheet.create({
   listItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7,
+    paddingVertical: 8,
   },
   listCoverContainer: {
-    width: 36,
-    height: 52,
-    borderRadius: 5,
+    width: 40,
+    height: 58,
+    borderRadius: 6,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -1140,18 +1149,18 @@ const styles = StyleSheet.create({
   },
   listInfoCol: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
     justifyContent: 'center',
   },
   listBookTitle: {
     fontFamily: FONTS.mona.semiBold,
-    fontSize: 12.5,
+    fontSize: 13,
     letterSpacing: -0.1,
     marginBottom: 2,
   },
   listBookMeta: {
     fontFamily: FONTS.mona.regular,
-    fontSize: 11,
+    fontSize: 11.5,
   },
   listActionCol: {
     marginLeft: 8,

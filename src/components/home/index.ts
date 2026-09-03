@@ -4,3 +4,6 @@ export * from './YouMightLikeSection';
 export * from './ArtistsSection';
 export * from './ArtistDetailModal';
 export * from './GenresSection';
+export * from './BookOfTheDayCard';
+export * from './AuthorOfTheDayCard';
+

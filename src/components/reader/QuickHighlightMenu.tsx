@@ -8,15 +8,18 @@ import {
   Pressable,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
-import { BookOpen, Copy, FileText, Volume2 } from 'lucide-react-native';
+import { BookOpen, Copy, FileText, Volume2, Share2 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { HighlightColor } from '../../types';
 import { FONTS } from '../../utils/typography';
+import { QuoteCardModal } from './QuoteCardModal';
 
 export interface QuickHighlightMenuProps {
   visible: boolean;
   selectedText: string;
+  bookTitle?: string;
+  author?: string;
   onHighlight: (color: HighlightColor) => void;
   onAddNote: () => void;
   onDictionary: () => void;
@@ -35,6 +38,8 @@ const HIGHLIGHT_PALETTE: Array<{ color: HighlightColor; hex: string; label: stri
 export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
   visible,
   selectedText,
+  bookTitle,
+  author,
   onHighlight,
   onAddNote,
   onDictionary,
@@ -42,6 +47,7 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const [isQuoteCardOpen, setIsQuoteCardOpen] = React.useState(false);
 
   if (!visible || !selectedText) return null;
 
@@ -143,6 +149,18 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
             </TouchableOpacity>
 
             <TouchableOpacity
+              onPress={() => setIsQuoteCardOpen(true)}
+              style={styles.actionBtn}
+              accessible={true}
+              accessibilityLabel="Create quote card"
+            >
+              <Share2 size={16} color={colors.accent} />
+              <Text style={[styles.actionLabel, { color: colors.accent }]}>
+                Quote
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={() => {
                 onSpeak();
                 onClose();
@@ -159,6 +177,18 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
           </View>
         </Pressable>
       </Pressable>
+
+      {/* Editorial Quotation Card Modal */}
+      <QuoteCardModal
+        visible={isQuoteCardOpen}
+        quoteText={selectedText}
+        bookTitle={bookTitle}
+        author={author}
+        onClose={() => {
+          setIsQuoteCardOpen(false);
+          onClose();
+        }}
+      />
     </Modal>
   );
 };
