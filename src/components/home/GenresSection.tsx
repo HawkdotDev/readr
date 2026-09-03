@@ -554,7 +554,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
         <View style={styles.titleWithIcon}>
           <Bookmark size={17} color={colors.accent} style={{ marginRight: 7 }} />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            Explore Genres
+            Featured Genres
           </Text>
         </View>
 

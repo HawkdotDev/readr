@@ -34,6 +34,9 @@ import {
   ShelfFormatType,
 } from '../../src/components/library';
 import {
+  ContinueReadingCard,
+} from '../../src/components/home';
+import {
   Plus,
   Search,
   BookOpen,
@@ -43,9 +46,12 @@ import {
   X,
   FileText,
   ChevronDown,
+  FolderOpen,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
+import { pickAndImportBook } from '../../src/services/storage/fileManager';
+import { Book as BookType } from '../../src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
@@ -161,6 +167,15 @@ export default function LibraryScreen() {
     return list;
   }, [deviceBooks, shelfStatusFilter, shelfFormatFilter, query, shelfSortBy, shelfSortDirection]);
 
+  // Continue Reading data (reuses same logic as Home)
+  const featuredBook = useMemo(() => {
+    return (
+      deviceBooks.find((b) => b.status === 'reading' && (b.progressPercentage || 0) > 0) ||
+      deviceBooks.find((b) => (b.progressPercentage || 0) > 0) ||
+      null
+    );
+  }, [deviceBooks]);
+
   // Total Shelf Metrics
   const totalSizeFormatted = useMemo(() => {
     const bytes = deviceBooks.reduce((acc, b) => acc + (b.fileSizeBytes || 0), 0);
@@ -240,6 +255,32 @@ export default function LibraryScreen() {
         },
       ]
     );
+  };
+
+  const handlePickAndImport = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const res = await pickAndImportBook();
+      if (!res) return;
+
+      if (res.isDuplicate && res.bookId) {
+        Alert.alert(
+          'Book Already in Library',
+          'This book has already been imported. Would you like to read it now?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Book', onPress: () => router.push(`/reader/${res.bookId}` as any) },
+          ]
+        );
+      } else if (res.success) {
+        await loadDeviceBooks();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      } else if (res.error && res.error !== 'Cancelled' && !res.error.toLowerCase().includes('cancel')) {
+        Alert.alert('Import Notice', res.error);
+      }
+    } catch (err: any) {
+      Alert.alert('Import Error', err?.message || 'Failed to import book.');
+    }
   };
 
   // Multi-select Handlers
@@ -360,7 +401,25 @@ export default function LibraryScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => setIsImportModalOpen(true)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              setIsImportModalOpen(true);
+            }}
+            style={[
+              styles.iconBtn,
+              {
+                backgroundColor: isImportModalOpen ? colors.surface : colors.canvas,
+                borderColor: isImportModalOpen ? colors.accent : colors.border,
+              },
+            ]}
+            accessible={true}
+            accessibilityLabel="My Files Storage Browser"
+          >
+            <FolderOpen size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handlePickAndImport}
             style={[styles.importIconBtn, { backgroundColor: colors.accent }]}
             accessible={true}
             accessibilityLabel="Import Local Books"
@@ -383,6 +442,21 @@ export default function LibraryScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.searchHeader}>
+            {/* Continue Reading Hero Card */}
+            {featuredBook && (
+              <View style={styles.continueReadingSection}>
+                <Text style={[styles.continueReadingLabel, { color: colors.textSecondary }]}>
+                  CONTINUE READING
+                </Text>
+                <ContinueReadingCard
+                  book={featuredBook}
+                  onPress={() => router.push(`/reader/${featuredBook.id}` as any)}
+                  onLongPress={() => setContextMenuBook(featuredBook)}
+                  onOptionsPress={() => setContextMenuBook(featuredBook)}
+                />
+              </View>
+            )}
+
             {/* Shelf Summary Banner */}
             <ShelfSummaryBanner
               total={deviceBooks.length}
@@ -774,7 +848,18 @@ const styles = StyleSheet.create({
   },
   searchHeader: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 8,
+  },
+  continueReadingSection: {
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  continueReadingLabel: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    marginBottom: 10,
+    marginLeft: 2,
   },
   searchBarBox: {
     flexDirection: 'row',

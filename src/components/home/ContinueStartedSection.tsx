@@ -17,12 +17,16 @@ export interface ContinueStartedSectionProps {
   books: Book[];
   onBookPress: (book: Book) => void;
   onBookLongPress?: (book: Book) => void;
+  headerPaddingHorizontal?: number;
+  contentPaddingHorizontal?: number;
 }
 
 export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
   books,
   onBookPress,
   onBookLongPress,
+  headerPaddingHorizontal = 5,
+  contentPaddingHorizontal = 5,
 }) => {
   const { colors } = useTheme();
 
@@ -31,7 +35,7 @@ export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
   return (
     <View style={styles.container}>
       {/* Section Header */}
-      <View style={styles.headerRow}>
+      <View style={[styles.headerRow, { paddingHorizontal: headerPaddingHorizontal }]}>
         <View style={styles.titleWithIcon}>
           <BookMarked size={16} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
@@ -49,7 +53,7 @@ export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.scrollList}
+        contentContainerStyle={[styles.scrollList, { paddingHorizontal: contentPaddingHorizontal }]}
         decelerationRate="fast"
         snapToInterval={146}
         renderItem={({ item }) => {

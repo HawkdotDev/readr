@@ -390,15 +390,6 @@ export default function ExploreScreen() {
               color={isServerSearchOpen ? colors.accent : colors.textPrimary}
             />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setIsAddServerOpen(true)}
-            style={[styles.importIconBtn, { backgroundColor: colors.accent }]}
-            accessible={true}
-            accessibilityLabel="Add OPDS Feed"
-          >
-            <Plus size={18} color={colors.isDark ? '#000000' : '#FFFFFF'} />
-          </TouchableOpacity>
         </View>
       </View>
 
