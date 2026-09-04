@@ -5,15 +5,6 @@
     "version": "1.1.0-beta",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "splash": {
-      "image": "./assets/images/Logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAF7F2",
-      "dark": {
-        "image": "./assets/images/Logo.png",
-        "backgroundColor": "#18181B"
-      }
-    },
     "scheme": "readr",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -48,7 +39,19 @@
       "expo-router",
       "expo-font",
       "expo-sqlite",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/Logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FAF7F2",
+          "dark": {
+            "image": "./assets/images/Logo.png",
+            "backgroundColor": "#18181B"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
