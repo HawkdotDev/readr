@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Modal,
   ScrollView,
   Pressable,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { useTheme } from '../common/ThemeProvider';
 import { Sparkles, Shuffle, X, ChevronRight, BookOpen, Quote } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
@@ -87,10 +87,10 @@ export const BookOfTheDayCard: React.FC<BookOfTheDayCardProps> = () => {
           {/* Cover Left */}
           <View style={[styles.coverWrapper, { borderColor: colors.border }]}>
             {book.coverUrl && !coverError ? (
-              <Image
+              <OptimizedImage
                 source={{ uri: book.coverUrl }}
                 style={styles.bookCoverImage}
-                resizeMode="cover"
+                contentFit="cover"
                 onError={() => setCoverError(true)}
               />
             ) : (

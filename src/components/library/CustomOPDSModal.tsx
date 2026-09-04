@@ -9,8 +9,8 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Image,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { useTheme } from '../common/ThemeProvider';
 import { OPDSServer, OPDSBookEntry } from '../../types';
 import {
@@ -379,7 +379,7 @@ export function CustomOPDSModal({
                     {/* Cover Preview */}
                     <View style={[styles.coverWrapper, { backgroundColor: colors.canvas }]}>
                       {book.coverUrl ? (
-                        <Image source={{ uri: book.coverUrl }} style={styles.coverImg} resizeMode="cover" />
+                        <OptimizedImage source={{ uri: book.coverUrl }} style={styles.coverImg} contentFit="cover" />
                       ) : (
                         <BookOpen size={24} color={colors.textSecondary} />
                       )}

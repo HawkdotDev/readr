@@ -117,6 +117,7 @@ describe('Reader Store State & Actions', () => {
     useReaderStore.getState().setLineHeight(1.8);
     useReaderStore.getState().setMarginHorizontal(32);
     useReaderStore.getState().setTextAlign('justify');
+    useReaderStore.getState().setChapterHeadingAlign('center');
     useReaderStore.getState().setActiveTheme('sepia');
     useReaderStore.getState().setWarmthLevel(0.4);
 
@@ -126,8 +127,12 @@ describe('Reader Store State & Actions', () => {
     expect(s.lineHeight).toBe(1.8);
     expect(s.marginHorizontal).toBe(32);
     expect(s.textAlign).toBe('justify');
+    expect(s.chapterHeadingAlign).toBe('center');
     expect(s.activeTheme).toBe('sepia');
     expect(s.warmthLevel).toBe(0.4);
+
+    useReaderStore.getState().setChapterHeadingAlign('right');
+    expect(useReaderStore.getState().chapterHeadingAlign).toBe('right');
   });
 
   it('manages reading ruler, paragraph indentation, drop caps, and custom fonts', () => {

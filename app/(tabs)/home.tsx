@@ -73,7 +73,7 @@ export default function HomeScreen() {
   const loadStats = useCallback(async () => {
     try {
       const [act, g] = await Promise.all([
-        getActivityHistory(112),
+        getActivityHistory(14),
         getReadingGoals(),
       ]);
       setActivity(act);

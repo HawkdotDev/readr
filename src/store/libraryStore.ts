@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { Book, BookFormat, BookStatus } from '../types';
+import { Book, BookFormat, BookStatus, Tag } from '../types';
 
 export type LibraryViewMode = 'grid' | 'list';
 export type SortOption = 'recent' | 'title' | 'author' | 'progress' | 'rating';
 export type LibraryFilterStatus = BookStatus | 'all';
 
 export interface LibraryState {
+  books: Book[];
+  tags: Tag[];
   searchQuery: string;
   selectedStatus: LibraryFilterStatus;
   selectedFormat: BookFormat | 'all';
@@ -15,6 +17,9 @@ export interface LibraryState {
   viewMode: LibraryViewMode;
   isLoading: boolean;
 
+  setBooks: (books: Book[]) => void;
+  setTags: (tags: Tag[]) => void;
+  updateBookInStore: (bookId: string, partial: Partial<Book>) => void;
   setSearchQuery: (query: string) => void;
   setSelectedStatus: (status: LibraryFilterStatus) => void;
   setSelectedFormat: (format: BookFormat | 'all') => void;
@@ -26,6 +31,8 @@ export interface LibraryState {
 }
 
 export const useLibraryStore = create<LibraryState>((set) => ({
+  books: [],
+  tags: [],
   searchQuery: '',
   selectedStatus: 'all',
   selectedFormat: 'all',
@@ -35,6 +42,12 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   viewMode: 'list', // Default to list view
   isLoading: false,
 
+  setBooks: (books) => set({ books }),
+  setTags: (tags) => set({ tags }),
+  updateBookInStore: (bookId, partial) =>
+    set((state) => ({
+      books: state.books.map((b) => (b.id === bookId ? { ...b, ...partial } : b)),
+    })),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSelectedStatus: (selectedStatus) => set({ selectedStatus }),
   setSelectedFormat: (selectedFormat) => set({ selectedFormat }),

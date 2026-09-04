@@ -215,3 +215,28 @@ export async function getLifetimeStats(): Promise<LifetimeStats> {
     currentStreakDays: goals.currentStreakDays,
   };
 }
+
+export async function getTodayReadingActivity(): Promise<{ minutesRead: number; pagesRead: number }> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return { minutesRead: 0, pagesRead: 0 };
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const row = (await sqlite.getFirstAsync(
+      `SELECT 
+         COALESCE(SUM(duration_seconds), 0) AS total_seconds,
+         COALESCE(SUM(pages_read), 0) AS total_pages
+       FROM reading_sessions
+       WHERE strftime('%Y-%m-%d', datetime(start_time, 'unixepoch')) = ?;`,
+      [todayStr]
+    )) as { total_seconds: number; total_pages: number } | null;
+
+    return {
+      minutesRead: Math.round((row?.total_seconds || 0) / 60),
+      pagesRead: row?.total_pages || 0,
+    };
+  } catch (e) {
+    console.warn('Failed to query today reading activity:', e);
+    return { minutesRead: 0, pagesRead: 0 };
+  }
+}
+

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { Book } from '../../types';
 import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { BookOpen, ChevronRight, MoreHorizontal } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 
@@ -66,7 +67,7 @@ export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
       <View style={styles.coverWrapper}>
         <View style={[styles.coverContainer, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
           {book.coverImagePath ? (
-            <Image source={{ uri: book.coverImagePath }} style={styles.coverImage} resizeMode="cover" />
+            <OptimizedImage source={{ uri: book.coverImagePath }} style={styles.coverImage} contentFit="cover" priority="high" />
           ) : (
             <GenerativeEditorialCover
               title={book.title}

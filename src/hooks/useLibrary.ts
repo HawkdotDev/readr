@@ -9,6 +9,10 @@ import { getAllTags } from '../db/queries/tags';
 import { autoEnrichBookCoverIfMissing } from '../services/metadata/metadataService';
 import { useLibraryStore, SortOption, LibraryViewMode, LibraryFilterStatus } from '../store/libraryStore';
 import * as Haptics from 'expo-haptics';
+import { prewarmBookCache } from '../services/reader/epubParser';
+
+// In-memory set to prevent repetitive network requests on idle for books with no online cover
+const ATTEMPTED_COVER_ENRICHMENT_IDS = new Set<string>();
 
 export interface UseLibraryResult {
   books: Book[];
@@ -38,9 +42,13 @@ export interface UseLibraryResult {
 }
 
 export function useLibrary(): UseLibraryResult {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [allTags, setAllTags] = useState<Tag[]>([]);
-  const [loading, setLoading] = useState(true);
+  const books = useLibraryStore((s) => s.books);
+  const allTags = useLibraryStore((s) => s.tags);
+  const setStoreBooks = useLibraryStore((s) => s.setBooks);
+  const setStoreTags = useLibraryStore((s) => s.setTags);
+  const updateBookInStore = useLibraryStore((s) => s.updateBookInStore);
+
+  const [loading, setLoading] = useState(books.length === 0);
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -60,14 +68,27 @@ export function useLibrary(): UseLibraryResult {
 
   const loadBooks = useCallback(async () => {
     try {
-      setLoading(true);
+      if (useLibraryStore.getState().books.length === 0) {
+        setLoading(true);
+      }
       const [data, tagsData] = await Promise.all([getAllBooks(), getAllTags()]);
-      setBooks(data);
-      setAllTags(tagsData);
+      setStoreBooks(data);
+      setStoreTags(tagsData);
 
-      // Auto-enrich any books without cover art in the background
-      const missingCovers = data.filter((b) => !b.coverImagePath);
+      // Pre-warm the featured/most recent book in the background for 0ms continue reading
+      const featured =
+        data.find((b) => b.status === 'reading' && (b.progressPercentage || 0) > 0) ||
+        data.find((b) => (b.progressPercentage || 0) > 0) ||
+        (data.length > 0 ? data[0] : null);
+
+      if (featured && featured.filePath) {
+        prewarmBookCache(featured.filePath, featured.fileFormat, featured.title).catch(() => {});
+      }
+
+      // Auto-enrich any books without cover art in the background (only once per book per session)
+      const missingCovers = data.filter((b) => !b.coverImagePath && !ATTEMPTED_COVER_ENRICHMENT_IDS.has(b.id));
       if (missingCovers.length > 0) {
+        missingCovers.forEach((b) => ATTEMPTED_COVER_ENRICHMENT_IDS.add(b.id));
         (async () => {
           let hasUpdates = false;
           for (const book of missingCovers) {
@@ -76,7 +97,7 @@ export function useLibrary(): UseLibraryResult {
           }
           if (hasUpdates) {
             const refreshed = await getAllBooks();
-            setBooks(refreshed);
+            setStoreBooks(refreshed);
           }
         })();
       }
@@ -85,7 +106,7 @@ export function useLibrary(): UseLibraryResult {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setStoreBooks, setStoreTags]);
 
   useEffect(() => {
     loadBooks();
@@ -103,51 +124,42 @@ export function useLibrary(): UseLibraryResult {
   const toggleFavorite = useCallback(
     async (bookId: string): Promise<boolean> => {
       let currentVal = false;
-      
-      setBooks((prevBooks) => {
-        const target = prevBooks.find((b) => b.id === bookId);
-        if (target) {
-          currentVal = target.isFavorite;
-        }
-        return prevBooks.map((b) =>
-          b.id === bookId ? { ...b, isFavorite: !b.isFavorite } : b
-        );
-      });
-
+      const targetBook = books.find((b) => b.id === bookId);
+      if (targetBook) {
+        currentVal = targetBook.isFavorite;
+        updateBookInStore(bookId, { isFavorite: !currentVal });
+      }
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      } catch {}
-
-      try {
-        await toggleBookFavoriteQuery(bookId, currentVal);
-        return !currentVal;
+        const newVal = await toggleBookFavoriteQuery(bookId, currentVal);
+        updateBookInStore(bookId, { isFavorite: newVal });
+        return newVal;
       } catch (err) {
-        console.error('Failed to persist favorite toggle, rolling back:', err);
-        setBooks((prevBooks) =>
-          prevBooks.map((b) =>
-            b.id === bookId ? { ...b, isFavorite: currentVal } : b
-          )
-        );
+        console.warn('Failed to toggle favorite:', err);
+        if (targetBook) {
+          updateBookInStore(bookId, { isFavorite: currentVal });
+        }
         return currentVal;
       }
     },
-    []
+    [books, updateBookInStore]
   );
 
   /**
    * Update 1-5 Star Book Rating
    */
-  const updateRating = useCallback(async (bookId: string, rating: number): Promise<void> => {
-    setBooks((prevBooks) =>
-      prevBooks.map((b) => (b.id === bookId ? { ...b, rating } : b))
-    );
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      await updateBookRatingQuery(bookId, rating);
-    } catch (err) {
-      console.warn('Failed to update rating:', err);
-    }
-  }, []);
+  const updateRating = useCallback(
+    async (bookId: string, rating: number): Promise<void> => {
+      updateBookInStore(bookId, { rating });
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        await updateBookRatingQuery(bookId, rating);
+      } catch (err) {
+        console.warn('Failed to update rating:', err);
+      }
+    },
+    [updateBookInStore]
+  );
 
   const featuredBook = useMemo(() => {
     return (

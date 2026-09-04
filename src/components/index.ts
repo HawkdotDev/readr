@@ -9,3 +9,6 @@ export * as Explore from './explore';
 export * as Stats from './stats';
 export * as Settings from './settings';
 export * as Reader from './reader';
+export * as Feed from './feed';
+export * from './feed';
+

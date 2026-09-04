@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
 import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { BookOpen, Heart, Clock, Star, Check } from 'lucide-react-native';
 import { formatDurationSeconds } from '../../utils/time';
 import { FONTS } from '../../utils/typography';
@@ -68,7 +69,7 @@ export const BookCard = React.memo<BookCardProps>(({
         {/* Cover thumbnail with 2:3 aspect ratio */}
         <View style={[styles.listCoverWrapper, { backgroundColor: colors.canvas }] as any}>
           {book.coverImagePath ? (
-            <Image source={{ uri: book.coverImagePath }} style={styles.listCoverImage} resizeMode="cover" />
+            <OptimizedImage source={{ uri: book.coverImagePath }} style={styles.listCoverImage} contentFit="cover" />
           ) : (
             <GenerativeEditorialCover
               title={book.title}
@@ -140,7 +141,7 @@ export const BookCard = React.memo<BookCardProps>(({
         ] as any}
       >
         {book.coverImagePath ? (
-          <Image source={{ uri: book.coverImagePath }} style={styles.gridCoverImage} resizeMode="cover" />
+          <OptimizedImage source={{ uri: book.coverImagePath }} style={styles.gridCoverImage} contentFit="cover" />
         ) : (
           <GenerativeEditorialCover
             title={book.title}

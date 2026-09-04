@@ -4,10 +4,10 @@ import {
   Text,
   Modal,
   ScrollView,
-  Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Info, BookOpen, X } from 'lucide-react-native';
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -62,10 +62,10 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
             <View style={styles.topRow}>
               <View style={[styles.coverWrapper, { backgroundColor: colors.surface }]}>
                 {book.coverImagePath ? (
-                  <Image
+                  <OptimizedImage
                     source={{ uri: book.coverImagePath }}
                     style={styles.coverImage}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <BookOpen size={36} color={colors.accent} />

@@ -13,17 +13,17 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { Home, BookOpen, Compass, BarChart2, Settings } from 'lucide-react-native';
+import { Home, BookOpen, Compass, BarChart2, Settings, Rss } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 // ─── Constants & Physics ───────────────────────────────────────────────
-const TAB_NAMES = ['home', 'library', 'explore', 'stats', 'settings'] as const;
+const TAB_NAMES = ['home', 'feed', 'library', 'explore', 'stats', 'settings'] as const;
 const TAB_COUNT = TAB_NAMES.length;
 const CAPSULE_HEIGHT = 56;
-const SQUARE_SIZE = 44;
-const SQUARE_RADIUS = 13; // Distinct rounded-corner square, not a circle
-const SQUARE_TOP = (CAPSULE_HEIGHT - SQUARE_SIZE) / 2; // 6px — perfectly centered vertically
-const ICON_SIZE = 21;
+const SQUARE_SIZE = 42;
+const SQUARE_RADIUS = 12; // Distinct rounded-corner square, not a circle
+const SQUARE_TOP = (CAPSULE_HEIGHT - SQUARE_SIZE) / 2; // Perfectly centered vertically
+const ICON_SIZE = 20;
 const FOCUSED_STROKE = 2.2;
 const IDLE_STROKE = 1.6;
 
@@ -44,6 +44,14 @@ function renderIcon(name: string, color: string, isFocused: boolean) {
           size={ICON_SIZE}
           color={color}
           fill={isFocused ? color : 'transparent'}
+          strokeWidth={strokeW}
+        />
+      );
+    case 'feed':
+      return (
+        <Rss
+          size={ICON_SIZE}
+          color={color}
           strokeWidth={strokeW}
         />
       );
@@ -103,7 +111,7 @@ function CustomFloatingTabBar({
   const { width: windowWidth } = useWindowDimensions();
 
   // Deterministic, immediate dimensions — zero layout delay or jumping
-  const capsuleWidth = Math.min(Math.round(windowWidth * 0.78), 336);
+  const capsuleWidth = Math.min(Math.round(windowWidth * 0.88), 372);
   const tabWidth = capsuleWidth / TAB_COUNT;
   const squareOffsetX = (tabWidth - SQUARE_SIZE) / 2;
 
@@ -195,9 +203,14 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <CustomFloatingTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+      detachInactiveScreens={true}
+      screenOptions={{
+        headerShown: false,
+        freezeOnBlur: true,
+      }}
     >
       <Tabs.Screen name="home" options={{ title: 'Home' }} />
+      <Tabs.Screen name="feed" options={{ title: 'Feed' }} />
       <Tabs.Screen name="library" options={{ title: 'Library' }} />
       <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
       <Tabs.Screen name="stats" options={{ title: 'Stats' }} />

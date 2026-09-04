@@ -19,6 +19,7 @@ import { parseBookFile, ParsedChapter, createSampleBookContent } from '../../src
 import { progressTracker } from '../../src/services/reader/progressTracker';
 import { ttsService } from '../../src/services/tts/ttsService';
 import { useReaderStore } from '../../src/store/readerStore';
+import { useLibraryStore } from '../../src/store/libraryStore';
 import { applyNameReplacements } from '../../src/utils/nameReplacer';
 
 // Reader Components
@@ -67,24 +68,48 @@ export default function ReaderScreen() {
     openDictionary,
   } = useReaderStore();
 
-  // Load Book & Per-Book Settings on Mount
+  // Load Book & Per-Book Settings on Mount with Zero-Latency Parallelization
   useEffect(() => {
+    let isCancelled = false;
+
     async function load() {
       if (!id) return;
-      setLoading(true);
-      const b = await getBookById(id);
-      if (b) {
+
+      // Check if book metadata is already in global Zustand store
+      const knownBook = useLibraryStore.getState().books?.find((x: Book) => x.id === id) || null;
+
+      if (!knownBook) {
+        setLoading(true);
+      }
+
+      try {
+        const bookPromise = knownBook ? Promise.resolve(knownBook) : getBookById(id);
+        const settingsPromise = getBookSettings(id);
+        const replacementsPromise = getBookNameReplacements(id);
+        const parsePromise = knownBook
+          ? parseBookFile(knownBook.filePath, knownBook.fileFormat, knownBook.title)
+          : bookPromise.then((b) => (b ? parseBookFile(b.filePath, b.fileFormat, b.title) : null));
+
+        const [b, customSettings, replacements, parsedResult] = await Promise.all([
+          bookPromise,
+          settingsPromise,
+          replacementsPromise,
+          parsePromise,
+        ]);
+
+        if (isCancelled || !b) return;
+
         setBook(b);
         setCurrentBook(b);
 
-        // Load custom per-book settings overrides
-        const customSettings = await getBookSettings(id);
+        // Apply custom per-book settings overrides
         if (customSettings) {
           if (customSettings.fontFamily) useReaderStore.getState().setFontFamily(customSettings.fontFamily);
           if (customSettings.fontSize) useReaderStore.getState().setFontSize(customSettings.fontSize);
           if (customSettings.lineHeight) useReaderStore.getState().setLineHeight(customSettings.lineHeight);
           if (customSettings.marginHorizontal) useReaderStore.getState().setMarginHorizontal(customSettings.marginHorizontal);
           if (customSettings.textAlign) useReaderStore.getState().setTextAlign(customSettings.textAlign);
+          if (customSettings.chapterHeadingAlign) useReaderStore.getState().setChapterHeadingAlign(customSettings.chapterHeadingAlign);
           if (customSettings.activeTheme) useReaderStore.getState().setActiveTheme(customSettings.activeTheme as any);
           if (customSettings.paragraphIndent !== null && customSettings.paragraphIndent !== undefined) {
             useReaderStore.getState().setParagraphIndent(customSettings.paragraphIndent);
@@ -127,17 +152,12 @@ export default function ReaderScreen() {
           }
         }
 
-        // Load custom per-book name replacements
-        const replacements = await getBookNameReplacements(id);
-        useReaderStore.getState().setNameReplacements(replacements);
-
-        let parsedChapters: ParsedChapter[] = [];
-        try {
-          const parsed = await parseBookFile(b.filePath, b.fileFormat, b.title);
-          parsedChapters = parsed.chapters || [];
-        } catch (parseErr) {
-          console.warn('[reader] parseBookFile encountered an error:', parseErr);
+        // Apply custom per-book name replacements
+        if (replacements) {
+          useReaderStore.getState().setNameReplacements(replacements);
         }
+
+        let parsedChapters: ParsedChapter[] = parsedResult?.chapters || [];
 
         if (parsedChapters.length === 0) {
           const fallback = createSampleBookContent(b.title);
@@ -156,25 +176,32 @@ export default function ReaderScreen() {
             }
           }
         } else {
-          // Open directly at first story chapter (skipping cover/front matter), matching Kindle/Apple Books
+          // Open directly at first story chapter (skipping cover/front matter)
           const firstStoryIdx = parsedChapters.findIndex((c) => !c.isFrontMatter);
           if (firstStoryIdx > 0) {
             setActiveChapterIndex(firstStoryIdx);
           }
         }
 
-        // Feed TTS service with initial chapter text (applying active name replacements)
+        // Feed TTS service with initial chapter text
         if (parsedChapters.length > 0) {
           const plainText = parsedChapters[0].content.replace(/<[^>]+>/g, ' ');
-          const substituted = applyNameReplacements(plainText, replacements);
+          const substituted = applyNameReplacements(plainText, replacements || []);
           ttsService.setContent(substituted);
         }
+      } catch (e) {
+        console.warn('[reader] Failed to load book:', e);
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     }
+
     load();
 
     return () => {
+      isCancelled = true;
       if (id) {
         progressTracker.endSession(id);
         // Persist per-book settings on exit
@@ -185,6 +212,7 @@ export default function ReaderScreen() {
           lineHeight: state.lineHeight,
           marginHorizontal: state.marginHorizontal,
           textAlign: state.textAlign,
+          chapterHeadingAlign: state.chapterHeadingAlign,
           activeTheme: state.activeTheme,
           paragraphIndent: state.paragraphIndent,
           paragraphSpacing: state.paragraphSpacing,
@@ -201,7 +229,10 @@ export default function ReaderScreen() {
           autoScrollMode: state.autoScrollMode,
         }).catch(() => {});
       }
+      // Aggressively free memory on exit
+      setChapters([]);
       ttsService.stop();
+      ttsService.setContent('');
     };
   }, [id]);
 

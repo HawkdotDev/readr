@@ -14,6 +14,7 @@ export type ThemeMode =
   | 'amberGlow';
 
 export type TextAlign = 'left' | 'justify';
+export type HeadingAlign = 'left' | 'center' | 'right';
 export type ReadingDirection = 'horizontal' | 'vertical';
 export type PageTurnStyle = 'slide' | 'curl' | 'fade' | 'none';
 export type PageTransitionMode = 'curl' | 'slide' | 'cover' | 'fade' | 'scroll' | 'none';
@@ -42,6 +43,7 @@ export interface UserSettings {
   lineHeight: number; // multiplier
   marginHorizontal: number; // dp
   textAlign: TextAlign;
+  chapterHeadingAlign?: HeadingAlign;
   keepAwake: boolean;
   hapticFeedback: boolean;
   ttsVoice?: string | null;

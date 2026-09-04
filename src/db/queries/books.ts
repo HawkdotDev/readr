@@ -387,3 +387,65 @@ export async function batchUpdateStatus(ids: string[], status: 'unread' | 'readi
     [status, progress, ...ids]
   );
 }
+
+export interface EnrichedHighlight extends Highlight {
+  bookTitle: string;
+  bookAuthor?: string;
+  coverImagePath?: string | null;
+}
+
+export async function getRecentHighlightsWithBooks(limit: number = 10): Promise<EnrichedHighlight[]> {
+  const { sqlite } = await getDatabase();
+  if (!sqlite) return [];
+
+  try {
+    const rows = (await sqlite.getAllAsync(
+      `SELECT 
+        h.id,
+        h.book_id,
+        h.location_cfi,
+        h.page_number,
+        h.selected_text,
+        h.color,
+        h.created_at,
+        h.updated_at,
+        n.content AS note_content,
+        b.title AS book_title,
+        b.cover_image_path,
+        (SELECT a.name FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id LIMIT 1) AS book_author
+       FROM highlights h
+       LEFT JOIN notes n ON n.highlight_id = h.id
+       JOIN books b ON h.book_id = b.id
+       ORDER BY h.created_at DESC
+       LIMIT ?;`,
+      [limit]
+    )) as any[];
+
+    return rows.map((r) => ({
+      id: r.id,
+      bookId: r.book_id,
+      locationCfi: r.location_cfi,
+      pageNumber: r.page_number,
+      selectedText: r.selected_text,
+      color: r.color as HighlightColor,
+      createdAt: new Date(r.created_at * 1000),
+      updatedAt: new Date(r.updated_at * 1000),
+      note: r.note_content
+        ? {
+            id: `note_${r.id}`,
+            highlightId: r.id,
+            content: r.note_content,
+            createdAt: new Date(r.created_at * 1000),
+            updatedAt: new Date(r.updated_at * 1000),
+          }
+        : null,
+      bookTitle: r.book_title,
+      bookAuthor: r.book_author || undefined,
+      coverImagePath: r.cover_image_path,
+    }));
+  } catch (e) {
+    console.warn('Failed to query recent highlights with books:', e);
+    return [];
+  }
+}
+

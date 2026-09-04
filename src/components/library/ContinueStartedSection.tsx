@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Image,
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
@@ -12,6 +11,7 @@ import { Book } from '../../types';
 import { BookOpen, BookMarked } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import * as Haptics from 'expo-haptics';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export interface ContinueStartedSectionProps {
   books: Book[];
@@ -90,7 +90,7 @@ export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
                 ]}
               >
                 {item.coverImagePath ? (
-                  <Image source={{ uri: item.coverImagePath }} style={styles.coverImage} resizeMode="cover" />
+                  <OptimizedImage source={{ uri: item.coverImagePath }} style={styles.coverImage} contentFit="cover" />
                 ) : (
                   <View style={[styles.placeholderCover, { backgroundColor: colors.accent }]}>
                     <BookOpen size={24} color={colors.isDark ? '#000000' : '#FFFFFF'} />

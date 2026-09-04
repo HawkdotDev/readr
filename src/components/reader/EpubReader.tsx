@@ -108,6 +108,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     lineHeight,
     marginHorizontal,
     textAlign,
+    chapterHeadingAlign,
     readingDirection,
     navigationMode,
     paragraphIndent,
@@ -343,7 +344,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               color: colors.textPrimary,
               fontSize: fontSize * 1.38,
               lineHeight: fontSize * 1.7,
-              textAlign,
+              textAlign: chapterHeadingAlign,
               fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
             },
           ]}
@@ -364,7 +365,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               color: colors.textPrimary,
               fontSize: fontSize * 1.2,
               lineHeight: fontSize * 1.5,
-              textAlign,
+              textAlign: chapterHeadingAlign,
               fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
             },
           ]}
@@ -385,7 +386,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               color: colors.textPrimary,
               fontSize: fontSize * 1.08,
               lineHeight: fontSize * 1.4,
-              textAlign,
+              textAlign: chapterHeadingAlign,
               fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
             },
           ]}
@@ -765,8 +766,28 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               >
                 {/* Editorial Header on First Page */}
                 {pIdx === 0 && (
-                  <View style={styles.headerBlock}>
-                    <Text style={[styles.chapterKicker, { color: colors.textSecondary }]}>
+                  <View
+                    style={[
+                      styles.headerBlock,
+                      {
+                        alignItems:
+                          chapterHeadingAlign === 'left'
+                            ? 'flex-start'
+                            : chapterHeadingAlign === 'right'
+                            ? 'flex-end'
+                            : 'center',
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chapterKicker,
+                        {
+                          color: colors.textSecondary,
+                          textAlign: chapterHeadingAlign,
+                        },
+                      ]}
+                    >
                       {currentChapter?.isFrontMatter
                         ? currentChapter.title.toUpperCase().includes('COVER')
                           ? 'COVER'
@@ -783,6 +804,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                         {
                           color: colors.textPrimary,
                           fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                          textAlign: chapterHeadingAlign,
                         },
                       ]}
                     >
@@ -837,8 +859,28 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             }}
           >
             {/* Editorial Chapter Header */}
-            <View style={styles.headerBlock}>
-              <Text style={[styles.chapterKicker, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.headerBlock,
+                {
+                  alignItems:
+                    chapterHeadingAlign === 'left'
+                      ? 'flex-start'
+                      : chapterHeadingAlign === 'right'
+                      ? 'flex-end'
+                      : 'center',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chapterKicker,
+                  {
+                    color: colors.textSecondary,
+                    textAlign: chapterHeadingAlign,
+                  },
+                ]}
+              >
                 {currentChapter?.isFrontMatter
                   ? currentChapter.title.toUpperCase().includes('COVER')
                     ? 'COVER'
@@ -855,6 +897,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                   {
                     color: colors.textPrimary,
                     fontFamily: fontFamily === 'System' ? FONTS.mona.bold : fontFamily,
+                    textAlign: chapterHeadingAlign,
                   },
                 ]}
               >

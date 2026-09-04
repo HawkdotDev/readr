@@ -3,10 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Compass, BookOpen, Check, Download } from 'lucide-react-native';
 import { OPDSBookEntry } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -69,10 +69,10 @@ export const RecommendedBooksSection: React.FC<RecommendedBooksSectionProps> = R
                 style={[styles.coverWrapper, { backgroundColor: colors.canvas }]}
               >
                 {book.coverUrl ? (
-                  <Image
+                  <OptimizedImage
                     source={{ uri: book.coverUrl }}
                     style={styles.coverImage}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <View

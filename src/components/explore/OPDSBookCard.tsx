@@ -3,11 +3,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { BookOpen, Check, Download } from 'lucide-react-native';
 import { OPDSBookEntry } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -48,10 +48,10 @@ export const OPDSBookCard: React.FC<OPDSBookCardProps> = React.memo(({
           ]}
         >
           {book.coverUrl ? (
-            <Image
+            <OptimizedImage
               source={{ uri: book.coverUrl }}
               style={styles.gridCoverImage}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <View
@@ -170,10 +170,10 @@ export const OPDSBookCard: React.FC<OPDSBookCardProps> = React.memo(({
         style={[styles.listCoverWrapper, { backgroundColor: colors.canvas }]}
       >
         {book.coverUrl ? (
-          <Image
+          <OptimizedImage
             source={{ uri: book.coverUrl }}
             style={styles.listCoverImage}
-            resizeMode="cover"
+            contentFit="cover"
           />
         ) : (
           <View

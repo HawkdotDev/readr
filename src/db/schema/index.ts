@@ -197,6 +197,7 @@ export const bookSettings = sqliteTable('book_settings', {
   lineHeight: real('line_height'),
   marginHorizontal: integer('margin_horizontal'),
   textAlign: text('text_align', { enum: ['left', 'justify'] }),
+  chapterHeadingAlign: text('chapter_heading_align', { enum: ['left', 'center', 'right'] }),
   activeTheme: text('active_theme'),
   paragraphIndent: real('paragraph_indent'),
   paragraphSpacing: real('paragraph_spacing'),

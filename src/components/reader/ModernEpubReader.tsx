@@ -78,6 +78,7 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
     lineHeight,
     marginHorizontal,
     textAlign,
+    chapterHeadingAlign,
     readingDirection,
     paragraphIndent,
     paragraphSpacing,
@@ -202,6 +203,7 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
       lineHeight,
       marginHorizontal,
       textAlign,
+      chapterHeadingAlign,
       colors,
       readingDirection,
       bionicReadingEnabled,
@@ -217,7 +219,7 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
       })),
       nameReplacements,
     });
-  }, [currentChapter, readingDirection, transitionDirection]);
+  }, [currentChapter, readingDirection, transitionDirection, chapterHeadingAlign]);
 
   // Push live config updates directly to DOM without reloading WebView
   useEffect(() => {
@@ -229,14 +231,15 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
             fontSize: ${fontSize},
             lineHeight: ${lineHeight},
             marginHorizontal: ${marginHorizontal},
-            textAlign: "${textAlign}"
+            textAlign: "${textAlign}",
+            chapterHeadingAlign: "${chapterHeadingAlign}"
           });
         }
         true;
       `;
       webViewRef.current.injectJavaScript(script);
     }
-  }, [colors, fontSize, lineHeight, marginHorizontal, textAlign]);
+  }, [colors, fontSize, lineHeight, marginHorizontal, textAlign, chapterHeadingAlign]);
 
   // Handle incoming bridge messages
   const handleMessage = (event: WebViewMessageEvent) => {

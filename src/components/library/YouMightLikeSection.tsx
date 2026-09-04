@@ -4,10 +4,10 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Image,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { useTheme } from '../common/ThemeProvider';
 import { Book } from '../../types';
 import { RecommendedBook, getPersonalizedRecommendations } from '../../services/recommendations/recommendationService';
@@ -86,7 +86,7 @@ export const YouMightLikeSection = React.memo<YouMightLikeSectionProps>(({
                 ]}
               >
                 {item.coverUrl ? (
-                  <Image source={{ uri: item.coverUrl }} style={styles.coverImage} resizeMode="cover" />
+                  <OptimizedImage source={{ uri: item.coverUrl }} style={styles.coverImage} contentFit="cover" />
                 ) : (
                   <View style={[styles.placeholderCover, { backgroundColor: colors.accent }]}>
                     <BookOpen size={24} color={colors.isDark ? '#000000' : '#FFFFFF'} />

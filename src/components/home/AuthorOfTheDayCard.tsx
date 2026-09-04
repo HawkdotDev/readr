@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Modal,
   ScrollView,
   Pressable,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { useTheme } from '../common/ThemeProvider';
 import {
   Feather,
@@ -116,10 +116,10 @@ export const AuthorOfTheDayCard: React.FC<SpotlightAuthorCardProps> = () => {
           >
             <View style={styles.sealMediaContainer}>
               {author.portraitUrl && !imgError ? (
-                <Image
+                <OptimizedImage
                   source={{ uri: author.portraitUrl }}
                   style={styles.authorPhoto}
-                  resizeMode="cover"
+                  contentFit="cover"
                   onError={() => setImgError(true)}
                 />
               ) : (
@@ -310,10 +310,10 @@ export const AuthorOfTheDayCard: React.FC<SpotlightAuthorCardProps> = () => {
                     ]}
                   >
                     {author.portraitUrl && !imgError ? (
-                      <Image
+                      <OptimizedImage
                         source={{ uri: author.portraitUrl }}
                         style={styles.dossierAuthorPhoto}
-                        resizeMode="cover"
+                        contentFit="cover"
                       />
                     ) : (
                       <Text style={[styles.dossierSealText, { color: colors.accent }]}>

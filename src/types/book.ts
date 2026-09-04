@@ -135,6 +135,7 @@ export interface BookSettings {
   lineHeight?: number | null;
   marginHorizontal?: number | null;
   textAlign?: 'left' | 'justify' | null;
+  chapterHeadingAlign?: 'left' | 'center' | 'right' | null;
   activeTheme?: string | null;
   paragraphIndent?: number | null;
   paragraphSpacing?: number | null;

@@ -4,6 +4,12 @@ if (typeof (global as any).Buffer === 'undefined') {
   (global as any).Buffer = Buffer;
 }
 import React, { useEffect, useState } from 'react';
+import { enableScreens, enableFreeze } from 'react-native-screens';
+
+// Activate native screen freezing & GPU surface detachment for background tabs
+enableScreens(true);
+enableFreeze(true);
+
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '../src/components/common/ThemeProvider';

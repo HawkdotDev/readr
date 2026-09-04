@@ -47,7 +47,31 @@ mock.module('react-native', () => ({
   Dimensions: {
     get: () => ({ width: 390, height: 844 }),
   },
+  Touchable: {
+    Mixin: {},
+  },
+  View: 'View',
+  Text: 'Text',
+  TouchableOpacity: 'TouchableOpacity',
+  ScrollView: 'ScrollView',
+  TextInput: 'TextInput',
+  ActivityIndicator: 'ActivityIndicator',
 }));
+
+mock.module('react-native-svg', () => {
+  const dummyComponent = () => null;
+  return {
+    default: dummyComponent,
+    Svg: dummyComponent,
+    Path: dummyComponent,
+    Rect: dummyComponent,
+    Circle: dummyComponent,
+    G: dummyComponent,
+    Line: dummyComponent,
+    Polyline: dummyComponent,
+    Polygon: dummyComponent,
+  };
+});
 
 mock.module('expo-speech', () => ({
   speak: () => {},

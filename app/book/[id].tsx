@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Alert,
   TextInput,
 } from 'react-native';
+import { OptimizedImage } from '../../src/components/common/OptimizedImage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { useBook } from '../../src/hooks/useBook';
@@ -108,7 +108,7 @@ export default function BookDetailsScreen() {
         <View style={styles.heroSection}>
           <View style={[styles.coverBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {book.coverImagePath ? (
-              <Image source={{ uri: book.coverImagePath }} style={styles.coverImage} resizeMode="cover" />
+              <OptimizedImage source={{ uri: book.coverImagePath }} style={styles.coverImage} contentFit="cover" />
             ) : (
               <View style={[styles.placeholderCover, { backgroundColor: colors.accent }]}>
                 <BookOpen size={48} color={colors.isDark ? '#000000' : '#FFFFFF'} />

@@ -24,6 +24,7 @@ export async function getBookSettings(bookId: string): Promise<BookSettings | nu
       lineHeight: row.lineHeight,
       marginHorizontal: row.marginHorizontal,
       textAlign: row.textAlign as any,
+      chapterHeadingAlign: (row as any).chapterHeadingAlign as any,
       activeTheme: row.activeTheme,
       paragraphIndent: row.paragraphIndent,
       paragraphSpacing: row.paragraphSpacing,
@@ -74,6 +75,7 @@ export async function saveBookSettings(bookId: string, settings: Partial<BookSet
     if (settings.lineHeight !== undefined) payload.lineHeight = settings.lineHeight;
     if (settings.marginHorizontal !== undefined) payload.marginHorizontal = settings.marginHorizontal;
     if (settings.textAlign !== undefined) payload.textAlign = settings.textAlign;
+    if (settings.chapterHeadingAlign !== undefined) payload.chapterHeadingAlign = settings.chapterHeadingAlign;
     if (settings.activeTheme !== undefined) payload.activeTheme = settings.activeTheme;
     if (settings.paragraphIndent !== undefined) payload.paragraphIndent = settings.paragraphIndent;
     if (settings.paragraphSpacing !== undefined) payload.paragraphSpacing = settings.paragraphSpacing;

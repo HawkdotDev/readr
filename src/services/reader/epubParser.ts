@@ -18,9 +18,59 @@ export interface ParsedBookContent {
   totalWords: number;
 }
 
+// ─── High-Performance In-Memory LRU Book Cache ──────────────────────────────
+interface CachedParsedBook {
+  content: ParsedBookContent;
+  timestamp: number;
+}
+
+export const PARSED_BOOK_CACHE = new Map<string, CachedParsedBook>();
+const MAX_CACHED_BOOKS = 5;
+
+export function getCachedBookContent(cacheKey: string): ParsedBookContent | null {
+  const cached = PARSED_BOOK_CACHE.get(cacheKey);
+  if (cached) {
+    // Refresh LRU order
+    PARSED_BOOK_CACHE.delete(cacheKey);
+    PARSED_BOOK_CACHE.set(cacheKey, { ...cached, timestamp: Date.now() });
+    return cached.content;
+  }
+  return null;
+}
+
+export function setCachedBookContent(cacheKey: string, content: ParsedBookContent): void {
+  if (PARSED_BOOK_CACHE.size >= MAX_CACHED_BOOKS) {
+    const oldestKey = PARSED_BOOK_CACHE.keys().next().value;
+    if (oldestKey) {
+      PARSED_BOOK_CACHE.delete(oldestKey);
+    }
+  }
+  PARSED_BOOK_CACHE.set(cacheKey, { content, timestamp: Date.now() });
+}
+
+export function clearParsedBookCache(): void {
+  PARSED_BOOK_CACHE.clear();
+}
+
+/**
+ * Pre-warms the chapter cache in the background so tapping a book opens in 0ms.
+ */
+export async function prewarmBookCache(
+  filePath: string,
+  format: string,
+  defaultTitle: string
+): Promise<void> {
+  const normalizedFormat = format.toLowerCase().trim();
+  const cacheKey = `${filePath}::${normalizedFormat}::${defaultTitle}`;
+  if (PARSED_BOOK_CACHE.has(cacheKey)) return;
+  try {
+    await parseBookFile(filePath, format, defaultTitle);
+  } catch {}
+}
+
 /**
  * Main dispatcher to parse any book format into structured chapters.
- * Resilient against non-zip files marked as EPUB, corrupt headers, and web/native filesystem differences.
+ * If already cached in memory, returns immediately in 0ms.
  */
 export async function parseBookFile(
   filePath: string,
@@ -28,21 +78,30 @@ export async function parseBookFile(
   defaultTitle: string
 ): Promise<ParsedBookContent> {
   const normalizedFormat = format.toLowerCase().trim();
+  const cacheKey = `${filePath}::${normalizedFormat}::${defaultTitle}`;
+
+  // 0ms Instant Cache Hit
+  const cached = getCachedBookContent(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
   try {
+    let result: ParsedBookContent;
+
     // 1. If format is EPUB (or filename ends with .epub)
     if (normalizedFormat === 'epub' || filePath.toLowerCase().endsWith('.epub')) {
       try {
-        return await parseEpubArchive(filePath, defaultTitle);
+        result = await parseEpubArchive(filePath, defaultTitle);
+        setCachedBookContent(cacheKey, result);
+        return result;
       } catch (epubErr) {
         console.warn(`[epubParser] Failed to parse EPUB archive at ${filePath}, checking for text/html fallback:`, epubErr);
-        // Fallback: If the file was not a zip archive (e.g. plain text or HTML saved as .epub),
-        // read it as text rather than displaying generic placeholder text!
         const rawContent = await readFileAsTextSafe(filePath);
         if (rawContent && rawContent.trim().length > 0) {
           if (rawContent.includes('<!DOCTYPE') || rawContent.includes('<html') || rawContent.includes('<p>')) {
             const { cleanHtml, chapterTitle, wordCount } = processChapterHtml(rawContent, 0, defaultTitle);
-            return {
+            result = {
               title: chapterTitle || defaultTitle,
               author: 'Unknown Author',
               chapters: [
@@ -56,8 +115,12 @@ export async function parseBookFile(
               ],
               totalWords: wordCount,
             };
+            setCachedBookContent(cacheKey, result);
+            return result;
           }
-          return parseTextContent(rawContent, defaultTitle);
+          result = parseTextContent(rawContent, defaultTitle);
+          setCachedBookContent(cacheKey, result);
+          return result;
         }
       }
     }
@@ -65,12 +128,16 @@ export async function parseBookFile(
     // 2. FictionBook 2 (.fb2)
     if (normalizedFormat === 'fb2' || filePath.toLowerCase().endsWith('.fb2')) {
       const rawXml = await readFileAsTextSafe(filePath);
-      return parseFb2Content(rawXml, defaultTitle);
+      result = parseFb2Content(rawXml, defaultTitle);
+      setCachedBookContent(cacheKey, result);
+      return result;
     }
 
     // 3. Default plain text / Markdown / HTML reader
     const rawContent = await readFileAsTextSafe(filePath);
-    return parseTextContent(rawContent, defaultTitle);
+    result = parseTextContent(rawContent, defaultTitle);
+    setCachedBookContent(cacheKey, result);
+    return result;
   } catch (err) {
     console.warn(`[epubParser] Failed to parse ${format} file at ${filePath}:`, err);
     return createSampleBookContent(defaultTitle);

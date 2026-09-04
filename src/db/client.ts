@@ -13,9 +13,9 @@ export const PERFORMANCE_PRAGMAS = [
   'PRAGMA journal_mode = WAL;',
   'PRAGMA synchronous = NORMAL;',
   'PRAGMA foreign_keys = ON;',
-  'PRAGMA cache_size = -64000;', // 64MB memory page cache
-  'PRAGMA temp_store = MEMORY;',
-  'PRAGMA mmap_size = 268435456;', // 256MB memory mapping
+  'PRAGMA cache_size = -4000;', // 4MB memory page cache (lightweight on mobile RAM)
+  'PRAGMA temp_store = FILE;',
+  'PRAGMA mmap_size = 0;', // Disable 256MB mmap virtual memory allocation
 ];
 
 export const TABLE_CREATION_STATEMENTS = [
@@ -185,6 +185,7 @@ export const TABLE_CREATION_STATEMENTS = [
     line_height REAL,
     margin_horizontal INTEGER,
     text_align TEXT,
+    chapter_heading_align TEXT,
     active_theme TEXT,
     paragraph_indent REAL,
     paragraph_spacing REAL,
@@ -225,6 +226,7 @@ export const MIGRATION_STATEMENTS = [
   'ALTER TABLE book_settings ADD COLUMN warmth_level REAL;',
   'ALTER TABLE book_settings ADD COLUMN auto_scroll_speed INTEGER;',
   'ALTER TABLE book_settings ADD COLUMN auto_scroll_mode TEXT;',
+  'ALTER TABLE book_settings ADD COLUMN chapter_heading_align TEXT;',
 ];
 
 export const INDEX_STATEMENTS = [

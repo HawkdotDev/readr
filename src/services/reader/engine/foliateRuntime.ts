@@ -1,4 +1,4 @@
-import { ThemeColors, TextAlign, ReadingDirection, BionicFixation, HighlightColor } from '../../../types';
+import { ThemeColors, TextAlign, HeadingAlign, ReadingDirection, BionicFixation, HighlightColor } from '../../../types';
 
 export interface FoliateEngineConfig {
   fontSize: number;
@@ -6,6 +6,7 @@ export interface FoliateEngineConfig {
   lineHeight: number;
   marginHorizontal: number;
   textAlign: TextAlign;
+  chapterHeadingAlign?: HeadingAlign;
   colors: ThemeColors;
   readingDirection: ReadingDirection;
   bionicReadingEnabled: boolean;
@@ -28,6 +29,7 @@ export function generateFoliateHtml(
     lineHeight,
     marginHorizontal,
     textAlign,
+    chapterHeadingAlign,
     colors,
     readingDirection,
     paragraphIndent,
@@ -58,6 +60,7 @@ export function generateFoliateHtml(
       --readr-line-height: ${lineHeight};
       --readr-margin: ${marginHorizontal}px;
       --readr-text-align: ${textAlign};
+      --readr-heading-align: ${chapterHeadingAlign || 'left'};
       --readr-font-family: ${resolvedFont};
       --readr-para-indent: ${paragraphIndent > 0 ? `${paragraphIndent * 1.5}em` : '0'};
       --readr-para-gap: ${paragraphSpacing * 14}px;
@@ -145,6 +148,7 @@ export function generateFoliateHtml(
       line-height: 1.3;
       margin-top: 1.4em;
       margin-bottom: 0.6em;
+      text-align: var(--readr-heading-align) !important;
       break-after: avoid;
       page-break-after: avoid;
     }
@@ -465,6 +469,7 @@ export function generateFoliateHtml(
           if (cfg.lineHeight) root.style.setProperty('--readr-line-height', cfg.lineHeight);
           if (cfg.marginHorizontal) root.style.setProperty('--readr-margin', cfg.marginHorizontal + 'px');
           if (cfg.textAlign) root.style.setProperty('--readr-text-align', cfg.textAlign);
+          if (cfg.chapterHeadingAlign) root.style.setProperty('--readr-heading-align', cfg.chapterHeadingAlign);
           if (isHorizontal) recalculatePages();
         }
       };

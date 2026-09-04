@@ -13,6 +13,8 @@ import { useTheme } from '../../common/ThemeProvider';
 import { useReaderStore } from '../../../store/readerStore';
 import {
   AlignLeft,
+  AlignCenter,
+  AlignRight,
   AlignJustify,
   Minus,
   Plus,
@@ -32,6 +34,7 @@ export function TypographyTab() {
     lineHeight,
     marginHorizontal,
     textAlign,
+    chapterHeadingAlign,
     paragraphIndent,
     paragraphSpacing,
     dropCaps,
@@ -41,6 +44,7 @@ export function TypographyTab() {
     setLineHeight,
     setMarginHorizontal,
     setTextAlign,
+    setChapterHeadingAlign,
     setParagraphIndent,
     setParagraphSpacing,
     setDropCaps,
@@ -234,6 +238,99 @@ export function TypographyTab() {
             ]}
           >
             Justified
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Chapter Headings Alignment */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 4 }]}>
+        CHAPTER HEADINGS ALIGNMENT
+      </Text>
+      <View style={styles.alignRow}>
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            setChapterHeadingAlign('left');
+          }}
+          style={[
+            styles.alignBtn,
+            {
+              backgroundColor: chapterHeadingAlign === 'left' ? colors.accent : colors.canvas,
+              borderColor: chapterHeadingAlign === 'left' ? colors.accent : colors.border,
+            },
+          ]}
+        >
+          <AlignLeft
+            size={18}
+            color={chapterHeadingAlign === 'left' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary}
+          />
+          <Text
+            style={[
+              styles.alignBtnText,
+              {
+                color: chapterHeadingAlign === 'left' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+              },
+            ]}
+          >
+            Left
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            setChapterHeadingAlign('center');
+          }}
+          style={[
+            styles.alignBtn,
+            {
+              backgroundColor: chapterHeadingAlign === 'center' ? colors.accent : colors.canvas,
+              borderColor: chapterHeadingAlign === 'center' ? colors.accent : colors.border,
+            },
+          ]}
+        >
+          <AlignCenter
+            size={18}
+            color={chapterHeadingAlign === 'center' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary}
+          />
+          <Text
+            style={[
+              styles.alignBtnText,
+              {
+                color: chapterHeadingAlign === 'center' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+              },
+            ]}
+          >
+            Center
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            setChapterHeadingAlign('right');
+          }}
+          style={[
+            styles.alignBtn,
+            {
+              backgroundColor: chapterHeadingAlign === 'right' ? colors.accent : colors.canvas,
+              borderColor: chapterHeadingAlign === 'right' ? colors.accent : colors.border,
+            },
+          ]}
+        >
+          <AlignRight
+            size={18}
+            color={chapterHeadingAlign === 'right' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary}
+          />
+          <Text
+            style={[
+              styles.alignBtnText,
+              {
+                color: chapterHeadingAlign === 'right' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary,
+              },
+            ]}
+          >
+            Right
           </Text>
         </TouchableOpacity>
       </View>

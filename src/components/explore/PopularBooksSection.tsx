@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Sparkles, BookOpen, Check, Download } from 'lucide-react-native';
 import { OPDSBookEntry } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -75,10 +75,10 @@ export const PopularBooksSection: React.FC<PopularBooksSectionProps> = React.mem
                 ]}
               >
                 {book.coverUrl ? (
-                  <Image
+                  <OptimizedImage
                     source={{ uri: book.coverUrl }}
                     style={styles.coverImage}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <View

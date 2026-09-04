@@ -6,6 +6,7 @@ import {
   TOCEntry,
   ThemeMode,
   TextAlign,
+  HeadingAlign,
   ReadingDirection,
   PageTurnStyle,
   PageTransitionMode,
@@ -52,6 +53,7 @@ export interface ReaderState {
   lineHeight: number;
   marginHorizontal: number;
   textAlign: TextAlign;
+  chapterHeadingAlign: HeadingAlign;
   activeTheme: ThemeMode;
   warmthLevel: number; // 0.0 to 1.0 (0-95% blue light filter scale)
 
@@ -125,6 +127,7 @@ export interface ReaderState {
   setLineHeight: (height: number) => void;
   setMarginHorizontal: (margin: number) => void;
   setTextAlign: (align: TextAlign) => void;
+  setChapterHeadingAlign: (align: HeadingAlign) => void;
   setActiveTheme: (theme: ThemeMode) => void;
   setWarmthLevel: (warmth: number) => void;
 
@@ -185,6 +188,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   lineHeight: 1.5,
   marginHorizontal: 20,
   textAlign: 'left',
+  chapterHeadingAlign: 'left',
   activeTheme: 'light',
   warmthLevel: 0.0,
 
@@ -288,6 +292,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setLineHeight: (lineHeight) => set({ lineHeight: Math.max(1.1, Math.min(2.5, lineHeight)) }),
   setMarginHorizontal: (marginHorizontal) => set({ marginHorizontal: Math.max(8, Math.min(48, marginHorizontal)) }),
   setTextAlign: (textAlign) => set({ textAlign }),
+  setChapterHeadingAlign: (chapterHeadingAlign) => set({ chapterHeadingAlign }),
   setActiveTheme: (activeTheme) => set({ activeTheme }),
   setWarmthLevel: (warmthLevel) => set({ warmthLevel: Math.max(0.0, Math.min(0.95, warmthLevel)) }),
 
