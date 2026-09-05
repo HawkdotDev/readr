@@ -36,7 +36,6 @@ import {
   Sparkles,
   Smartphone,
   Square,
-  RectangleHorizontal,
   ExternalLink,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -56,7 +55,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
   const cardRef = useRef<View>(null);
 
   // Customization States
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('1:1');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioType>('3:4');
   const [themeId, setThemeId] = useState<'paper' | 'obsidian' | 'bookcloth' | 'bento'>('paper');
   const [showExample, setShowExample] = useState(true);
   const [showEtymology, setShowEtymology] = useState(true);
@@ -175,6 +174,33 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync().catch(() => {});
+                    setAspectRatio('3:4');
+                  }}
+                  style={[
+                    styles.segmentBtn,
+                    aspectRatio === '3:4' && [
+                      styles.segmentBtnActive,
+                      { backgroundColor: colors.canvas, borderColor: colors.accent },
+                    ],
+                  ]}
+                >
+                  <Smartphone size={13} color={aspectRatio === '3:4' ? colors.accent : colors.textSecondary} style={{ marginRight: 5 }} />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: aspectRatio === '3:4' ? colors.accent : colors.textSecondary,
+                        fontFamily: aspectRatio === '3:4' ? FONTS.mona.bold : FONTS.mona.medium,
+                      },
+                    ]}
+                  >
+                    3:4 Portrait
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
                     setAspectRatio('1:1');
                   }}
                   style={[
@@ -196,60 +222,6 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                     ]}
                   >
                     1:1 Square
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
-                    setAspectRatio('9:16');
-                  }}
-                  style={[
-                    styles.segmentBtn,
-                    aspectRatio === '9:16' && [
-                      styles.segmentBtnActive,
-                      { backgroundColor: colors.canvas, borderColor: colors.accent },
-                    ],
-                  ]}
-                >
-                  <Smartphone size={13} color={aspectRatio === '9:16' ? colors.accent : colors.textSecondary} style={{ marginRight: 5 }} />
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color: aspectRatio === '9:16' ? colors.accent : colors.textSecondary,
-                        fontFamily: aspectRatio === '9:16' ? FONTS.mona.bold : FONTS.mona.medium,
-                      },
-                    ]}
-                  >
-                    9:16 Story
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
-                    setAspectRatio('16:9');
-                  }}
-                  style={[
-                    styles.segmentBtn,
-                    aspectRatio === '16:9' && [
-                      styles.segmentBtnActive,
-                      { backgroundColor: colors.canvas, borderColor: colors.accent },
-                    ],
-                  ]}
-                >
-                  <RectangleHorizontal size={13} color={aspectRatio === '16:9' ? colors.accent : colors.textSecondary} style={{ marginRight: 5 }} />
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color: aspectRatio === '16:9' ? colors.accent : colors.textSecondary,
-                        fontFamily: aspectRatio === '16:9' ? FONTS.mona.bold : FONTS.mona.medium,
-                      },
-                    ]}
-                  >
-                    16:9 Card
                   </Text>
                 </TouchableOpacity>
               </View>

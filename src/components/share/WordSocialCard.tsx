@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  useWindowDimensions,
 } from 'react-native';
 import { Sparkles, BookOpen, Bookmark } from 'lucide-react-native';
 import { LiteraryWord } from '../../services/editorial/literaryLexiconService';
@@ -13,7 +12,7 @@ import {
 } from '../../services/share/socialPostService';
 import { FONTS } from '../../utils/typography';
 
-export type AspectRatioType = '9:16' | '1:1' | '16:9';
+export type AspectRatioType = '1:1' | '3:4';
 
 export interface WordSocialCardProps {
   literaryWord: LiteraryWord;
@@ -31,7 +30,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
     {
       literaryWord,
       themeId = 'paper',
-      aspectRatio = '1:1',
+      aspectRatio = '3:4',
       showPhonetic = true,
       showExample = true,
       showEtymology = true,
@@ -42,18 +41,10 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
   ) => {
     const theme: SocialCardThemeConfig = SOCIAL_CARD_THEMES[themeId] || SOCIAL_CARD_THEMES.paper;
 
-    // Calculate dimensions based on aspect ratio
-    // Base width: 340px for comfortable preview
+    // Base width: 340px
     const baseWidth = 340 * scale;
-    let cardHeight = baseWidth; // 1:1
-    if (aspectRatio === '9:16') {
-      cardHeight = (baseWidth * 16) / 9;
-    } else if (aspectRatio === '16:9') {
-      cardHeight = (baseWidth * 9) / 16;
-    }
-
-    const isStory = aspectRatio === '9:16';
-    const isBanner = aspectRatio === '16:9';
+    const isPortrait = aspectRatio === '3:4';
+    const cardHeight = isPortrait ? Math.round((baseWidth * 4) / 3) : baseWidth;
 
     return (
       <View
@@ -69,40 +60,41 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
           },
         ]}
       >
-        {/* Inner Decorative Framing Rule */}
+        {/* Inner Framing Rule */}
         <View
           style={[
             styles.innerFrame,
             {
+              margin: (isPortrait ? 10 : 6) * scale,
+              padding: (isPortrait ? 16 : 12) * scale,
               borderColor: theme.cardBorderColor,
             },
           ]}
         >
           {/* Header Eyebrow */}
-          <View style={styles.headerRow}>
+          <View style={[styles.headerRow, { paddingBottom: (isPortrait ? 8 : 4) * scale }]}>
             <View style={styles.eyebrowLeft}>
-              <Sparkles size={13 * scale} color={theme.accentColor} style={{ marginRight: 5 * scale }} />
+              <Sparkles size={(isPortrait ? 13 : 11) * scale} color={theme.accentColor} style={{ marginRight: 5 * scale }} />
               <Text
                 style={[
                   styles.eyebrowText,
                   {
                     color: theme.accentColor,
-                    fontSize: 10 * scale,
+                    fontSize: (isPortrait ? 10 : 9) * scale,
                   },
                 ]}
               >
                 WORD OF THE DAY
               </Text>
             </View>
-            <Bookmark size={14 * scale} color={theme.secondaryTextColor} />
+            <Bookmark size={(isPortrait ? 13 : 11) * scale} color={theme.secondaryTextColor} />
           </View>
 
           {/* Central Body Content */}
           <View
             style={[
               styles.centerContent,
-              isStory && styles.centerContentStory,
-              isBanner && styles.centerContentBanner,
+              isPortrait ? styles.centerContentPortrait : styles.centerContentSquare,
             ]}
           >
             {/* Main Word */}
@@ -111,8 +103,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                 styles.wordHeading,
                 {
                   color: theme.primaryTextColor,
-                  fontSize: (isBanner ? 26 : isStory ? 34 : 30) * scale,
-                  lineHeight: (isBanner ? 32 : isStory ? 40 : 36) * scale,
+                  fontSize: (isPortrait ? 32 : 24) * scale,
+                  lineHeight: (isPortrait ? 38 : 28) * scale,
                 },
               ]}
               numberOfLines={2}
@@ -122,13 +114,13 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
 
             {/* Phonetic & Part of Speech Badge */}
             {showPhonetic && (
-              <View style={styles.metaRow}>
+              <View style={[styles.metaRow, { marginTop: (isPortrait ? 6 : 3) * scale }]}>
                 <Text
                   style={[
                     styles.phoneticText,
                     {
                       color: theme.accentColor,
-                      fontSize: 13 * scale,
+                      fontSize: (isPortrait ? 13 : 11.5) * scale,
                     },
                   ]}
                 >
@@ -140,6 +132,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                     {
                       backgroundColor: theme.badgeBg,
                       borderColor: theme.badgeBorder,
+                      paddingHorizontal: (isPortrait ? 7 : 5) * scale,
+                      paddingVertical: 1.5 * scale,
                     },
                   ]}
                 >
@@ -148,7 +142,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                       styles.posText,
                       {
                         color: theme.secondaryTextColor,
-                        fontSize: 11 * scale,
+                        fontSize: (isPortrait ? 10 : 9) * scale,
                       },
                     ]}
                   >
@@ -164,56 +158,100 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                 styles.definitionText,
                 {
                   color: theme.primaryTextColor,
-                  fontSize: (isBanner ? 12 : isStory ? 15 : 13.5) * scale,
-                  lineHeight: (isBanner ? 17 : isStory ? 22 : 20) * scale,
-                  marginVertical: (isBanner ? 6 : 10) * scale,
+                  fontSize: (isPortrait ? 13.5 : 12) * scale,
+                  lineHeight: (isPortrait ? 20 : 16.5) * scale,
+                  marginVertical: (isPortrait ? 10 : 5) * scale,
                 },
               ]}
-              numberOfLines={isBanner ? 2 : 4}
+              numberOfLines={isPortrait ? 4 : 3}
             >
               {literaryWord.definition}
             </Text>
 
-            {/* Literary Example Quote Box */}
-            {showExample && !isBanner && (
-              <View
-                style={[
-                  styles.quoteBox,
-                  {
-                    backgroundColor: theme.quoteBoxBg,
-                    borderColor: theme.cardBorderColor,
-                    padding: (isStory ? 14 : 10) * scale,
-                    marginTop: (isStory ? 12 : 6) * scale,
-                  },
-                ]}
-              >
-                <Text
+            {/* Literary Example Quote */}
+            {showExample && (
+              isPortrait ? (
+                // 3:4 Portrait: Full padded callout card
+                <View
                   style={[
-                    styles.exampleQuote,
+                    styles.quoteBoxPortrait,
                     {
-                      color: theme.primaryTextColor,
-                      fontSize: (isStory ? 13 : 11.5) * scale,
-                      lineHeight: (isStory ? 18 : 16) * scale,
+                      backgroundColor: theme.quoteBoxBg,
+                      borderColor: theme.cardBorderColor,
+                      padding: 12 * scale,
+                      marginTop: 8 * scale,
                     },
                   ]}
-                  numberOfLines={isStory ? 4 : 3}
                 >
-                  "{literaryWord.literaryExample}"
-                </Text>
-                <Text
+                  <Text
+                    style={[
+                      styles.exampleQuote,
+                      {
+                        color: theme.primaryTextColor,
+                        fontSize: 12 * scale,
+                        lineHeight: 17 * scale,
+                      },
+                    ]}
+                    numberOfLines={4}
+                  >
+                    "{literaryWord.literaryExample}"
+                  </Text>
+                  <Text
+                    style={[
+                      styles.citationText,
+                      {
+                        color: theme.secondaryTextColor,
+                        fontSize: 10 * scale,
+                        marginTop: 4 * scale,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    — {literaryWord.citation}
+                  </Text>
+                </View>
+              ) : (
+                // 1:1 Square: Decongested, airy literary blockquote border
+                <View
                   style={[
-                    styles.citationText,
+                    styles.quoteBoxSquare,
                     {
-                      color: theme.secondaryTextColor,
-                      fontSize: 10 * scale,
+                      borderLeftColor: theme.accentColor,
+                      borderLeftWidth: 2.5 * scale,
+                      paddingLeft: 8 * scale,
                       marginTop: 4 * scale,
+                      marginVertical: 2 * scale,
                     },
                   ]}
-                  numberOfLines={1}
                 >
-                  — {literaryWord.citation}
-                </Text>
-              </View>
+                  <Text
+                    style={[
+                      styles.exampleQuote,
+                      {
+                        color: theme.primaryTextColor,
+                        fontSize: 11 * scale,
+                        lineHeight: 15 * scale,
+                      },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    "{literaryWord.literaryExample}"
+                  </Text>
+                  <Text
+                    style={[
+                      styles.citationText,
+                      {
+                        color: theme.secondaryTextColor,
+                        fontSize: 9.5 * scale,
+                        marginTop: 2 * scale,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    — {literaryWord.citation}
+                  </Text>
+                </View>
+              )
             )}
 
             {/* Etymology / Word Origin */}
@@ -223,11 +261,11 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                   styles.etymologyText,
                   {
                     color: theme.secondaryTextColor,
-                    fontSize: (isBanner ? 9.5 : 10.5) * scale,
-                    marginTop: (isBanner ? 4 : 8) * scale,
+                    fontSize: (isPortrait ? 10.5 : 9.5) * scale,
+                    marginTop: (isPortrait ? 8 : 4) * scale,
                   },
                 ]}
-                numberOfLines={isBanner ? 1 : 2}
+                numberOfLines={isPortrait ? 2 : 1}
               >
                 Origin: {literaryWord.etymology}
               </Text>
@@ -236,15 +274,23 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
 
           {/* Footer Watermark */}
           {showWatermark && (
-            <View style={[styles.footerRow, { borderTopColor: theme.cardBorderColor }]}>
+            <View
+              style={[
+                styles.footerRow,
+                {
+                  borderTopColor: theme.cardBorderColor,
+                  paddingTop: (isPortrait ? 8 : 5) * scale,
+                },
+              ]}
+            >
               <View style={styles.footerBrand}>
-                <BookOpen size={11 * scale} color={theme.accentColor} style={{ marginRight: 5 * scale }} />
+                <BookOpen size={(isPortrait ? 11 : 9.5) * scale} color={theme.accentColor} style={{ marginRight: 4 * scale }} />
                 <Text
                   style={[
                     styles.brandText,
                     {
                       color: theme.primaryTextColor,
-                      fontSize: 10 * scale,
+                      fontSize: (isPortrait ? 10 : 9) * scale,
                     },
                   ]}
                 >
@@ -256,7 +302,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                   styles.watermarkTagline,
                   {
                     color: theme.watermarkColor,
-                    fontSize: 9.5 * scale,
+                    fontSize: (isPortrait ? 9.5 : 8.5) * scale,
                   },
                 ]}
               >
@@ -278,24 +324,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
   },
   innerFrame: {
     flex: 1,
-    margin: 8,
-    borderRadius: 14,
+    borderRadius: 13,
     borderWidth: 1,
-    padding: 14,
     justifyContent: 'space-between',
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 6,
   },
   eyebrowLeft: {
     flexDirection: 'row',
@@ -310,12 +353,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  centerContentStory: {
-    justifyContent: 'center',
-    paddingVertical: 14,
+  centerContentPortrait: {
+    paddingVertical: 8,
   },
-  centerContentBanner: {
-    justifyContent: 'center',
+  centerContentSquare: {
+    paddingVertical: 2,
   },
   wordHeading: {
     fontFamily: FONTS.mona.extraBold,
@@ -324,16 +366,13 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    gap: 8,
+    gap: 6,
   },
   phoneticText: {
     fontFamily: FONTS.mono.medium,
   },
   posBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1,
   },
   posText: {
@@ -345,9 +384,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mona.medium,
     letterSpacing: -0.2,
   },
-  quoteBox: {
+  quoteBoxPortrait: {
     borderRadius: 12,
     borderWidth: 1,
+  },
+  quoteBoxSquare: {
+    backgroundColor: 'transparent',
   },
   exampleQuote: {
     fontFamily: FONTS.mona.regular,
@@ -365,7 +407,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   footerBrand: {
