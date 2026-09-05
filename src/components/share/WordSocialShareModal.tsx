@@ -141,13 +141,19 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <View style={styles.backdrop}>
+        {/* Scrim tap-to-dismiss background */}
         <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss share modal"
+        />
+        <View
           style={[
             styles.modalContainer,
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Top Header */}
           <View style={[styles.headerRow, { borderBottomColor: colors.border }]}>
@@ -171,6 +177,10 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            bounces={true}
+            overScrollMode="always"
           >
             {/* Aspect Ratio Switcher */}
             <View style={styles.sectionBlock}>
@@ -471,8 +481,8 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
               </View>
             </View>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 };
@@ -492,7 +502,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderBottomWidth: 0,
-    overflow: 'hidden',
   },
   headerRow: {
     flexDirection: 'row',
