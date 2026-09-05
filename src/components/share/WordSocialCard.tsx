@@ -12,7 +12,7 @@ import {
 } from '../../services/share/socialPostService';
 import { FONTS } from '../../utils/typography';
 
-export type AspectRatioType = '1:1' | '3:3.75' | '3:4';
+export type AspectRatioType = '1:1' | '3:4';
 
 export interface WordSocialCardProps {
   literaryWord: LiteraryWord;
@@ -30,7 +30,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
     {
       literaryWord,
       themeId = 'paper',
-      aspectRatio = '3:3.75',
+      aspectRatio = '3:4',
       showPhonetic = true,
       showExample = true,
       showEtymology = true,
@@ -45,14 +45,12 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
     const baseWidth = 340 * scale;
     let cardHeight = baseWidth; // 1:1
     if (aspectRatio === '3:4') {
-      cardHeight = Math.round((baseWidth * 4) / 3); // 453px
-    } else if (aspectRatio === '3:3.75') {
-      cardHeight = Math.round((baseWidth * 3.75) / 3); // 425px
+      cardHeight = Math.round((baseWidth * 3.75) / 3); // 425px (new 3:4 ratio)
     }
 
-    const isPortrait = aspectRatio === '3:4' || aspectRatio === '3:3.75';
+    const isPortrait = aspectRatio === '3:4';
 
-    // Proportional styling scalars (identical for 3:4 and 3:3.75)
+    // Proportional styling scalars
     const frameMargin = (isPortrait ? 10 : 6) * scale;
     const framePadding = (isPortrait ? 16 : 12) * scale;
     const wordFontSize = (isPortrait ? 32 : 24) * scale;
@@ -186,7 +184,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
             {/* Literary Example Quote */}
             {showExample && (
               isPortrait ? (
-                // Portrait (3:4 & 3:3.75): Padded Callout Card
+                // Portrait (3:4): Padded Callout Card
                 <View
                   style={[
                     styles.quoteBoxPortrait,
@@ -278,7 +276,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                     color: theme.secondaryTextColor,
                     fontSize: (isPortrait ? 10.5 : 9.5) * scale,
                     marginTop: (isPortrait ? 8 : 4) * scale,
-                    paddingBottom: (aspectRatio === '3:3.75' ? 5 : 0) * scale,
+                    paddingBottom: (isPortrait ? 5 : 0) * scale,
                   },
                 ]}
                 numberOfLines={isPortrait ? 2 : 1}

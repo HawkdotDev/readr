@@ -201,33 +201,6 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync().catch(() => {});
-                    setAspectRatio('3:3.75');
-                  }}
-                  style={[
-                    styles.segmentBtn,
-                    aspectRatio === '3:3.75' && [
-                      styles.segmentBtnActive,
-                      { backgroundColor: colors.canvas, borderColor: colors.accent },
-                    ],
-                  ]}
-                >
-                  <Smartphone size={12} color={aspectRatio === '3:3.75' ? colors.accent : colors.textSecondary} style={{ marginRight: 4 }} />
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color: aspectRatio === '3:3.75' ? colors.accent : colors.textSecondary,
-                        fontFamily: aspectRatio === '3:3.75' ? FONTS.mona.bold : FONTS.mona.medium,
-                      },
-                    ]}
-                  >
-                    3:3.75 Feed
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
                     setAspectRatio('1:1');
                   }}
                   style={[
