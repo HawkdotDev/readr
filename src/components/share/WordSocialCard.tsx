@@ -50,18 +50,16 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
       cardHeight = Math.round((baseWidth * 3.75) / 3); // 425px
     }
 
-    const isTall = aspectRatio === '3:4';
-    const isMedium = aspectRatio === '3:3.75';
-    const isPortrait = isTall || isMedium;
+    const isPortrait = aspectRatio === '3:4' || aspectRatio === '3:3.75';
 
-    // Proportional styling scalars
-    const frameMargin = (isTall ? 10 : isMedium ? 8 : 6) * scale;
-    const framePadding = (isTall ? 16 : isMedium ? 14 : 12) * scale;
+    // Proportional styling scalars (identical for 3:4 and 3:3.75)
+    const frameMargin = (isPortrait ? 10 : 6) * scale;
+    const framePadding = (isPortrait ? 16 : 12) * scale;
     const wordFontSize = (isPortrait ? 32 : 24) * scale;
     const wordLineHeight = (isPortrait ? 38 : 28) * scale;
     const defFontSize = (isPortrait ? 13.5 : 12) * scale;
     const defLineHeight = (isPortrait ? 20 : 16.5) * scale;
-    const defMarginY = (isTall ? 10 : isMedium ? 8 : 5) * scale;
+    const defMarginY = (isPortrait ? 10 : 5) * scale;
 
     return (
       <View
@@ -131,7 +129,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
 
             {/* Phonetic & Part of Speech Badge */}
             {showPhonetic && (
-              <View style={[styles.metaRow, { marginTop: (isPortrait ? 5 : 3) * scale }]}>
+              <View style={[styles.metaRow, { marginTop: (isPortrait ? 6 : 3) * scale }]}>
                 <Text
                   style={[
                     styles.phoneticText,
@@ -195,8 +193,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                     {
                       backgroundColor: theme.quoteBoxBg,
                       borderColor: theme.cardBorderColor,
-                      padding: (isTall ? 12 : 10) * scale,
-                      marginTop: (isTall ? 8 : 6) * scale,
+                      padding: 12 * scale,
+                      marginTop: 8 * scale,
                     },
                   ]}
                 >
@@ -209,7 +207,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                         lineHeight: (isPortrait ? 17 : 15) * scale,
                       },
                     ]}
-                    numberOfLines={isTall ? 4 : 3}
+                    numberOfLines={4}
                   >
                     "{literaryWord.literaryExample}"
                   </Text>
@@ -279,7 +277,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                   {
                     color: theme.secondaryTextColor,
                     fontSize: (isPortrait ? 10.5 : 9.5) * scale,
-                    marginTop: (isPortrait ? 7 : 4) * scale,
+                    marginTop: (isPortrait ? 8 : 4) * scale,
                   },
                 ]}
                 numberOfLines={isPortrait ? 2 : 1}
