@@ -19,9 +19,9 @@ import * as Haptics from 'expo-haptics';
 // ─── Constants & Physics ───────────────────────────────────────────────
 const TAB_NAMES = ['home', 'feed', 'library', 'explore', 'stats', 'settings'] as const;
 const TAB_COUNT = TAB_NAMES.length;
-const CAPSULE_HEIGHT = 56;
-const SQUARE_SIZE = 42;
-const SQUARE_RADIUS = 12; // Distinct rounded-corner square, not a circle
+const CAPSULE_HEIGHT = 62;
+const SQUARE_SIZE = 46;
+const SQUARE_RADIUS = 13; // Distinct rounded-corner square, not a circle
 const SQUARE_TOP = (CAPSULE_HEIGHT - SQUARE_SIZE) / 2; // Perfectly centered vertically
 const ICON_SIZE = 20;
 const FOCUSED_STROKE = 2.2;
@@ -203,13 +203,15 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <CustomFloatingTabBar {...props} />}
-      detachInactiveScreens={true}
+      detachInactiveScreens={false}
       screenOptions={{
         headerShown: false,
         freezeOnBlur: true,
+        lazy: true,
+        animation: 'none',
       }}
     >
-      <Tabs.Screen name="home" options={{ title: 'Home' }} />
+      <Tabs.Screen name="home" options={{ title: 'Home', lazy: false }} />
       <Tabs.Screen name="feed" options={{ title: 'Feed' }} />
       <Tabs.Screen name="library" options={{ title: 'Library' }} />
       <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
@@ -224,7 +226,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 28 : 20,
+    bottom: Platform.OS === 'ios' ? 36 : 28,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: CAPSULE_HEIGHT,
-    borderRadius: 24,
+    borderRadius: 26,
     borderWidth: StyleSheet.hairlineWidth,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },

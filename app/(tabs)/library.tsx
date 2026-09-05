@@ -11,6 +11,7 @@ import {
   ScrollView,
   TextInput,
   Dimensions,
+  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -99,7 +100,10 @@ export default function LibraryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadDeviceBooks();
+      const task = InteractionManager.runAfterInteractions(() => {
+        loadDeviceBooks();
+      });
+      return () => task.cancel();
     }, [loadDeviceBooks])
   );
 

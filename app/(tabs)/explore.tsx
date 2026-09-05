@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   Dimensions,
+  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -155,8 +156,11 @@ export default function ExploreScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadServers();
-      loadDeviceBooks();
+      const task = InteractionManager.runAfterInteractions(() => {
+        loadServers();
+        loadDeviceBooks();
+      });
+      return () => task.cancel();
     }, [loadServers, loadDeviceBooks])
   );
 

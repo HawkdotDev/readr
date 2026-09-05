@@ -7,6 +7,7 @@ import {
   RefreshControl,
   StyleSheet,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -85,8 +86,11 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadBooks();
-      loadStats();
+      const task = InteractionManager.runAfterInteractions(() => {
+        loadBooks();
+        loadStats();
+      });
+      return () => task.cancel();
     }, [loadBooks, loadStats])
   );
 

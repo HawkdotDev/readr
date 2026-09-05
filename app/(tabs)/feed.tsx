@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
@@ -158,7 +159,10 @@ export default function FeedScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadDynamicData();
+      const task = InteractionManager.runAfterInteractions(() => {
+        loadDynamicData();
+      });
+      return () => task.cancel();
     }, [loadDynamicData])
   );
 

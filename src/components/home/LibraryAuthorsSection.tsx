@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { Book } from '../../types';
-import { Feather, BookOpen, Bookmark, ChevronRight, Sparkles } from 'lucide-react-native';
+import { Feather, BookOpen, Bookmark, ChevronRight } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
 import { AuthorDetailModal } from './AuthorDetailModal';
 import * as Haptics from 'expo-haptics';
@@ -43,7 +43,6 @@ export const LibraryAuthorsSection = React.memo<LibraryAuthorsSectionProps>(({
 
   const handlePress = onAuthorPress || onArtistPress || (() => {});
 
-  // Aggregate user library authors and combine with curated classics
   const authorsList = useMemo(() => {
     const res = buildLibraryAuthorsList(books);
     return {
@@ -83,7 +82,7 @@ export const LibraryAuthorsSection = React.memo<LibraryAuthorsSectionProps>(({
         )}
       </View>
 
-      {/* Horizontal Authors Carousel */}
+      {/* Horizontal Carousel */}
       <FlatList
         data={authorsList.authors}
         horizontal
@@ -93,7 +92,7 @@ export const LibraryAuthorsSection = React.memo<LibraryAuthorsSectionProps>(({
         decelerationRate="fast"
         renderItem={({ item }) => {
           const accent = item.accentColor || colors.accent;
-          const primaryWork =
+          const topWork =
             item.libraryBooks && item.libraryBooks.length > 0
               ? item.libraryBooks[0].title
               : item.famousWorks && item.famousWorks.length > 0
@@ -102,13 +101,13 @@ export const LibraryAuthorsSection = React.memo<LibraryAuthorsSectionProps>(({
 
           return (
             <TouchableOpacity
-              activeOpacity={0.86}
+              activeOpacity={0.85}
               onPress={() => {
                 Haptics.selectionAsync().catch(() => {});
                 setSelectedAuthor(item);
               }}
               style={[
-                styles.authorCard,
+                styles.card,
                 {
                   backgroundColor: colors.surface,
                   borderColor: colors.border,
@@ -117,109 +116,81 @@ export const LibraryAuthorsSection = React.memo<LibraryAuthorsSectionProps>(({
               accessible={true}
               accessibilityLabel={`Author: ${item.name}, ${item.genre}`}
             >
-              {/* Card Top Row: Crest & Badge */}
-              <View style={styles.cardTopRow}>
-                {/* Monogram Crest */}
-                <View
-                  style={[
-                    styles.avatarCrest,
-                    {
-                      backgroundColor: colors.canvas,
-                      borderColor: `${accent}40`,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.initialsText, { color: accent }]}>
-                    {item.initials}
-                  </Text>
-                </View>
+              {/* Thin accent top edge */}
+              <View style={[styles.accentEdge, { backgroundColor: accent }]} />
 
-                {/* Status / Category Pill */}
-                {item.isLibraryAuthor ? (
-                  <View
-                    style={[
-                      styles.statusPill,
-                      {
-                        backgroundColor: `${colors.accent}14`,
-                        borderColor: `${colors.accent}30`,
-                      },
-                    ]}
-                  >
-                    <Bookmark size={9} color={colors.accent} style={{ marginRight: 3 }} />
-                    <Text style={[styles.statusPillText, { color: colors.accent }]}>
-                      {item.bookCount || 1} {item.bookCount === 1 ? 'Book' : 'Books'}
-                    </Text>
-                  </View>
-                ) : (
-                  <View
-                    style={[
-                      styles.statusPill,
-                      {
-                        backgroundColor: `${accent}12`,
-                        borderColor: `${accent}25`,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.statusPillText, { color: accent }]}
-                      numberOfLines={1}
-                    >
-                      {item.genre.split(' ')[0]}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Author Name & Movement */}
-              <View style={styles.nameBlock}>
-                <Text
-                  style={[styles.authorName, { color: colors.textPrimary }]}
-                  numberOfLines={2}
-                >
-                  {item.name}
-                </Text>
-                <Text
-                  style={[styles.authorMovement, { color: colors.textSecondary }]}
-                  numberOfLines={1}
-                >
-                  {item.movement || item.genre}
+              {/* Monogram */}
+              <View
+                style={[
+                  styles.monogram,
+                  {
+                    backgroundColor: `${accent}12`,
+                    borderColor: `${accent}28`,
+                  },
+                ]}
+              >
+                <Text style={[styles.initials, { color: accent }]}>
+                  {item.initials}
                 </Text>
               </View>
 
-              {/* Micro-Shelf Preview Box */}
-              {primaryWork && (
+              {/* Name */}
+              <Text
+                style={[styles.name, { color: colors.textPrimary }]}
+                numberOfLines={1}
+              >
+                {item.name}
+              </Text>
+
+              {/* Genre */}
+              <Text
+                style={[styles.genre, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
+                {item.genre}
+              </Text>
+
+              {/* Top work */}
+              {topWork && (
                 <View
                   style={[
-                    styles.microShelfBox,
-                    {
-                      backgroundColor: colors.canvas,
-                      borderColor: colors.border,
-                    },
+                    styles.workRow,
+                    { backgroundColor: colors.canvas, borderColor: colors.border },
                   ]}
                 >
-                  <BookOpen size={11} color={accent} style={{ marginRight: 5 }} />
+                  <BookOpen size={10} color={accent} style={{ marginRight: 4 }} />
                   <Text
-                    style={[styles.microShelfText, { color: colors.textPrimary }]}
+                    style={[styles.workText, { color: colors.textPrimary }]}
                     numberOfLines={1}
                   >
-                    {primaryWork}
+                    {topWork}
                   </Text>
                 </View>
               )}
 
-              {/* Card Bottom: View Profile CTA */}
-              <View style={styles.cardFooter}>
-                <Text style={[styles.cardFooterText, { color: colors.accent }]}>
-                  View Profile
-                </Text>
-                <ChevronRight size={11} color={colors.accent} />
+              {/* Footer */}
+              <View style={styles.footer}>
+                {item.isLibraryAuthor ? (
+                  <View style={[styles.tag, { backgroundColor: `${colors.accent}12` }]}>
+                    <Bookmark size={8} color={colors.accent} />
+                    <Text style={[styles.tagText, { color: colors.accent }]}>
+                      In Library
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={[styles.tag, { backgroundColor: `${accent}10` }]}>
+                    <Text style={[styles.tagText, { color: accent }]}>
+                      {item.lifespan ? item.lifespan.split('–')[0].trim() : 'Classic'}
+                    </Text>
+                  </View>
+                )}
+                <ChevronRight size={14} color={colors.textSecondary} />
               </View>
             </TouchableOpacity>
           );
         }}
       />
 
-      {/* Redesigned Author Description Bottom Sheet */}
       <AuthorDetailModal
         visible={Boolean(selectedAuthor)}
         author={selectedAuthor}
@@ -280,87 +251,95 @@ const styles = StyleSheet.create({
   },
   scrollList: {
     paddingRight: 20,
-    gap: 12,
+    gap: 10,
   },
-  authorCard: {
-    width: 182,
-    padding: 14,
-    borderRadius: 20,
+
+  // ── Card ──
+  card: {
+    width: 156,
+    borderRadius: 16,
     borderWidth: 1,
-    justifyContent: 'space-between',
+    overflow: 'hidden',
+    paddingBottom: 12,
   },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+  accentEdge: {
+    height: 3,
+    width: '100%',
+    opacity: 0.45,
   },
-  avatarCrest: {
+
+  // ── Monogram ──
+  monogram: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 22,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 14,
+    marginLeft: 12,
+    marginBottom: 10,
   },
-  initialsText: {
+  initials: {
     fontFamily: FONTS.hubot.bold,
-    fontSize: 17,
-    letterSpacing: -0.2,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    maxWidth: 90,
-  },
-  statusPillText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 10,
-    letterSpacing: -0.2,
-  },
-  nameBlock: {
-    marginBottom: 10,
-  },
-  authorName: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: 16,
     letterSpacing: -0.3,
-    marginBottom: 3,
   },
-  authorMovement: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 11.5,
-    letterSpacing: -0.1,
+
+  // ── Text ──
+  name: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 14,
+    letterSpacing: -0.3,
+    lineHeight: 18,
+    paddingHorizontal: 12,
+    marginBottom: 2,
   },
-  microShelfBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  microShelfText: {
+  genre: {
     fontFamily: FONTS.mona.medium,
     fontSize: 11,
+    letterSpacing: -0.1,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    opacity: 0.7,
+  },
+
+  // ── Top work ──
+  workRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+  },
+  workText: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 10.5,
     letterSpacing: -0.1,
     flex: 1,
   },
-  cardFooter: {
+
+  // ── Footer ──
+  footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 4,
+    paddingHorizontal: 12,
   },
-  cardFooterText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 11,
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  tagText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 10,
     letterSpacing: -0.1,
   },
 });
