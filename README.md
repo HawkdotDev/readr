@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/images/Logo.png" alt="Readr Logo" width="120" height="120" style="border-radius: 24px;" />
+
 # Readr
 
 ### A fast, 100% local, distraction-free mobile e-reader crafted for serious readers.
@@ -9,7 +11,7 @@
 [![React Native](https://img.shields.io/badge/React_Native-0.86.3-000000.svg?style=flat-square&logo=react)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0_Strict-000000.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Package Manager](https://img.shields.io/badge/Package_Manager-Bun_1.3-000000.svg?style=flat-square&logo=bun)](https://bun.sh)
-[![Tests](https://img.shields.io/badge/Tests-111_Passed-000000.svg?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-197_Passed-000000.svg?style=flat-square)](tests/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-000000.svg?style=flat-square)](#contributing)
 
 <br />
@@ -39,6 +41,14 @@
 - **Auto-Scroll Suite & HUD Telemetry**: 5 auto-scroll modes (Smooth Continuous, Line-by-Line, Page Countdown Timer, Pixel-Step, Wave) with a floating speedometer overlay.
 - **Reading Ruler Guide**: Draggable eye-tracking focus guide with 3 display modes (*Underline*, *Line Highlight*, and *Inverted Window Mask*).
 - **Sensor Gestures**: Tilt-to-turn pages with sensitivity thresholds, shake-to-speech audio narration toggle, and edge-swipe vertical brightness adjustments.
+
+### Daily Literary Feed & Editorial Insights
+- **Word of the Day & Literary Lexicon**: Daily curated archaic, poetic, and literary vocabulary with etymology, pronunciation, and one-tap social card generation.
+- **Classic Opening Lines**: Daily memorable first sentences from world literature with direct jump to reading.
+- **Literary Lore & Micro-Essays**: Daily behind-the-scenes literary history, author curiosities, and trivia.
+- **Reading Sprint & Interval Focus**: Integrated Pomodoro-style reading focus sessions with tactile haptics.
+- **Annual Reading Challenge & Milestones**: Quarterly pacing progress, dynamic milestone tracks, target adjustment, and 3D hardcover bookshelf trophies.
+- **Social Card Generation**: High-resolution editorial cards (Classic Bookcloth, Midnight Editorial, Forest Parchment, Crimson Velvet) formatted for Twitter/X, Instagram, Threads, and WhatsApp.
 
 ### Character Name Replacements & Role Reversal
 - **Live Name Replacement Engine**: Dynamically substitutes character names, pronouns, and custom terms across chapter text, headings, drop caps, and audio narration.
@@ -95,7 +105,7 @@ bun run web        # Launch in Browser Preview
 ### 4. Run Typecheck and Automated Test Suites
 ```bash
 bun run typecheck  # Strict TypeScript compiler verification (0 errors)
-bun test           # Run 111 automated tests across 25 test suites (100% pass)
+bun test           # Run 197 automated tests across 41 test suites (100% pass)
 ```
 
 ## Contributing

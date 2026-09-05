@@ -33,7 +33,7 @@ SDK 55/56 shipped with a Hermes v1 bug where simply *importing* `react-native-re
 - **Replace `FlatList`/`ScrollView` with `@shopify/flash-list`** for any list of meaningful length. `FlatList` mounts/unmounts DOM-equivalent nodes as you scroll, which churns memory; FlashList's cell-recycling keeps memory usage close to constant regardless of list length. Always specify an accurate `estimatedItemSize` to prevent layout measurement thrashing.
 - **Never hold a full large dataset in React state.** Paginate, windowed-render, or keep the canonical copy in SQLite/disk and only pull the visible slice into state.
 - **Use atomic state selectors, not broad store destructuring.** In stores like Zustand or Redux, calling `const { fontSize } = useReaderStore()` causes the component to re-render whenever *any* unrelated store value changes (like reading progress, scroll offsets, or timer ticks). Always write atomic selectors: `const fontSize = useReaderStore((s) => s.fontSize)` or use shallow diffing (`useShallow`) to eliminate wasteful re-render cycles.
-- **Defer non-critical work during transitions with `InteractionManager`.** Never trigger heavy SQLite indexing, chapter pre-parsing, or cache cleanup while screen push/pop transitions or drawer gestures are actively animating. Defer them with `InteractionManager.runAfterInteractions(() => { ... })` to preserve smooth 60/120 FPS transitions.
+- **Defer non-critical work during transitions with `requestIdleCallback` / `runWhenIdle`.** Never trigger heavy SQLite indexing, chapter pre-parsing, or cache cleanup while screen push/pop transitions or tab switches are actively animating. Defer them with `runWhenIdle(() => { ... })` (`requestIdleCallback`) to preserve smooth 60/120 FPS transitions and avoid blocking the JS thread (note: `InteractionManager` is deprecated in modern React Native).
 - **Watch the JS heap, not just visual smoothness** — a screen can look fine while steadily leaking memory that only shows up as a crash three screens later.
 
 ## 3. Memory optimization — images & media
@@ -142,7 +142,7 @@ For apps fetching remote book catalogs (OPDS, OpenLibrary, Project Gutenberg), s
 - [ ] Legacy `@types/react-native` pruned from `devDependencies`
 - [ ] All lists >20 items use `@shopify/flash-list` with `estimatedItemSize`
 - [ ] Atomic store selectors used instead of whole-store destructuring
-- [ ] Heavy background work deferred during screen transitions with `InteractionManager`
+- [ ] Heavy background work deferred during screen transitions with `requestIdleCallback` / `runWhenIdle`
 - [ ] All images use `expo-image` with a deliberate `cachePolicy`
 - [ ] SQLite configured with memory-bounding pragmas (`WAL`, `cache_size = -4000`, `mmap_size = 0`)
 - [ ] Remote file downloads streamed directly to disk (never buffered into JS memory)

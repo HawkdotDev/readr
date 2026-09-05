@@ -7,9 +7,9 @@ import {
   RefreshControl,
   StyleSheet,
   Alert,
-  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import {
   ContinueReadingCard,
@@ -86,7 +86,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         loadBooks();
         loadStats();
       });

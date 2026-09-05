@@ -11,9 +11,9 @@ import {
   ScrollView,
   TextInput,
   Dimensions,
-  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { Book } from '../../src/types';
 import {
@@ -100,7 +100,7 @@ export default function LibraryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         loadDeviceBooks();
       });
       return () => task.cancel();

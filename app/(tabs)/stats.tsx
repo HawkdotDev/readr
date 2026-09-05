@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, InteractionManager } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { StreakHeatmap } from '../../src/components/stats/StreakHeatmap';
 import { StatCard } from '../../src/components/stats/StatCard';
@@ -64,7 +65,7 @@ export default function StatsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         loadData();
       });
       return () => task.cancel();

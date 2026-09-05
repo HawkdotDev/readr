@@ -8,9 +8,9 @@ import {
   StyleSheet,
   Alert,
   Platform,
-  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import {
   BookOfTheDayCard,
@@ -66,10 +66,6 @@ import {
   downloadOPDSBook,
 } from '../../src/services/opds/opdsService';
 import { ReadingGoal, OPDSBookEntry } from '../../src/types';
-import {
-  Rss,
-  Flame,
-} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 
@@ -159,7 +155,7 @@ export default function FeedScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         loadDynamicData();
       });
       return () => task.cancel();
@@ -256,41 +252,10 @@ export default function FeedScreen() {
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {/* Top Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerTitleRow}>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Feed</Text>
-            <View
-              style={[
-                styles.liveBadge,
-                {
-                  backgroundColor: colors.isDark
-                    ? 'rgba(16, 185, 129, 0.15)'
-                    : 'rgba(16, 185, 129, 0.1)',
-                },
-              ]}
-            >
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>DISPATCH</Text>
-            </View>
-          </View>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Daily Literary Insights & Tools
-          </Text>
-        </View>
-
-        <View style={styles.headerRightStats}>
-          <View
-            style={[
-              styles.streakPill,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-          >
-            <Flame size={15} color="#F59E0B" style={{ marginRight: 4 }} />
-            <Text style={[styles.streakPillText, { color: colors.textPrimary }]}>
-              {goals.currentStreakDays}d
-            </Text>
-          </View>
-        </View>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Feed</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          Daily Literary Insights
+        </Text>
       </View>
 
       {/* Quick Filter Horizontal Chips */}
@@ -509,59 +474,14 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
-  headerLeft: {
-    flex: 1,
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   headerTitle: {
     fontFamily: FONTS.hubot.bold,
     fontSize: 24,
     letterSpacing: -0.5,
   },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginLeft: 10,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-    marginRight: 5,
-  },
-  liveText: {
-    fontSize: 10,
-    fontFamily: FONTS.mono.bold,
-    color: '#10B981',
-    letterSpacing: 0.5,
-  },
   headerSubtitle: {
     fontSize: 12,
-    fontFamily: FONTS.mona.regular,
-    marginTop: 2,
-  },
-  headerRightStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  streakPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  streakPillText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 12,
+    fontFamily: FONTS.mona.medium,
   },
   filterBar: {
     borderBottomWidth: 1,

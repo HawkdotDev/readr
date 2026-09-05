@@ -44,7 +44,7 @@ export const RecommendedBooksSection: React.FC<RecommendedBooksSectionProps> = R
           </Text>
         </View>
         <Text style={[styles.headingSubtitle, { color: colors.textSecondary }]}>
-          Curated from {serverTitle || 'server'}
+          From {serverTitle || 'server'}
         </Text>
       </View>
 
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   coverWrapper: {
-    width: 68,
-    height: 98,
+    width: 92,
+    height: 132,
     borderRadius: 8,
     overflow: 'hidden',
   },

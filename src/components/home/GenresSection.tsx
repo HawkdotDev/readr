@@ -826,7 +826,10 @@ export const GenresSection = React.memo<GenresSectionProps>(({
                       <TouchableOpacity
                         activeOpacity={0.75}
                         onPress={() => handleBookSelect(listBook)}
-                        style={styles.listItemRow}
+                        style={[
+                          styles.listItemRow,
+                          isLast && styles.lastListItemRow,
+                        ]}
                         accessible={true}
                         accessibilityLabel={`${listBook.title} by ${listBook.author}`}
                       >
@@ -906,7 +909,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 20,
     marginTop: 4,
   },
   headerRow: {
@@ -953,9 +956,12 @@ const styles = StyleSheet.create({
   cardScrollList: {
     paddingHorizontal: 0,
     gap: CARD_GAP,
+    alignItems: 'flex-start',
   },
   genreCard: {
-    padding: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
     borderRadius: 20,
     borderWidth: 1,
     shadowOffset: { width: 0, height: 4 },
@@ -1129,7 +1135,10 @@ const styles = StyleSheet.create({
   listItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 7,
+  },
+  lastListItemRow: {
+    paddingBottom: 2,
   },
   listCoverContainer: {
     width: 40,

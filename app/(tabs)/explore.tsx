@@ -9,9 +9,9 @@ import {
   Alert,
   Platform,
   Dimensions,
-  InteractionManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import { OPDSBookEntry, OPDSServer } from '../../src/types';
 import {
@@ -156,7 +156,7 @@ export default function ExploreScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         loadServers();
         loadDeviceBooks();
       });
@@ -389,15 +389,15 @@ export default function ExploreScreen() {
     return [...notOnDevice, ...extra].slice(0, 4);
   }, [catalog, downloadedBookIds]);
 
-  // 6 Recommended books from the default server not on device
+  // 4 Recommended books from the default server not on device
   const recommendedBooks = useMemo(() => {
     const notOnDevice = catalog.filter(
       (b) =>
         !downloadedBookIds.includes(b.title.toLowerCase().trim()) &&
         !popularBooks.some((p) => p.id === b.id)
     );
-    if (notOnDevice.length >= 6) {
-      return notOnDevice.slice(0, 6);
+    if (notOnDevice.length >= 4) {
+      return notOnDevice.slice(0, 4);
     }
     const extra = CURATED_PUBLIC_DOMAIN_BOOKS.filter(
       (b) =>
@@ -405,7 +405,7 @@ export default function ExploreScreen() {
         !popularBooks.some((p) => p.id === b.id) &&
         !notOnDevice.some((r) => r.id === b.id)
     );
-    return [...notOnDevice, ...extra].slice(0, 6);
+    return [...notOnDevice, ...extra].slice(0, 4);
   }, [catalog, popularBooks, downloadedBookIds]);
 
   const isDefaultExploreView = serverCategory === 'default' && !query.trim();
