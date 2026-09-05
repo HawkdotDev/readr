@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import { useTheme } from '../common/ThemeProvider';
 import { EnrichedReadingSession } from '../../db/queries/stats';
 import { formatDurationSeconds, formatRelativeDate } from '../../utils/time';
@@ -79,9 +80,7 @@ export function RecentSessionsList({
             {sess.coverImagePath ? (
               <OptimizedImage source={{ uri: sess.coverImagePath }} style={styles.coverImage} contentFit="cover" />
             ) : (
-              <View style={styles.placeholderCover}>
-                <BookOpen size={16} color={colors.accent} />
-              </View>
+              <GenerativeEditorialCover title={sess.bookTitle} author={sess.bookAuthor} isCompact={true} />
             )}
           </View>
 

@@ -52,3 +52,12 @@ export interface UserSettings {
   onlineMetadataEnabled?: boolean;
   openLibraryMetadataSearch?: boolean;
 }
+
+export interface CircadianConfig {
+  enabled: boolean;
+  mode: 'solar' | 'schedule';
+  startHour: number; // 0-23, default 21 (9 PM)
+  endHour: number;   // 0-23, default 7 (7 AM)
+  targetWarmth: number; // 0.0 - 1.0, default 0.65
+}
+

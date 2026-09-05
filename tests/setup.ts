@@ -1,6 +1,8 @@
 // Headless mocks for React Native and Expo modules in Bun test runner
 import { mock } from 'bun:test';
 
+(globalThis as any).__DEV__ = true;
+
 mock.module('@react-native/assets-registry/registry', () => ({
   registerAsset: () => 1,
   getAssetByID: () => null,
@@ -50,12 +52,34 @@ mock.module('react-native', () => ({
   Touchable: {
     Mixin: {},
   },
+  TurboModuleRegistry: {
+    get: () => null,
+    getEnforcing: () => ({}),
+  },
+  NativeModules: {},
+  NativeEventEmitter: class {
+    addListener = () => ({ remove: () => {} });
+    removeAllListeners = () => {};
+    emit = () => {};
+  },
+  Linking: {
+    openURL: async () => {},
+    canOpenURL: async () => true,
+  },
+  Share: {
+    share: async () => ({ action: 'sharedAction' }),
+  },
   View: 'View',
   Text: 'Text',
   TouchableOpacity: 'TouchableOpacity',
   ScrollView: 'ScrollView',
   TextInput: 'TextInput',
   ActivityIndicator: 'ActivityIndicator',
+}));
+
+mock.module('react-native-view-shot', () => ({
+  captureRef: async () => 'file:///mock/captured_card.png',
+  default: () => null,
 }));
 
 mock.module('react-native-svg', () => {
@@ -119,3 +143,10 @@ mock.module('expo-haptics', () => ({
   notificationAsync: async () => {},
   selectionAsync: async () => {},
 }));
+
+mock.module('expo-clipboard', () => ({
+  setStringAsync: async () => {},
+  getStringAsync: async () => '',
+  hasStringAsync: async () => true,
+}));
+

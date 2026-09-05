@@ -38,6 +38,8 @@ import { TOCSheet } from '../../src/components/reader/TOCSheet';
 import { AnnotationSheet } from '../../src/components/reader/AnnotationSheet';
 import { SearchSheet } from '../../src/components/reader/SearchSheet';
 import { NameReplacementModal } from '../../src/components/reader/NameReplacementModal';
+import { RSVPReaderModal } from '../../src/components/reader/RSVPReaderModal';
+import { AmbientAudioSheet } from '../../src/components/reader/AmbientAudioSheet';
 
 export default function ReaderScreen() {
   useKeepAwake();
@@ -369,6 +371,8 @@ export default function ReaderScreen() {
           onOpenTTS={() => setActiveSheet('tts')}
           onOpenSearch={() => setActiveSheet('search')}
           onOpenNameReplacement={() => setActiveSheet('nameReplacement')}
+          onOpenRSVP={() => setActiveSheet('rsvp')}
+          onOpenAmbient={() => setActiveSheet('ambientAudio')}
         />
       </Animated.View>
 
@@ -489,6 +493,20 @@ export default function ReaderScreen() {
       <NameReplacementModal
         visible={activeSheet === 'nameReplacement'}
         bookId={book.id}
+        onClose={closeSheet}
+      />
+
+      {/* RSVP Speed Reader Modal */}
+      <RSVPReaderModal
+        visible={activeSheet === 'rsvp'}
+        onClose={closeSheet}
+        chapterText={chapters[activeChapterIndex]?.content || ''}
+        chapterTitle={chapters[activeChapterIndex]?.title || book.title}
+      />
+
+      {/* Ambient Audio Soundscapes Sheet */}
+      <AmbientAudioSheet
+        visible={activeSheet === 'ambientAudio'}
         onClose={closeSheet}
       />
     </View>

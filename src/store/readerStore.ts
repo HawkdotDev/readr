@@ -33,7 +33,9 @@ export type ActiveSheet =
   | 'annotations'
   | 'dictionary'
   | 'search'
-  | 'nameReplacement';
+  | 'nameReplacement'
+  | 'ambientAudio'
+  | 'rsvp';
 
 
 export interface ReaderState {
@@ -70,6 +72,7 @@ export interface ReaderState {
   pageTransition: PageTransitionMode;
   navigationMode: NavigationMode;
   volumeKeysTurnPages: boolean;
+  invertVolumeKeys: boolean;
   dualPageMode: boolean | 'auto';
   readingEngine: 'modern' | 'native';
 
@@ -143,6 +146,7 @@ export interface ReaderState {
   setPageTransition: (transition: PageTransitionMode) => void;
   setNavigationMode: (mode: NavigationMode) => void;
   setVolumeKeysTurnPages: (enabled: boolean) => void;
+  setInvertVolumeKeys: (invert: boolean) => void;
   setDualPageMode: (mode: boolean | 'auto') => void;
   setReadingEngine: (engine: 'modern' | 'native') => void;
 
@@ -203,6 +207,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   pageTransition: 'slide',
   navigationMode: 'both',
   volumeKeysTurnPages: false,
+  invertVolumeKeys: false,
   dualPageMode: 'auto',
   readingEngine: 'modern',
 
@@ -312,6 +317,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setPageTransition: (pageTransition) => set({ pageTransition }),
   setNavigationMode: (navigationMode) => set({ navigationMode }),
   setVolumeKeysTurnPages: (volumeKeysTurnPages) => set({ volumeKeysTurnPages }),
+  setInvertVolumeKeys: (invertVolumeKeys) => set({ invertVolumeKeys }),
   setDualPageMode: (dualPageMode) => set({ dualPageMode }),
   setReadingEngine: (readingEngine) => set({ readingEngine }),
 

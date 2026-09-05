@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { useReaderStore } from '../../store/readerStore';
-import { Grid, Sun, Volume2, MoveHorizontal } from 'lucide-react-native';
+import { Grid, Sun, Volume2, MoveHorizontal, SlidersHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../utils/typography';
 import { TouchZoneConfigModal } from '../reader/TouchZoneConfigModal';
@@ -18,6 +18,10 @@ export function GestureControlsSection() {
     setShakeToSpeechEnabled,
     tiltToTurnEnabled,
     setTiltToTurnEnabled,
+    volumeKeysTurnPages,
+    setVolumeKeysTurnPages,
+    invertVolumeKeys,
+    setInvertVolumeKeys,
   } = useReaderStore();
 
   return (
@@ -113,6 +117,56 @@ export function GestureControlsSection() {
             thumbColor="#FFFFFF"
           />
         </View>
+
+        {/* Hardware & Volume Key Paging */}
+        <View style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 14, paddingTop: 14 }]}>
+          <View style={styles.toggleIconCol}>
+            <View style={[styles.iconPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+              <SlidersHorizontal size={15} color={colors.textPrimary} />
+            </View>
+          </View>
+          <View style={styles.toggleTextCol}>
+            <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Hardware & Volume Paging</Text>
+            <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+              Use physical volume keys or remote clickers to turn pages
+            </Text>
+          </View>
+          <Switch
+            value={volumeKeysTurnPages}
+            onValueChange={(val) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              setVolumeKeysTurnPages(val);
+            }}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
+        {/* Invert Volume Key Direction (Only visible if enabled) */}
+        {volumeKeysTurnPages && (
+          <View style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 14, paddingTop: 14 }]}>
+            <View style={styles.toggleIconCol}>
+              <View style={[styles.iconPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+                <MoveHorizontal size={15} color={colors.textPrimary} />
+              </View>
+            </View>
+            <View style={styles.toggleTextCol}>
+              <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Invert Volume Direction</Text>
+              <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                {invertVolumeKeys ? 'Volume Up: Next · Volume Down: Prev' : 'Volume Down: Next · Volume Up: Prev'}
+              </Text>
+            </View>
+            <Switch
+              value={invertVolumeKeys}
+              onValueChange={(val) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setInvertVolumeKeys(val);
+              }}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        )}
       </View>
 
       <TouchZoneConfigModal

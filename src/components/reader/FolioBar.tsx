@@ -27,7 +27,7 @@ export const FolioBar: React.FC<FolioBarProps> = ({
     ? `Chapter ${currentChapterNumber} of ${totalChapters}`
     : (chapterTitle || 'Chapter 1');
 
-  const timeLabel = minutesLeft > 0 ? `${minutesLeft} min left` : 'Finished';
+  const timeLabel = minutesLeft > 0 ? `~${minutesLeft}m in chapter` : 'Chapter complete';
 
   return (
     <Pressable

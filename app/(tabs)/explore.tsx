@@ -34,6 +34,11 @@ import {
   AddServerModal,
   SelectCategoryModal,
 } from '../../src/components/explore';
+import { GenresSection } from '../../src/components/home';
+import {
+  downloadRecommendedBook,
+  RecommendedBook,
+} from '../../src/services/recommendations/recommendationService';
 import {
   Plus,
   Search,
@@ -75,6 +80,7 @@ export default function ExploreScreen() {
   // Download & Device Books state
   const [downloadedBookIds, setDownloadedBookIds] = useState<string[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [loadingGenreBookId, setLoadingGenreBookId] = useState<string | null>(null);
 
   // Add OPDS Server Modal State
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
@@ -261,6 +267,64 @@ export default function ExploreScreen() {
       Alert.alert('Download Notice', err?.message || 'Failed to download book.');
     }
   }, [loadDeviceBooks, router]);
+
+  // Handle tapping a genre pill or Browse All in Featured Genres
+  const handleGenrePress = useCallback(
+    (genreName: string) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      setIsServerSearchOpen(true);
+      setQuery(genreName);
+      if (selectedServer) {
+        fetchServerCatalog(selectedServer, genreName);
+      }
+    },
+    [selectedServer, fetchServerCatalog]
+  );
+
+  // Handle tapping a featured book inside GenresSection
+  const handleGenreBookPress = useCallback(
+    async (rec: RecommendedBook) => {
+      try {
+        setLoadingGenreBookId(rec.id);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        const res = await downloadRecommendedBook(rec);
+        if (res.success && res.bookId) {
+          await loadDeviceBooks();
+          setDownloadedBookIds((prev) => [...prev, rec.title.toLowerCase().trim()]);
+          Alert.alert(
+            'Download Complete',
+            `"${rec.title}" is now available in your local library.`,
+            [
+              { text: 'Later', style: 'cancel' },
+              {
+                text: 'Read Now',
+                onPress: () => router.push(`/reader/${res.bookId}` as any),
+              },
+            ]
+          );
+        } else if (res.isDuplicate && res.bookId) {
+          Alert.alert(
+            'Already in Library',
+            `"${rec.title}" is already stored in your library.`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Open Book',
+                onPress: () => router.push(`/reader/${res.bookId}` as any),
+              },
+            ]
+          );
+        } else if (res.error) {
+          Alert.alert('Download Notice', res.error);
+        }
+      } catch (err: any) {
+        Alert.alert('Download Notice', err?.message || 'Failed to download book.');
+      } finally {
+        setLoadingGenreBookId(null);
+      }
+    },
+    [loadDeviceBooks, router]
+  );
 
   // Handle Save New OPDS Server
   const handleSaveNewServer = async (serverData: {
@@ -470,6 +534,15 @@ export default function ExploreScreen() {
                 downloadingId={downloadingId}
                 downloadedBookIds={downloadedBookIds}
                 onDownload={handleDownload}
+              />
+            )}
+
+            {/* Featured Genres Section */}
+            {isDefaultExploreView && (
+              <GenresSection
+                onGenrePress={handleGenrePress}
+                onBookPress={handleGenreBookPress}
+                loadingBookId={loadingGenreBookId}
               />
             )}
 

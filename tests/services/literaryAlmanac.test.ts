@@ -31,4 +31,15 @@ describe('Literary Almanac Service', () => {
     expect(random).toBeDefined();
     expect(random.id).not.toBe(first.id);
   });
+
+  it('returns the authentic literary event for September 5 (Jack Kerouac - On the Road)', () => {
+    const sep5Date = new Date(2026, 8, 5); // Month 8 is September (0-indexed)
+    const event = getTodayInLiterature(sep5Date);
+    expect(event).toBeDefined();
+    expect(event.dateStr).toBe('September 5');
+    expect(event.year).toBe(1957);
+    expect(event.authorOrBook).toBe('Jack Kerouac');
+    expect(event.headline).toContain('On the Road');
+    expect(event.category).toBe('Publication');
+  });
 });

@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import { Info, BookOpen, X } from 'lucide-react-native';
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -68,7 +69,11 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
                     contentFit="cover"
                   />
                 ) : (
-                  <BookOpen size={36} color={colors.accent} />
+                  <GenerativeEditorialCover
+                    title={book.title}
+                    author={book.authors?.map((a) => a.name).join(', ')}
+                    isCompact={false}
+                  />
                 )}
               </View>
               <View style={styles.topInfo}>

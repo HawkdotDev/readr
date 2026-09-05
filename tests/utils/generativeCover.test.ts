@@ -6,8 +6,8 @@ import {
 } from '../../src/utils/generativeCover';
 
 describe('Generative Editorial Cover Engine', () => {
-  it('has 8 distinct, sophisticated bookcloth palettes', () => {
-    expect(BOOKCLOTH_PALETTES.length).toBe(8);
+  it('has 12 distinct, sophisticated bookcloth palettes', () => {
+    expect(BOOKCLOTH_PALETTES.length).toBe(12);
     for (const p of BOOKCLOTH_PALETTES) {
       expect(p.bg).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(p.title).toMatch(/^#[0-9A-Fa-f]{6}$/);

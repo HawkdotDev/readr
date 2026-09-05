@@ -13,9 +13,11 @@ import {
   Shuffle,
   Copy,
   Check,
+  Share2,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
+import { WordSocialShareModal } from '../share/WordSocialShareModal';
 
 export interface WordOfTheDayCardProps {
   literaryWord: LiteraryWord;
@@ -28,6 +30,7 @@ export const WordOfTheDayCard: React.FC<WordOfTheDayCardProps> = ({
 }) => {
   const { colors } = useTheme();
   const [copied, setCopied] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -54,7 +57,7 @@ export const WordOfTheDayCard: React.FC<WordOfTheDayCardProps> = ({
         <View style={styles.eyebrowRow}>
           <Sparkles size={13} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionEyebrow, { color: colors.textSecondary }]}>
-            LEXICON DISPATCH · WORD OF THE DAY
+            WORD OF THE DAY
           </Text>
         </View>
 
@@ -100,20 +103,36 @@ export const WordOfTheDayCard: React.FC<WordOfTheDayCardProps> = ({
             </View>
           </View>
 
-          <TouchableOpacity
-            onPress={handleCopy}
-            style={[
-              styles.iconButton,
-              { backgroundColor: colors.canvas, borderColor: colors.border },
-            ]}
-            accessibilityLabel="Copy Word"
-          >
-            {copied ? (
-              <Check size={13} color="#10B981" />
-            ) : (
-              <Copy size={13} color={colors.textSecondary} />
-            )}
-          </TouchableOpacity>
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setIsShareOpen(true);
+              }}
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.canvas, borderColor: colors.border },
+              ]}
+              accessibilityLabel="Share Word as Social Post"
+            >
+              <Share2 size={13} color={colors.accent} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleCopy}
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.canvas, borderColor: colors.border },
+              ]}
+              accessibilityLabel="Copy Word"
+            >
+              {copied ? (
+                <Check size={13} color="#10B981" />
+              ) : (
+                <Copy size={13} color={colors.textSecondary} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={[styles.lexiconDefinition, { color: colors.textPrimary }]}>
@@ -137,7 +156,40 @@ export const WordOfTheDayCard: React.FC<WordOfTheDayCardProps> = ({
         <Text style={[styles.lexiconEtymology, { color: colors.textSecondary }]}>
           Origin: {literaryWord.etymology}
         </Text>
+
+        {/* Share as Social Post Footer Action */}
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            setIsShareOpen(true);
+          }}
+          activeOpacity={0.8}
+          style={[
+            styles.shareFooterPill,
+            {
+              backgroundColor: colors.canvas,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Share2 size={12} color={colors.accent} style={{ marginRight: 6 }} />
+            <Text style={[styles.shareFooterText, { color: colors.textPrimary }]}>
+              Create Social Post
+            </Text>
+          </View>
+          <Text style={[styles.shareFooterHint, { color: colors.accent }]}>
+            Instagram · X · Threads →
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Social Post Generation Modal */}
+      <WordSocialShareModal
+        visible={isShareOpen}
+        literaryWord={literaryWord}
+        onClose={() => setIsShareOpen(false)}
+      />
     </View>
   );
 };
@@ -244,5 +296,30 @@ const styles = StyleSheet.create({
   lexiconEtymology: {
     fontFamily: FONTS.mona.medium,
     fontSize: 11,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  shareFooterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 12,
+  },
+  shareFooterText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 12,
+    letterSpacing: -0.1,
+  },
+  shareFooterHint: {
+    fontFamily: FONTS.mona.medium,
+    fontSize: 11,
+    letterSpacing: -0.1,
   },
 });

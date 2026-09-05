@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { getBookclothPalette } from '../../utils/generativeCover';
+import { getBookclothPalette, getCoverMotif, CoverMotif } from '../../utils/generativeCover';
 import { FONTS } from '../../utils/typography';
+import { BookOpen, Compass, Feather, Award, Sparkles, Music2 } from 'lucide-react-native';
 
 export interface GenerativeEditorialCoverProps {
-  title: string;
+  title?: string;
   author?: string;
   style?: ViewStyle;
   isCompact?: boolean;
@@ -13,16 +14,46 @@ export interface GenerativeEditorialCoverProps {
 /**
  * Procedural Generative Editorial Cover.
  * Transforms unjacketed books (TXT, MOBI, PDF, EPUBs with missing art) into collectible
- * classic cloth-bound editorial volumes with embossed framing and classic typography.
+ * classic cloth-bound editorial volumes with embossed framing, insignia, and classic typography.
  */
 export const GenerativeEditorialCover: React.FC<GenerativeEditorialCoverProps> = ({
-  title,
+  title = 'Untitled',
   author,
   style,
   isCompact = false,
 }) => {
-  const palette = getBookclothPalette(title, author);
+  const displayTitle = title && title.trim() ? title.trim() : 'Untitled';
+  const palette = getBookclothPalette(displayTitle, author);
+  const motif: CoverMotif = getCoverMotif(displayTitle, author);
   const displayAuthor = author && author.trim() ? author.trim() : 'Classic Edition';
+  const firstLetter = displayTitle.charAt(0).toUpperCase() || 'B';
+
+  const renderMotifIcon = () => {
+    const iconSize = isCompact ? 13 : 18;
+    const iconColor = palette.accent;
+
+    switch (motif) {
+      case 'laurel':
+        return <Award size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'compass':
+        return <Compass size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'quills':
+        return <Feather size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'lyre':
+        return <Music2 size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'owl':
+        return <Sparkles size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'book':
+        return <BookOpen size={iconSize} color={iconColor} strokeWidth={1.75} />;
+      case 'monogram':
+      default:
+        return (
+          <View style={[styles.monogramRing, { borderColor: palette.accent }]}>
+            <Text style={[styles.monogramText, { color: palette.accent }]}>{firstLetter}</Text>
+          </View>
+        );
+    }
+  };
 
   return (
     <View
@@ -32,9 +63,9 @@ export const GenerativeEditorialCover: React.FC<GenerativeEditorialCoverProps> =
         style,
       ]}
       accessible={true}
-      accessibilityLabel={`Cover for ${title} by ${displayAuthor}`}
+      accessibilityLabel={`Cover for ${displayTitle} by ${displayAuthor}`}
     >
-      {/* 2.5px Left Spine Bound Sheen Overlay */}
+      {/* Left Spine Bound Sheen Overlay */}
       <View style={styles.spineSheen} pointerEvents="none" />
 
       {/* Embossed Inner Double-Rule Frame */}
@@ -64,8 +95,13 @@ export const GenerativeEditorialCover: React.FC<GenerativeEditorialCoverProps> =
             ]}
             numberOfLines={isCompact ? 2 : 4}
           >
-            {title}
+            {displayTitle}
           </Text>
+        </View>
+
+        {/* Center Insignia Crest */}
+        <View style={styles.motifContainer}>
+          {renderMotifIcon()}
         </View>
 
         {/* Bottom Author */}
@@ -100,46 +136,63 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 3.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: 'rgba(0, 0, 0, 0.35)',
+    width: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     zIndex: 2,
   },
   innerFrame: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 2,
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   ornamentLine: {
-    width: 18,
+    width: 24,
     height: 1.5,
     borderRadius: 1,
-    opacity: 0.7,
     marginTop: 2,
+    opacity: 0.85,
   },
   titleContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 2,
-    marginVertical: 4,
+    paddingHorizontal: 4,
   },
   titleText: {
     fontFamily: FONTS.hubot.bold,
     textAlign: 'center',
-    letterSpacing: -0.2,
+    letterSpacing: 0.2,
+  },
+  motifContainer: {
+    marginVertical: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.9,
+  },
+  monogramRing: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monogramText: {
+    fontFamily: FONTS.hubot.bold,
+    fontSize: 10,
   },
   authorContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 2,
+    paddingTop: 4,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
   },
   authorText: {
     fontFamily: FONTS.mono.medium,
-    textAlign: 'center',
     letterSpacing: 0.8,
+    textAlign: 'center',
   },
 });

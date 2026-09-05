@@ -34,6 +34,7 @@ import { FONTS } from '../../utils/typography';
 import { getFixationLength } from '../../utils/bionic';
 import { applyNameReplacements } from '../../utils/nameReplacer';
 import { resolveActionForTap } from '../../services/reader/touchZoneService';
+import { HardwareKeyService } from '../../services/hardware/hardwareKeyService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -124,6 +125,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     touchZoneMappings,
     edgeBrightnessEnabled,
     nameReplacements,
+    volumeKeysTurnPages,
+    invertVolumeKeys,
     setBrightness,
     setReadingRulerEnabled,
     setBionicReadingEnabled,
@@ -213,6 +216,20 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       animateToChapter(currentChapterIdx - 1);
     }
   };
+
+  // Hardware Volume Keys & Remote Clicker Page Navigation
+  useEffect(() => {
+    if (!volumeKeysTurnPages) return;
+
+    const cleanup = HardwareKeyService.attachListener({
+      enabled: volumeKeysTurnPages,
+      invert: invertVolumeKeys,
+      onNextPage: handleNextChapter,
+      onPrevPage: handlePrevChapter,
+    });
+
+    return cleanup;
+  }, [volumeKeysTurnPages, invertVolumeKeys, currentChapterIdx, chapters.length]);
 
   // Touch Gesture Tracking for Tap & Swipe Page Turn
   const touchStartRef = useRef<{ time: number; x: number; y: number }>({

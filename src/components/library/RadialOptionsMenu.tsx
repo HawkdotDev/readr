@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import * as Haptics from 'expo-haptics';
 import { BookOpen, Info, Heart, CheckCircle2, Share2, Trash2, X, Star } from 'lucide-react-native';
 import { Book } from '../../types';
@@ -221,9 +222,11 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
                       contentFit="cover"
                     />
                   ) : (
-                    <View style={[styles.placeholderThumbnail, { backgroundColor: colors.accent }]}>
-                      <BookOpen size={18} color={colors.isDark ? '#000000' : '#FFFFFF'} />
-                    </View>
+                    <GenerativeEditorialCover
+                      title={book.title}
+                      author={authorName}
+                      isCompact={true}
+                    />
                   )}
                 </View>
 

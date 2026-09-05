@@ -6,6 +6,8 @@ import {
   Search,
   Volume2,
   UserCheck,
+  Zap,
+  Headphones,
 } from 'lucide-react-native';
 
 export interface ReaderToolbarProps {
@@ -14,6 +16,8 @@ export interface ReaderToolbarProps {
   onOpenTTS: () => void;
   onOpenSearch: () => void;
   onOpenNameReplacement?: () => void;
+  onOpenRSVP?: () => void;
+  onOpenAmbient?: () => void;
   onOpenTypography?: () => void;
   onOpenTOC?: () => void;
   onOpenTheme?: () => void;
@@ -26,6 +30,8 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
   onOpenTTS,
   onOpenSearch,
   onOpenNameReplacement,
+  onOpenRSVP,
+  onOpenAmbient,
 }) => {
   const { colors } = useTheme();
 
@@ -66,6 +72,44 @@ export const ReaderToolbar: React.FC<ReaderToolbarProps> = ({
             accessibilityLabel="Role Reversal and Name Replacer"
           >
             <UserCheck size={19} color={colors.textPrimary} />
+          </TouchableOpacity>
+        )}
+
+        {/* RSVP Speed Reader */}
+        {onOpenRSVP && (
+          <TouchableOpacity
+            onPress={onOpenRSVP}
+            style={[
+              styles.circleBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+            accessible={true}
+            accessibilityLabel="RSVP Speed Reader"
+          >
+            <Zap size={18} color={colors.accent} />
+          </TouchableOpacity>
+        )}
+
+        {/* Ambient Audio Focus Soundscapes */}
+        {onOpenAmbient && (
+          <TouchableOpacity
+            onPress={onOpenAmbient}
+            style={[
+              styles.circleBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+            accessible={true}
+            accessibilityLabel="Ambient Soundscapes"
+          >
+            <Headphones size={18} color={colors.textPrimary} />
           </TouchableOpacity>
         )}
 

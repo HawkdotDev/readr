@@ -6,6 +6,7 @@ import { GenerativeEditorialCover } from '../common/GenerativeEditorialCover';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { BookOpen, ChevronRight, MoreHorizontal } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
+import { calculateChapterMilestone } from '../../utils/chapterMilestones';
 
 export interface ContinueReadingCardProps {
   book: Book;
@@ -28,6 +29,9 @@ export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
       : 'Unknown Author';
 
   const progress = Math.max(0, Math.min(100, Math.round(book.progressPercentage || 0)));
+
+  // Zeigarnik chapter-level micro-closure calculation
+  const milestone = React.useMemo(() => calculateChapterMilestone(book), [book]);
 
   // Calculate total number of pages left based on book pageCount and progress
   const totalPages = book.pageCount && book.pageCount > 0 ? book.pageCount : 240;
@@ -89,13 +93,30 @@ export const ContinueReadingCard = React.memo<ContinueReadingCardProps>(({
           <Text style={[styles.author, { color: colors.textSecondary }]} numberOfLines={1}>
             {authorName}
           </Text>
+
+          {/* Current Chapter (Positioned between Author and Completion %) */}
+          {progress < 100 && (
+            <View style={styles.chapterRow}>
+              <Text
+                style={[
+                  styles.chapterText,
+                  {
+                    color: colors.accent,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {milestone.badgeText}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Bottom Group: Progress section with meta info over bar, and Continue Reading button below */}
         <View style={styles.bottomGroup}>
           {/* Completion Progress Bar Section */}
           <View style={styles.progressSection}>
-            {/* Completion % and Pages Left (Placed Over Completion Bar) */}
+            {/* Completion % and Total Pages Left (Placed Over Completion Bar) */}
             <View style={styles.progressMetaRow}>
               <Text style={[styles.percentageText, { color: colors.textPrimary }]}>
                 {progress}% complete
@@ -216,6 +237,16 @@ const styles = StyleSheet.create({
   author: {
     fontFamily: FONTS.mona.regular,
     fontSize: 12,
+  },
+  chapterRow: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chapterText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 11.5,
+    letterSpacing: -0.1,
   },
   bottomGroup: {
     width: '100%',

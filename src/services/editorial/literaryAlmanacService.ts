@@ -24,6 +24,19 @@ export const LITERARY_ALMANAC_EVENTS: LiteraryAlmanacEvent[] = [
     accentColor: '#3B82F6',
   },
   {
+    id: 'almanac_sep_5',
+    dateStr: 'September 5',
+    year: 1957,
+    category: 'Publication',
+    headline: 'Jack Kerouac Publishes On the Road',
+    description:
+      'Viking Press released Jack Kerouac’s defining Beat Generation novel "On the Road", chronicling the cross-country odyssey of Sal Paradise and Dean Moriarty across mid-century America.',
+    authorOrBook: 'Jack Kerouac',
+    significance:
+      'The New York Times hailed the release as an historic occasion, declaring it the clearest and most important utterance yet made by the Beat Generation.',
+    accentColor: '#D97706',
+  },
+  {
     id: 'almanac_sep_21',
     dateStr: 'September 21',
     year: 1937,
@@ -143,10 +156,7 @@ export function getTodayInLiterature(date: Date = new Date()): LiteraryAlmanacEv
   const dayOfYear = Math.floor(diff / oneDay);
 
   const event = LITERARY_ALMANAC_EVENTS[dayOfYear % LITERARY_ALMANAC_EVENTS.length];
-  return {
-    ...event,
-    dateStr: targetDateStr, // Display today's date for current dispatch
-  };
+  return event;
 }
 
 export function getRandomAlmanacEvent(excludeId?: string): LiteraryAlmanacEvent {
