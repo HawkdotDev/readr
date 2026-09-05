@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { useTheme } from '../common/ThemeProvider';
-import { Type, SlidersHorizontal, Eye } from 'lucide-react-native';
+import { Type, SlidersHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../utils/typography';
-import { TypographyTab, ExperienceTab, FocusTab } from './typography';
+import { TypographyTab, ExperienceTab } from './typography';
 
 export interface TypographySheetProps {
   visible: boolean;
@@ -20,11 +20,11 @@ export interface TypographySheetProps {
 
 export function TypographySheet({ visible, onClose }: TypographySheetProps) {
   const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState<'typography' | 'experience' | 'focus'>('typography');
+  const [activeTab, setActiveTab] = useState<'typography' | 'experience'>('typography');
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Customisation" maxHeightRatio={0.9}>
-      {/* Top 3-Segment Tab Switcher */}
+      {/* Top 2-Segment Tab Switcher */}
       <View style={[styles.tabBar, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
         <TouchableOpacity
           onPress={() => {
@@ -81,34 +81,6 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
             Experience
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.selectionAsync().catch(() => {});
-            setActiveTab('focus');
-          }}
-          style={[
-            styles.tabButton,
-            { backgroundColor: activeTab === 'focus' ? colors.accent : 'transparent' },
-          ]}
-        >
-          <Eye
-            size={14}
-            color={activeTab === 'focus' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary}
-            style={{ marginRight: 6 }}
-          />
-          <Text
-            style={[
-              styles.tabButtonText,
-              {
-                color: activeTab === 'focus' ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textSecondary,
-                fontFamily: activeTab === 'focus' ? FONTS.mona.bold : FONTS.mona.medium,
-              },
-            ]}
-          >
-            Focus & Theme
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -122,10 +94,8 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
       >
         {activeTab === 'typography' ? (
           <TypographyTab />
-        ) : activeTab === 'experience' ? (
-          <ExperienceTab onClose={onClose} />
         ) : (
-          <FocusTab />
+          <ExperienceTab onClose={onClose} />
         )}
       </ScrollView>
     </Sheet>

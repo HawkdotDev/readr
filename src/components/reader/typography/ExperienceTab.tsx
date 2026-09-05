@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../../utils/typography';
-import { NavigationMode } from '../../../types';
+import { NavigationMode, ReadingRulerMode } from '../../../types';
 import { TouchZoneConfigModal } from '../TouchZoneConfigModal';
 
 export interface ExperienceTabProps {
@@ -59,6 +59,14 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
     setShakeToSpeechEnabled,
     setTiltToTurnEnabled,
     setTiltSensitivity,
+    readingRulerEnabled,
+    readingRulerMode,
+    readingRulerHeight,
+    readingRulerOpacity,
+    setReadingRulerEnabled,
+    setReadingRulerMode,
+    setReadingRulerHeight,
+    setReadingRulerOpacity,
     setBionicReadingEnabled,
     setBionicFixation,
     setAutoScrolling,
@@ -381,6 +389,97 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
             </TouchableOpacity>
           );
         })}
+      </View>
+
+      {/* Reading Ruler Focus Tool */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
+        READING RULER (FOCUS TOOL)
+      </Text>
+      <View style={[styles.toggleBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleTextCol}>
+            <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Enable Focus Guide</Text>
+            <Text style={[styles.toggleSub, { color: colors.textSecondary }]}>
+              Interactive draggable line guide following reading position
+            </Text>
+          </View>
+          <Switch
+            value={readingRulerEnabled}
+            onValueChange={(val) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              setReadingRulerEnabled(val);
+            }}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
+        {readingRulerEnabled && (
+          <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border }}>
+            <Text style={[styles.drawerTitle, { color: colors.textSecondary, marginBottom: 8 }]}>
+              GUIDE STYLE
+            </Text>
+            <View style={styles.rulerModeGrid}>
+              {(
+                [
+                  { id: 'underline' as ReadingRulerMode, label: 'Underline' },
+                  { id: 'highlight' as ReadingRulerMode, label: 'Highlight Strip' },
+                  { id: 'dimBackground' as ReadingRulerMode, label: 'Dim Mask' },
+                  { id: 'dualGuide' as ReadingRulerMode, label: 'Dual Guide' },
+                  { id: 'focusBox' as ReadingRulerMode, label: 'Focus Box' },
+                  { id: 'laser' as ReadingRulerMode, label: 'Laser Line' },
+                ] as const
+              ).map((m) => {
+                const isSel = readingRulerMode === m.id;
+                return (
+                  <TouchableOpacity
+                    key={m.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      setReadingRulerMode(m.id);
+                    }}
+                    style={[
+                      styles.rulerModePill,
+                      {
+                        backgroundColor: isSel ? colors.accent : colors.surface,
+                        borderColor: isSel ? colors.accent : colors.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.rulerModeText,
+                        { color: isSel ? (colors.isDark ? '#000000' : '#FFFFFF') : colors.textPrimary },
+                      ]}
+                    >
+                      {m.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Slider
+              label="Ruler Aperture Height"
+              value={readingRulerHeight}
+              min={24}
+              max={64}
+              step={4}
+              unit="px"
+              onChange={setReadingRulerHeight}
+            />
+
+            <Slider
+              label="Ruler Intensity & Opacity"
+              value={readingRulerOpacity}
+              min={0.2}
+              max={0.9}
+              step={0.05}
+              displayFormatter={(v) => `${Math.round(v * 100)}%`}
+              onChange={setReadingRulerOpacity}
+            />
+          </View>
+        )}
       </View>
 
       {/* Bionic Speed Reading Engine */}
@@ -848,5 +947,21 @@ const styles = StyleSheet.create({
   startAutoScrollText: {
     fontFamily: FONTS.mona.semiBold,
     fontSize: 13,
+  },
+  rulerModeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  rulerModePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  rulerModeText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 11.5,
   },
 });
