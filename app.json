@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#18181B"
+        "backgroundColor": "#FCF4DD"
       },
       "package": "com.hawkdotdev.readr",
       "versionCode": 2,
@@ -45,7 +45,7 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#FAF7F2",
+          "backgroundColor": "#FCF4DD",
           "dark": {
             "image": "./assets/images/splash-icon-dark.png",
             "backgroundColor": "#18181B"
