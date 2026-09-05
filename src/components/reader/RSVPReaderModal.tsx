@@ -122,6 +122,7 @@ export const RSVPReaderModal: React.FC<RSVPReaderModalProps> = ({
       visible={visible}
       animationType="fade"
       transparent={false}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: colors.canvas }]}>

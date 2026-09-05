@@ -62,10 +62,17 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
       visible={visible}
       transparent={true}
       animationType="fade"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <View style={styles.backdrop}>
         <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss quote card"
+        />
+        <View
           style={[
             styles.cardContainer,
             {
@@ -73,7 +80,6 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
               borderColor: colors.border,
             },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Close Header */}
           <View style={styles.topHeader}>
@@ -176,8 +182,8 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 };

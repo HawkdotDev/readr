@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  Pressable,
 } from 'react-native';
 import { Globe, X } from 'lucide-react-native';
 import { useTheme } from '../common/ThemeProvider';
@@ -69,9 +70,16 @@ export const AddServerModal: React.FC<AddServerModalProps> = React.memo(({
       visible={visible}
       animationType="slide"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss Add Server Modal"
+        />
         <View
           style={[
             styles.modalContent,
@@ -90,7 +98,13 @@ export const AddServerModal: React.FC<AddServerModalProps> = React.memo(({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
               Server Name *
             </Text>
@@ -202,10 +216,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
+    width: '100%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
     padding: 20,
+    paddingBottom: 32,
     maxHeight: '85%',
   },
   modalHeader: {

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Pressable,
 } from 'react-native';
 import { X, BookOpen, Sparkles, Compass, Feather } from 'lucide-react-native';
 import { useTheme } from '../common/ThemeProvider';
@@ -35,19 +36,21 @@ export const ArtistDetailModal: React.FC<ArtistDetailModalProps> = React.memo(({
       visible={visible}
       animationType="fade"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss artist details"
+        />
         <View
           style={[
             styles.modalContent,
             { backgroundColor: colors.canvas, borderColor: colors.border },
           ]}
-          onStartShouldSetResponder={() => true}
         >
           {/* Header Row */}
           <View style={styles.header}>
@@ -129,6 +132,10 @@ export const ArtistDetailModal: React.FC<ArtistDetailModalProps> = React.memo(({
 
           <ScrollView
             showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+            keyboardShouldPersistTaps="handled"
             style={styles.scrollBody}
             contentContainerStyle={styles.scrollBodyContent}
           >
@@ -214,7 +221,7 @@ export const ArtistDetailModal: React.FC<ArtistDetailModalProps> = React.memo(({
             </Text>
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 });

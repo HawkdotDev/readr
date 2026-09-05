@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { useReaderStore } from '../../store/readerStore';
@@ -70,8 +71,20 @@ export function TouchZoneConfigModal({ visible, onClose }: TouchZoneConfigModalP
   const currentAction = touchZoneMappings[selectedZone] || 'none';
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      statusBarTranslucent={true}
+      onRequestClose={onClose}
+    >
       <View style={styles.modalBackdrop}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss Touch Zone Config"
+        />
         <View
           style={[
             styles.modalCard,
@@ -92,7 +105,14 @@ export function TouchZoneConfigModal({ visible, onClose }: TouchZoneConfigModalP
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.body}
+          >
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               Tap any zone in the screen preview to customize its tap gesture action.
             </Text>
@@ -232,10 +252,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalCard: {
+    width: '100%',
     maxHeight: '88%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
+    paddingBottom: 28,
   },
   headerRow: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Globe, Check, Plus, X } from 'lucide-react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { FONTS } from '../../utils/typography';
@@ -28,19 +28,21 @@ export const SelectCategoryModal: React.FC<SelectCategoryModalProps> = React.mem
       visible={visible}
       animationType="fade"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss category selection"
+        />
         <View
           style={[
             styles.modalContent,
             { backgroundColor: colors.canvas, borderColor: colors.border },
           ]}
-          onStartShouldSetResponder={() => true}
         >
           <View style={styles.header}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -174,7 +176,7 @@ export const SelectCategoryModal: React.FC<SelectCategoryModalProps> = React.mem
             </Text>
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 });

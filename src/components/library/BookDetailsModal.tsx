@@ -5,6 +5,7 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
 } from 'react-native';
 import { OptimizedImage } from '../common/OptimizedImage';
@@ -38,9 +39,16 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
       visible={visible}
       animationType="slide"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss book details"
+        />
         <View
           style={[
             styles.modalContent,
@@ -206,9 +214,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
+    width: '100%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
     padding: 20,
     maxHeight: '85%',
   },

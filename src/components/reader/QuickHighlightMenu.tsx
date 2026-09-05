@@ -64,10 +64,17 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
       visible={visible}
       transparent={true}
       animationType="fade"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <View style={styles.backdrop}>
         <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss highlight menu"
+        />
+        <View
           style={[
             styles.menuPill,
             {
@@ -75,7 +82,6 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
               borderColor: colors.border,
             },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Selected Quote Preview */}
           <View style={[styles.previewRow, { borderBottomColor: colors.border }]}>
@@ -175,8 +181,8 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
 
       {/* Editorial Quotation Card Modal */}
       <QuoteCardModal

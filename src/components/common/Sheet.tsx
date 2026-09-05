@@ -26,17 +26,28 @@ export function Sheet({
   const { colors } = useTheme();
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-      <Pressable
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      statusBarTranslucent={true}
+      onRequestClose={onClose}
+    >
+      <View
         style={[
           styles.backdrop,
           {
             backgroundColor: colors.isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.14)',
           },
         ]}
-        onPress={onClose}
       >
         <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss sheet"
+        />
+        <View
           style={[
             styles.sheetContainer,
             {
@@ -46,7 +57,6 @@ export function Sheet({
             },
             style,
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Grab handle */}
           <View style={styles.handleContainer}>
@@ -65,8 +75,8 @@ export function Sheet({
 
           {/* Content */}
           <View style={styles.content}>{children}</View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -77,11 +87,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
+    width: '100%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
+    borderBottomWidth: 0,
     paddingBottom: 32,
   },
   handleContainer: {
@@ -112,5 +124,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 16,
+    flexShrink: 1,
   },
 });

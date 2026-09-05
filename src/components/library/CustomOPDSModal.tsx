@@ -210,6 +210,7 @@ export function CustomOPDSModal({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: colors.canvas }]}>
@@ -358,7 +359,14 @@ export function CustomOPDSModal({
             </Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.catalogList}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.catalogList}
+          >
             {books.length === 0 ? (
               <View style={styles.emptyView}>
                 <BookOpen size={36} color={colors.textSecondary} style={{ marginBottom: 10, opacity: 0.5 }} />

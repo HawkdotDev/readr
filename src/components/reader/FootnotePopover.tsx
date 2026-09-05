@@ -45,10 +45,17 @@ export const FootnotePopover: React.FC<FootnotePopoverProps> = ({
       visible={visible}
       transparent={true}
       animationType="fade"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <View style={styles.overlay}>
         <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss footnote"
+        />
+        <View
           style={[
             styles.card,
             {
@@ -56,7 +63,6 @@ export const FootnotePopover: React.FC<FootnotePopoverProps> = ({
               borderColor: colors.border,
             },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
@@ -119,8 +125,8 @@ export const FootnotePopover: React.FC<FootnotePopoverProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 };

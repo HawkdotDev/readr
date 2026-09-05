@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { BookOpen, Info, Heart, CheckCircle2, Trash2, X } from 'lucide-react-native';
 import { Book } from '../../types';
 import { useTheme } from '../common/ThemeProvider';
@@ -35,19 +35,21 @@ export const BookContextMenuModal: React.FC<BookContextMenuModalProps> = React.m
       visible={visible}
       animationType="fade"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessible={true}
+          accessibilityLabel="Dismiss options"
+        />
         <View
           style={[
             styles.modalContent,
             { backgroundColor: colors.canvas, borderColor: colors.border },
           ]}
-          onStartShouldSetResponder={() => true}
         >
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
@@ -153,7 +155,7 @@ export const BookContextMenuModal: React.FC<BookContextMenuModalProps> = React.m
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 });

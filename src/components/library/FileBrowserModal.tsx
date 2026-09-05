@@ -172,6 +172,7 @@ export function FileBrowserModal({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <View style={[styles.container, { backgroundColor: colors.canvas }]}>
@@ -209,7 +210,14 @@ export function FileBrowserModal({
             <ActivityIndicator size="large" color={colors.accent} />
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.listContainer}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.listContainer}
+          >
             {items.length === 0 ? (
               <View style={styles.emptyView}>
                 <HardDrive size={36} color={colors.textSecondary} style={{ marginBottom: 8, opacity: 0.5 }} />

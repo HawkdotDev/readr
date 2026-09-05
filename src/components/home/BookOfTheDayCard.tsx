@@ -170,10 +170,17 @@ export const BookOfTheDayCard: React.FC<BookOfTheDayCardProps> = () => {
         visible={isDossierOpen}
         animationType="slide"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={() => setIsDossierOpen(false)}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => setIsDossierOpen(false)}>
+        <View style={styles.modalBackdrop}>
           <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsDossierOpen(false)}
+            accessible={true}
+            accessibilityLabel="Dismiss Book Dossier"
+          />
+          <View
             style={[
               styles.dossierContainer,
               {
@@ -181,7 +188,6 @@ export const BookOfTheDayCard: React.FC<BookOfTheDayCardProps> = () => {
                 borderColor: colors.border,
               },
             ]}
-            onPress={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
@@ -212,6 +218,10 @@ export const BookOfTheDayCard: React.FC<BookOfTheDayCardProps> = () => {
 
             <ScrollView
               showsVerticalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              bounces={true}
+              overScrollMode="always"
+              keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.dossierContent}
             >
               {/* Title & Author Block */}
@@ -320,8 +330,8 @@ export const BookOfTheDayCard: React.FC<BookOfTheDayCardProps> = () => {
                 </View>
               )}
             </ScrollView>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -473,11 +483,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   dossierContainer: {
+    width: '100%',
     maxHeight: '86%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
-    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
+    paddingBottom: 28,
   },
   modalHeader: {
     flexDirection: 'row',
