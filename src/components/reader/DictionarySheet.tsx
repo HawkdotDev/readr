@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { useTheme } from '../common/ThemeProvider';
 import { lookupWord } from '../../services/dictionary/dictionaryService';
@@ -42,8 +42,16 @@ export const DictionarySheet: React.FC<DictionarySheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Dictionary Definition">
-      <View style={styles.container}>
+    <Sheet visible={visible} onClose={onClose} title="Dictionary Definition" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator size="small" color={colors.accent} />
@@ -104,14 +112,17 @@ export const DictionarySheet: React.FC<DictionarySheetProps> = ({
             No definition found for "{word}".
           </Text>
         )}
-      </View>
+      </ScrollView>
     </Sheet>
   );
 };
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   container: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   loadingBox: {
     paddingVertical: 32,

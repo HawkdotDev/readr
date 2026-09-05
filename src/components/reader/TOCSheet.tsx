@@ -24,8 +24,16 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
   const { colors } = useTheme();
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Table of Contents">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
+    <Sheet visible={visible} onClose={onClose} title="Table of Contents" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.listContent}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {chapters.map((chap, idx) => {
           const isCurrent = idx === currentChapterIndex;
           const isPast = idx < currentChapterIndex;
@@ -83,8 +91,11 @@ export const TOCSheet: React.FC<TOCSheetProps> = ({
 export default TOCSheet;
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   chapterRow: {
     flexDirection: 'row',

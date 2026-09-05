@@ -103,7 +103,12 @@ export function TypographyTab() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fontRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        style={styles.fontRow}
+      >
         {allFontOptions.map((font) => {
           const isSelected = fontFamily === font.value;
           return (

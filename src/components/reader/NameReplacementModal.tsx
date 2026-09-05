@@ -171,8 +171,12 @@ export function NameReplacementModal({
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        nestedScrollEnabled={true}
         keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
       >
         {/* Header Description Badge */}
         <View style={[styles.infoBanner, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
@@ -195,7 +199,12 @@ export function NameReplacementModal({
               Role Reversal Presets
             </Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            contentContainerStyle={styles.presetsRow}
+          >
             {NAME_REPLACEMENT_PRESETS.map((preset) => (
               <TouchableOpacity
                 key={preset.id}
@@ -478,6 +487,9 @@ export function NameReplacementModal({
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
     paddingBottom: 40,
     gap: 16,

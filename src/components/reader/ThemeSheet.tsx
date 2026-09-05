@@ -32,8 +32,16 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
   ];
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Reading Palette & Tone">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+    <Sheet visible={visible} onClose={onClose} title="Reading Palette & Tone" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {/* System Theme Option */}
         <TouchableOpacity
           onPress={() => setThemeMode('system')}
@@ -112,8 +120,11 @@ export const ThemeSheet: React.FC<ThemeSheetProps> = ({ visible, onClose }) => {
 export default ThemeSheet;
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   container: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   systemRow: {
     flexDirection: 'row',

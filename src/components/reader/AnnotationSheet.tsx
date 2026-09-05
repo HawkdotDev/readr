@@ -128,7 +128,7 @@ export const AnnotationSheet: React.FC<AnnotationSheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Annotations & Bookmarks">
+    <Sheet visible={visible} onClose={onClose} title="Annotations & Bookmarks" maxHeightRatio={0.88}>
       <View style={styles.container}>
         {/* Tab Switcher */}
         <View
@@ -200,7 +200,12 @@ export const AnnotationSheet: React.FC<AnnotationSheetProps> = ({
         {tab === 'highlights' ? (
           <ScrollView
             showsVerticalScrollIndicator={false}
+            style={styles.scroll}
             contentContainerStyle={styles.list}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            bounces={true}
+            overScrollMode="always"
           >
             {!isAddingHighlight ? (
               <TouchableOpacity
@@ -230,7 +235,12 @@ export const AnnotationSheet: React.FC<AnnotationSheetProps> = ({
         ) : (
           <ScrollView
             showsVerticalScrollIndicator={false}
+            style={styles.scroll}
             contentContainerStyle={styles.list}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            bounces={true}
+            overScrollMode="always"
           >
             <BookmarkList
               bookmarks={bookmarks}
@@ -262,8 +272,10 @@ export const AnnotationSheet: React.FC<AnnotationSheetProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 24,
-    maxHeight: 520,
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
   },
   tabRow: {
     flexDirection: 'row',

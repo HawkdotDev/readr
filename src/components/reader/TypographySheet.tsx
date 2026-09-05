@@ -23,7 +23,7 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
   const [activeTab, setActiveTab] = useState<'typography' | 'experience' | 'focus'>('typography');
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Customisation">
+    <Sheet visible={visible} onClose={onClose} title="Customisation" maxHeightRatio={0.9}>
       {/* Top 3-Segment Tab Switcher */}
       <View style={[styles.tabBar, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
         <TouchableOpacity
@@ -111,7 +111,15 @@ export function TypographySheet({ visible, onClose }: TypographySheetProps) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {activeTab === 'typography' ? (
           <TypographyTab />
         ) : activeTab === 'experience' ? (
@@ -143,6 +151,12 @@ const styles = StyleSheet.create({
   tabButtonText: {
     fontSize: 12,
     letterSpacing: -0.1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
 });
 

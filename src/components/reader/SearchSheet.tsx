@@ -52,7 +52,7 @@ export const SearchSheet: React.FC<SearchSheetProps> = ({
   }
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Search in Book">
+    <Sheet visible={visible} onClose={onClose} title="Search in Book" maxHeightRatio={0.88}>
       <View style={styles.container}>
         {/* Search Input */}
         <View style={[styles.inputBox, { backgroundColor: colors.canvas, borderColor: colors.border }] as any}>
@@ -80,7 +80,15 @@ export const SearchSheet: React.FC<SearchSheetProps> = ({
         )}
 
         {/* Matches List */}
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+          contentContainerStyle={styles.list}
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          bounces={true}
+          overScrollMode="always"
+        >
           {matches.map((m, idx) => (
             <TouchableOpacity
               key={`match_${idx}`}
@@ -121,8 +129,10 @@ export const SearchSheet: React.FC<SearchSheetProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 24,
-    maxHeight: 500,
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
   },
   inputBox: {
     flexDirection: 'row',
@@ -146,6 +156,7 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 10,
+    paddingBottom: 40,
   },
   resultCard: {
     padding: 12,

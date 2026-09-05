@@ -68,8 +68,16 @@ export function FilterSortModal({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="More Filters & Sort">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <Sheet visible={visible} onClose={onClose} title="More Filters & Sort" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {/* Sort By Section */}
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>SORT BOOKS BY</Text>
         <View style={styles.optionsList}>
@@ -233,8 +241,11 @@ export function FilterSortModal({
 export default FilterSortModal;
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   content: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   sectionTitle: {
     fontFamily: FONTS.mono.bold,

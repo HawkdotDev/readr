@@ -20,7 +20,7 @@ export function Sheet({
   onClose,
   title,
   children,
-  maxHeightRatio = 0.8,
+  maxHeightRatio = 0.88,
   style,
 }: SheetProps) {
   const { colors } = useTheme();
@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderBottomWidth: 0,
-    paddingBottom: 32,
   },
   handleContainer: {
     alignItems: 'center',
@@ -122,8 +121,10 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    flex: 1,
     flexShrink: 1,
+    minHeight: 0,
+    paddingHorizontal: 20,
+    paddingTop: 14,
   },
 });

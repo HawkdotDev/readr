@@ -91,8 +91,16 @@ export const AmbientAudioSheet: React.FC<AmbientAudioSheetProps> = ({
   const activeTrackCount = Object.keys(audioState.activeTracks).length;
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Focus Soundscapes">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+    <Sheet visible={visible} onClose={onClose} title="Focus Soundscapes" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {/* Hidden Procedural Web Audio Engine */}
         <View style={styles.hiddenBridge} pointerEvents="none">
           <WebView
@@ -319,8 +327,11 @@ export const AmbientAudioSheet: React.FC<AmbientAudioSheetProps> = ({
 };
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   hiddenBridge: {
     width: 1,

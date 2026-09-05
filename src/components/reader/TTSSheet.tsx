@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Sheet } from '../common/Sheet';
 import { Slider } from '../common/Slider';
 import { useTheme } from '../common/ThemeProvider';
@@ -32,8 +32,16 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
   ];
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Audio Narration (TTS)">
-      <View style={styles.container}>
+    <Sheet visible={visible} onClose={onClose} title="Audio Narration (TTS)" maxHeightRatio={0.88}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={true}
+        overScrollMode="always"
+      >
         {/* Playback Progress Indicator */}
         <View style={[styles.progressCard, { backgroundColor: colors.canvas, borderColor: colors.border }] as any}>
           <Text style={[styles.progressText, { color: colors.textSecondary }] as any}>
@@ -126,14 +134,17 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
             );
           })}
         </View>
-      </View>
+      </ScrollView>
     </Sheet>
   );
 };
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   container: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   progressCard: {
     flexDirection: 'row',
