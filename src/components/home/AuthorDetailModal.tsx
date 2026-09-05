@@ -14,7 +14,7 @@ import { X, BookOpen, Compass, Feather, Bookmark, ArrowRight } from 'lucide-reac
 import { useTheme } from '../common/ThemeProvider';
 import { FONTS } from '../../utils/typography';
 import * as Haptics from 'expo-haptics';
-import { AuthorItem } from './LibraryAuthorsSection';
+import { AuthorItem, LibraryBookRef } from '../../services/editorial/libraryAuthorsService';
 
 export interface AuthorDetailModalProps {
   visible: boolean;
@@ -205,7 +205,7 @@ export const AuthorDetailModal: React.FC<AuthorDetailModalProps> = React.memo(({
                   IN YOUR COLLECTION ({author.libraryBooks.length})
                 </Text>
                 <View style={styles.libraryBooksList}>
-                  {author.libraryBooks.map((b) => (
+                  {author.libraryBooks.map((b: LibraryBookRef) => (
                     <TouchableOpacity
                       key={b.id}
                       activeOpacity={0.8}
@@ -263,7 +263,7 @@ export const AuthorDetailModal: React.FC<AuthorDetailModalProps> = React.memo(({
                   NOTABLE MASTERPIECES
                 </Text>
                 <View style={styles.worksGrid}>
-                  {author.famousWorks.map((work, idx) => (
+                  {author.famousWorks.map((work: string, idx: number) => (
                     <TouchableOpacity
                       key={idx}
                       activeOpacity={0.75}
