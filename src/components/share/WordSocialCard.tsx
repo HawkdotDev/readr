@@ -57,10 +57,10 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
     // Proportional styling scalars
     const frameMargin = (isTall ? 10 : isMedium ? 8 : 6) * scale;
     const framePadding = (isTall ? 16 : isMedium ? 14 : 12) * scale;
-    const wordFontSize = (isTall ? 32 : isMedium ? 28 : 24) * scale;
-    const wordLineHeight = (isTall ? 38 : isMedium ? 33 : 28) * scale;
-    const defFontSize = (isTall ? 13.5 : isMedium ? 13 : 12) * scale;
-    const defLineHeight = (isTall ? 20 : isMedium ? 18.5 : 16.5) * scale;
+    const wordFontSize = (isPortrait ? 32 : 24) * scale;
+    const wordLineHeight = (isPortrait ? 38 : 28) * scale;
+    const defFontSize = (isPortrait ? 13.5 : 12) * scale;
+    const defLineHeight = (isPortrait ? 20 : 16.5) * scale;
     const defMarginY = (isTall ? 10 : isMedium ? 8 : 5) * scale;
 
     return (
@@ -137,7 +137,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                     styles.phoneticText,
                     {
                       color: theme.accentColor,
-                      fontSize: (isPortrait ? 12.5 : 11.5) * scale,
+                      fontSize: (isPortrait ? 13 : 11.5) * scale,
                     },
                   ]}
                 >
@@ -205,8 +205,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                       styles.exampleQuote,
                       {
                         color: theme.primaryTextColor,
-                        fontSize: (isTall ? 12 : 11.5) * scale,
-                        lineHeight: (isTall ? 17 : 16) * scale,
+                        fontSize: (isPortrait ? 12 : 11) * scale,
+                        lineHeight: (isPortrait ? 17 : 15) * scale,
                       },
                     ]}
                     numberOfLines={isTall ? 4 : 3}
