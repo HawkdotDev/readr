@@ -278,6 +278,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                     color: theme.secondaryTextColor,
                     fontSize: (isPortrait ? 10.5 : 9.5) * scale,
                     marginTop: (isPortrait ? 8 : 4) * scale,
+                    paddingBottom: (aspectRatio === '3:3.75' ? 5 : 0) * scale,
                   },
                 ]}
                 numberOfLines={isPortrait ? 2 : 1}
