@@ -415,7 +415,7 @@ export default function FeedScreen() {
           />
         )}
 
-        {/* 8. 60-SECOND LITERARY LORE (MICRO-ESSAY) */}
+        {/* 8. LITERARY LORE (MICRO-ESSAY) */}
         {(activeCategory === 'all' || activeCategory === 'lore') && (
           <LiteraryLoreCard
             literaryLore={literaryLore}

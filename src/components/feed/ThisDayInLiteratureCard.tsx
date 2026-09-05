@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Share,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { FONTS } from '../../utils/typography';
@@ -13,6 +14,7 @@ import {
   Shuffle,
   Sparkles,
   BookOpen,
+  Share2,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -26,6 +28,19 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
   onShuffle,
 }) => {
   const { colors } = useTheme();
+
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const shareMessage = `🗓️ This Day in Literature (${almanacEvent.dateStr}, ${almanacEvent.year}):\n${almanacEvent.headline}\n\n${almanacEvent.description}\n\n✨ Significance: ${almanacEvent.significance}\n📖 ${almanacEvent.authorOrBook}\n\nShared via Readr`;
+      await Share.share({
+        message: shareMessage,
+        title: `This Day in Literature: ${almanacEvent.headline}`,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  };
 
   const handleShuffle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -42,18 +57,35 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleShuffle}
-          style={[
-            styles.shuffleBtn,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-          <Text style={[styles.shuffleBtnText, { color: colors.textSecondary }]}>
-            Other Eras
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerBtnGroup}>
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[
+              styles.actionBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Share Event"
+          >
+            <Share2 size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+              Share
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleShuffle}
+            style={[
+              styles.actionBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Other Eras"
+          >
+            <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+              Other Eras
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View
@@ -102,11 +134,27 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
           </Text>
         </View>
 
-        <View style={styles.almanacBookFooter}>
-          <BookOpen size={13} color={colors.accent} style={{ marginRight: 5 }} />
-          <Text style={[styles.almanacBookTitle, { color: colors.textPrimary }]}>
-            {almanacEvent.authorOrBook}
-          </Text>
+        <View style={styles.almanacFooterRow}>
+          <View style={styles.almanacBookFooter}>
+            <BookOpen size={13} color={colors.accent} style={{ marginRight: 5 }} />
+            <Text style={[styles.almanacBookTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+              {almanacEvent.authorOrBook}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[
+              styles.cardShareBtn,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Share Event"
+          >
+            <Share2 size={11} color={colors.accent} style={{ marginRight: 4 }} />
+            <Text style={[styles.cardShareBtnText, { color: colors.textPrimary }]}>
+              Share Event
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -133,7 +181,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
-  shuffleBtn: {
+  headerBtnGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 9,
@@ -141,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
-  shuffleBtnText: {
+  actionBtnText: {
     fontFamily: FONTS.mona.medium,
     fontSize: 11,
   },
@@ -198,17 +251,32 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     flex: 1,
   },
+  almanacFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
   almanacBookFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    flex: 1,
+    marginRight: 8,
   },
   almanacBookTitle: {
     fontFamily: FONTS.mona.bold,
     fontSize: 12,
   },
-  almanacAuthor: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 12,
+  cardShareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  cardShareBtnText: {
+    fontFamily: FONTS.mona.semiBold,
+    fontSize: 11,
   },
 });

@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Share,
 } from 'react-native';
 import { useTheme } from '../common/ThemeProvider';
 import { FONTS } from '../../utils/typography';
@@ -13,6 +14,7 @@ import {
   Shuffle,
   ChevronRight,
   Sparkles,
+  Share2,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -27,6 +29,19 @@ export const LiteraryLoreCard: React.FC<LiteraryLoreCardProps> = ({
 }) => {
   const { colors } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const shareMessage = `📚 Literary Lore: ${literaryLore.headline}\nFeaturing ${literaryLore.authorSubject} (${literaryLore.era})\n\n${literaryLore.story}\n\n✨ Takeaway: ${literaryLore.takeaway}\n\nShared via Readr`;
+      await Share.share({
+        message: shareMessage,
+        title: `Literary Lore: ${literaryLore.headline}`,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  };
 
   const handleShuffle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -45,22 +60,39 @@ export const LiteraryLoreCard: React.FC<LiteraryLoreCardProps> = ({
         <View style={styles.eyebrowRow}>
           <History size={13} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionEyebrow, { color: colors.textSecondary }]}>
-            60-SECOND LITERARY LORE
+            LITERARY LORE
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleShuffle}
-          style={[
-            styles.shuffleBtn,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-          <Text style={[styles.shuffleBtnText, { color: colors.textSecondary }]}>
-            Other Lore
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerBtnGroup}>
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[
+              styles.actionBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Share Literary Lore"
+          >
+            <Share2 size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+              Share
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleShuffle}
+            style={[
+              styles.actionBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Other Literary Lore"
+          >
+            <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+              Other Lore
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View
@@ -103,21 +135,37 @@ export const LiteraryLoreCard: React.FC<LiteraryLoreCardProps> = ({
           {literaryLore.story}
         </Text>
 
-        <TouchableOpacity
-          onPress={handleToggleExpand}
-          style={styles.loreToggleRow}
-        >
-          <Text style={[styles.loreToggleText, { color: colors.accent }]}>
-            {isExpanded ? 'Show Less' : 'Read Full Lore'}
-          </Text>
-          <ChevronRight
-            size={13}
-            color={colors.accent}
-            style={{
-              transform: [{ rotate: isExpanded ? '90deg' : '0deg' }],
-            }}
-          />
-        </TouchableOpacity>
+        <View style={styles.cardFooterRow}>
+          <TouchableOpacity
+            onPress={handleToggleExpand}
+            style={styles.loreToggleRow}
+          >
+            <Text style={[styles.loreToggleText, { color: colors.accent }]}>
+              {isExpanded ? 'Show Less' : 'Read Full Lore'}
+            </Text>
+            <ChevronRight
+              size={13}
+              color={colors.accent}
+              style={{
+                transform: [{ rotate: isExpanded ? '90deg' : '0deg' }],
+              }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[
+              styles.cardShareBtn,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+            accessibilityLabel="Share Story"
+          >
+            <Share2 size={11} color={colors.accent} style={{ marginRight: 4 }} />
+            <Text style={[styles.cardShareBtnText, { color: colors.textPrimary }]}>
+              Share Lore
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {isExpanded && (
           <View
@@ -157,7 +205,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
-  shuffleBtn: {
+  headerBtnGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 9,
@@ -165,8 +218,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
-  shuffleBtnText: {
+  actionBtnText: {
     fontFamily: FONTS.mona.medium,
+    fontSize: 11,
+  },
+  cardFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  cardShareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  cardShareBtnText: {
+    fontFamily: FONTS.mona.semiBold,
     fontSize: 11,
   },
   cardContainer: {
