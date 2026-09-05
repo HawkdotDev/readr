@@ -29,6 +29,11 @@ import {
   AspectRatioType,
 } from './WordSocialCard';
 import {
+  XIcon,
+  ThreadsIcon,
+  WhatsAppIcon,
+} from './SocialIcons';
+import {
   X,
   Share2,
   Copy,
@@ -367,7 +372,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                   onPress={handlePostToTwitter}
                   style={[styles.socialPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}
                 >
-                  <Text style={[styles.socialPillIcon, { color: colors.textPrimary }]}>𝕏</Text>
+                  <XIcon size={14} color={colors.textPrimary} />
                   <Text style={[styles.socialPillLabel, { color: colors.textPrimary }]}>Post to X</Text>
                 </TouchableOpacity>
 
@@ -375,7 +380,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                   onPress={handlePostToThreads}
                   style={[styles.socialPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}
                 >
-                  <Text style={[styles.socialPillIcon, { color: colors.textPrimary }]}>🧵</Text>
+                  <ThreadsIcon size={14} color={colors.textPrimary} />
                   <Text style={[styles.socialPillLabel, { color: colors.textPrimary }]}>Threads</Text>
                 </TouchableOpacity>
 
@@ -383,7 +388,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                   onPress={handlePostToWhatsApp}
                   style={[styles.socialPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}
                 >
-                  <Text style={[styles.socialPillIcon, { color: colors.textPrimary }]}>💬</Text>
+                  <WhatsAppIcon size={14} color="#25D366" />
                   <Text style={[styles.socialPillLabel, { color: colors.textPrimary }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -414,6 +419,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
               <View style={styles.captionPlatformTabs}>
                 {(['twitter', 'threads', 'whatsapp'] as SocialPlatform[]).map((p) => {
                   const isActive = captionPlatform === p;
+                  const iconColor = isActive ? colors.accent : colors.textSecondary;
                   return (
                     <TouchableOpacity
                       key={p}
@@ -426,6 +432,15 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                         isActive && { borderBottomColor: colors.accent, borderBottomWidth: 2 },
                       ]}
                     >
+                      {p === 'twitter' && <XIcon size={11} color={iconColor} style={{ marginRight: 5 }} />}
+                      {p === 'threads' && <ThreadsIcon size={11} color={iconColor} style={{ marginRight: 5 }} />}
+                      {p === 'whatsapp' && (
+                        <WhatsAppIcon
+                          size={11}
+                          color={isActive ? '#25D366' : colors.textSecondary}
+                          style={{ marginRight: 5 }}
+                        />
+                      )}
                       <Text
                         style={[
                           styles.captionTabText,
@@ -611,9 +626,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
   },
-  socialPillIcon: {
-    fontSize: 13,
-  },
   socialPillLabel: {
     fontFamily: FONTS.mona.medium,
     fontSize: 12,
@@ -643,6 +655,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   captionTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 6,
     marginRight: 16,
   },
