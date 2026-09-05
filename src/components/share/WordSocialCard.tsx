@@ -12,7 +12,7 @@ import {
 } from '../../services/share/socialPostService';
 import { FONTS } from '../../utils/typography';
 
-export type AspectRatioType = '1:1' | '3:4';
+export type AspectRatioType = '1:1' | '3:3.75' | '3:4';
 
 export interface WordSocialCardProps {
   literaryWord: LiteraryWord;
@@ -30,7 +30,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
     {
       literaryWord,
       themeId = 'paper',
-      aspectRatio = '3:4',
+      aspectRatio = '3:3.75',
       showPhonetic = true,
       showExample = true,
       showEtymology = true,
@@ -43,8 +43,25 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
 
     // Base width: 340px
     const baseWidth = 340 * scale;
-    const isPortrait = aspectRatio === '3:4';
-    const cardHeight = isPortrait ? Math.round((baseWidth * 4) / 3) : baseWidth;
+    let cardHeight = baseWidth; // 1:1
+    if (aspectRatio === '3:4') {
+      cardHeight = Math.round((baseWidth * 4) / 3); // 453px
+    } else if (aspectRatio === '3:3.75') {
+      cardHeight = Math.round((baseWidth * 3.75) / 3); // 425px
+    }
+
+    const isTall = aspectRatio === '3:4';
+    const isMedium = aspectRatio === '3:3.75';
+    const isPortrait = isTall || isMedium;
+
+    // Proportional styling scalars
+    const frameMargin = (isTall ? 10 : isMedium ? 8 : 6) * scale;
+    const framePadding = (isTall ? 16 : isMedium ? 14 : 12) * scale;
+    const wordFontSize = (isTall ? 32 : isMedium ? 28 : 24) * scale;
+    const wordLineHeight = (isTall ? 38 : isMedium ? 33 : 28) * scale;
+    const defFontSize = (isTall ? 13.5 : isMedium ? 13 : 12) * scale;
+    const defLineHeight = (isTall ? 20 : isMedium ? 18.5 : 16.5) * scale;
+    const defMarginY = (isTall ? 10 : isMedium ? 8 : 5) * scale;
 
     return (
       <View
@@ -65,8 +82,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
           style={[
             styles.innerFrame,
             {
-              margin: (isPortrait ? 10 : 6) * scale,
-              padding: (isPortrait ? 16 : 12) * scale,
+              margin: frameMargin,
+              padding: framePadding,
               borderColor: theme.cardBorderColor,
             },
           ]}
@@ -103,8 +120,8 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                 styles.wordHeading,
                 {
                   color: theme.primaryTextColor,
-                  fontSize: (isPortrait ? 32 : 24) * scale,
-                  lineHeight: (isPortrait ? 38 : 28) * scale,
+                  fontSize: wordFontSize,
+                  lineHeight: wordLineHeight,
                 },
               ]}
               numberOfLines={2}
@@ -114,13 +131,13 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
 
             {/* Phonetic & Part of Speech Badge */}
             {showPhonetic && (
-              <View style={[styles.metaRow, { marginTop: (isPortrait ? 6 : 3) * scale }]}>
+              <View style={[styles.metaRow, { marginTop: (isPortrait ? 5 : 3) * scale }]}>
                 <Text
                   style={[
                     styles.phoneticText,
                     {
                       color: theme.accentColor,
-                      fontSize: (isPortrait ? 13 : 11.5) * scale,
+                      fontSize: (isPortrait ? 12.5 : 11.5) * scale,
                     },
                   ]}
                 >
@@ -158,9 +175,9 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                 styles.definitionText,
                 {
                   color: theme.primaryTextColor,
-                  fontSize: (isPortrait ? 13.5 : 12) * scale,
-                  lineHeight: (isPortrait ? 20 : 16.5) * scale,
-                  marginVertical: (isPortrait ? 10 : 5) * scale,
+                  fontSize: defFontSize,
+                  lineHeight: defLineHeight,
+                  marginVertical: defMarginY,
                 },
               ]}
               numberOfLines={isPortrait ? 4 : 3}
@@ -171,15 +188,15 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
             {/* Literary Example Quote */}
             {showExample && (
               isPortrait ? (
-                // 3:4 Portrait: Full padded callout card
+                // Portrait (3:4 & 3:3.75): Padded Callout Card
                 <View
                   style={[
                     styles.quoteBoxPortrait,
                     {
                       backgroundColor: theme.quoteBoxBg,
                       borderColor: theme.cardBorderColor,
-                      padding: 12 * scale,
-                      marginTop: 8 * scale,
+                      padding: (isTall ? 12 : 10) * scale,
+                      marginTop: (isTall ? 8 : 6) * scale,
                     },
                   ]}
                 >
@@ -188,11 +205,11 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                       styles.exampleQuote,
                       {
                         color: theme.primaryTextColor,
-                        fontSize: 12 * scale,
-                        lineHeight: 17 * scale,
+                        fontSize: (isTall ? 12 : 11.5) * scale,
+                        lineHeight: (isTall ? 17 : 16) * scale,
                       },
                     ]}
-                    numberOfLines={4}
+                    numberOfLines={isTall ? 4 : 3}
                   >
                     "{literaryWord.literaryExample}"
                   </Text>
@@ -211,7 +228,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                   </Text>
                 </View>
               ) : (
-                // 1:1 Square: Decongested, airy literary blockquote border
+                // 1:1 Square: Airy literary blockquote border
                 <View
                   style={[
                     styles.quoteBoxSquare,
@@ -262,7 +279,7 @@ export const WordSocialCard = React.forwardRef<View, WordSocialCardProps>(
                   {
                     color: theme.secondaryTextColor,
                     fontSize: (isPortrait ? 10.5 : 9.5) * scale,
-                    marginTop: (isPortrait ? 8 : 4) * scale,
+                    marginTop: (isPortrait ? 7 : 4) * scale,
                   },
                 ]}
                 numberOfLines={isPortrait ? 2 : 1}
@@ -354,7 +371,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   centerContentPortrait: {
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   centerContentSquare: {
     paddingVertical: 2,

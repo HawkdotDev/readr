@@ -184,7 +184,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                     ],
                   ]}
                 >
-                  <Smartphone size={13} color={aspectRatio === '3:4' ? colors.accent : colors.textSecondary} style={{ marginRight: 5 }} />
+                  <Smartphone size={12} color={aspectRatio === '3:4' ? colors.accent : colors.textSecondary} style={{ marginRight: 4 }} />
                   <Text
                     style={[
                       styles.segmentText,
@@ -201,6 +201,33 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync().catch(() => {});
+                    setAspectRatio('3:3.75');
+                  }}
+                  style={[
+                    styles.segmentBtn,
+                    aspectRatio === '3:3.75' && [
+                      styles.segmentBtnActive,
+                      { backgroundColor: colors.canvas, borderColor: colors.accent },
+                    ],
+                  ]}
+                >
+                  <Smartphone size={12} color={aspectRatio === '3:3.75' ? colors.accent : colors.textSecondary} style={{ marginRight: 4 }} />
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: aspectRatio === '3:3.75' ? colors.accent : colors.textSecondary,
+                        fontFamily: aspectRatio === '3:3.75' ? FONTS.mona.bold : FONTS.mona.medium,
+                      },
+                    ]}
+                  >
+                    3:3.75 Feed
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
                     setAspectRatio('1:1');
                   }}
                   style={[
@@ -211,7 +238,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                     ],
                   ]}
                 >
-                  <Square size={13} color={aspectRatio === '1:1' ? colors.accent : colors.textSecondary} style={{ marginRight: 5 }} />
+                  <Square size={12} color={aspectRatio === '1:1' ? colors.accent : colors.textSecondary} style={{ marginRight: 4 }} />
                   <Text
                     style={[
                       styles.segmentText,
@@ -514,7 +541,7 @@ const styles = StyleSheet.create({
   },
   segmentedControl: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   segmentBtn: {
     flex: 1,
@@ -522,6 +549,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 4,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -535,7 +563,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   segmentText: {
-    fontSize: 12,
+    fontSize: 11,
   },
   themeRow: {
     flexDirection: 'row',
