@@ -14,7 +14,7 @@ import { useTheme } from '../../src/components/common/ThemeProvider';
 import {
   BookOfTheDayCard,
   AuthorOfTheDayCard,
-  ArtistsSection,
+  LibraryAuthorsSection,
 } from '../../src/components/home';
 import {
   ReadingMomentumCard,
@@ -237,14 +237,14 @@ export default function FeedScreen() {
     }
   };
 
-  const handleArtistPress = (artistName: string) => {
+  const handleAuthorPress = (authorName: string) => {
     const hasBook = books.some((b) =>
-      b.authors?.some((a) => a.name.toLowerCase().includes(artistName.toLowerCase()))
+      b.authors?.some((a) => a.name.toLowerCase().includes(authorName.toLowerCase()))
     );
     if (hasBook) {
-      router.push(`/library?search=${encodeURIComponent(artistName)}` as any);
+      router.push(`/library?search=${encodeURIComponent(authorName)}` as any);
     } else {
-      router.push(`/explore?search=${encodeURIComponent(artistName)}` as any);
+      router.push(`/explore?search=${encodeURIComponent(authorName)}` as any);
     }
   };
 
@@ -479,9 +479,9 @@ export default function FeedScreen() {
             </View>
 
             <View style={styles.sectionBlock}>
-              <ArtistsSection
+              <LibraryAuthorsSection
                 books={books}
-                onArtistPress={handleArtistPress}
+                onAuthorPress={handleAuthorPress}
                 onSeeAllPress={() => router.push('/explore')}
               />
             </View>

@@ -1,9 +1,8 @@
 export * from './ContinueReadingCard';
 export * from './ContinueStartedSection';
 export * from './YouMightLikeSection';
-export * from './ArtistsSection';
-export * from './ArtistDetailModal';
+export * from './LibraryAuthorsSection';
+export * from './AuthorDetailModal';
 export * from './GenresSection';
 export * from './BookOfTheDayCard';
 export * from './AuthorOfTheDayCard';
-

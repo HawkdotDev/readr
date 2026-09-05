@@ -73,6 +73,8 @@ mock.module('react-native', () => ({
   Text: 'Text',
   TouchableOpacity: 'TouchableOpacity',
   ScrollView: 'ScrollView',
+  FlatList: 'FlatList',
+  Modal: 'Modal',
   TextInput: 'TextInput',
   ActivityIndicator: 'ActivityIndicator',
 }));
