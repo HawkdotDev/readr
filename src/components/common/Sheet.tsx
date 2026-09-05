@@ -1,10 +1,17 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Pressable, ViewStyle, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  Pressable,
+  ViewStyle,
+  useWindowDimensions,
+} from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { X } from 'lucide-react-native';
 import { FONTS } from '../../utils/typography';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface SheetProps {
   visible: boolean;
@@ -24,6 +31,8 @@ export function Sheet({
   style,
 }: SheetProps) {
   const { colors } = useTheme();
+  const { height: screenHeight } = useWindowDimensions();
+  const sheetHeight = Math.round(screenHeight * (maxHeightRatio || 0.88));
 
   return (
     <Modal
@@ -53,7 +62,8 @@ export function Sheet({
             {
               backgroundColor: colors.surface,
               borderColor: colors.border,
-              maxHeight: SCREEN_HEIGHT * maxHeightRatio,
+              height: sheetHeight,
+              maxHeight: sheetHeight,
             },
             style,
           ]}
@@ -94,6 +104,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderBottomWidth: 0,
+    overflow: 'hidden',
   },
   handleContainer: {
     alignItems: 'center',
@@ -122,8 +133,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    flexShrink: 1,
-    minHeight: 0,
     paddingHorizontal: 20,
     paddingTop: 14,
   },

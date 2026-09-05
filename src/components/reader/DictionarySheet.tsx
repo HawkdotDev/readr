@@ -42,7 +42,7 @@ export const DictionarySheet: React.FC<DictionarySheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Dictionary Definition" maxHeightRatio={0.88}>
+    <Sheet visible={visible} onClose={onClose} title="Dictionary Definition" maxHeightRatio={0.55}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scroll}

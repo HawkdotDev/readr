@@ -32,7 +32,7 @@ export const TTSSheet: React.FC<TTSSheetProps> = ({ visible, onClose }) => {
   ];
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Audio Narration (TTS)" maxHeightRatio={0.88}>
+    <Sheet visible={visible} onClose={onClose} title="Audio Narration (TTS)" maxHeightRatio={0.65}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scroll}
