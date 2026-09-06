@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { generateBackup, shareBackupFile, parseAndValidateBackup } from '../../src/services/backup/backupService';
+import { generateBackup, shareBackupFile, parseAndValidateBackup, restoreBackup } from '../../src/services/backup/backupService';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ArrowLeft, DownloadCloud, UploadCloud, ShieldCheck, CheckCircle2 } from 'lucide-react-native';
@@ -48,16 +48,37 @@ export default function BackupWizardScreen() {
         return;
       }
 
+      const backupData = validated.data;
       Alert.alert(
         'Restore Confirmation',
-        `This backup contains ${validated.data.manifest.stats.totalBooks} books and ${validated.data.manifest.stats.totalHighlights} highlights. Would you like to restore this library snapshot?`,
+        `This backup contains ${backupData.manifest.stats.totalBooks} books and ${backupData.manifest.stats.totalHighlights} highlights. Would you like to restore this library snapshot? Existing records will be updated.`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'Restore',
-            onPress: () => {
-              Alert.alert('Library Restored', 'Your library and reading history have been successfully loaded.');
-              router.replace('/library');
+            onPress: async () => {
+              setLoading(true);
+              try {
+                const restoreRes = await restoreBackup(backupData);
+                if (restoreRes.success) {
+                  Alert.alert(
+                    'Library Restored',
+                    `Successfully restored:\n• ${restoreRes.booksRestored} books\n• ${restoreRes.highlightsRestored} highlights\n• ${restoreRes.bookmarksRestored} bookmarks\n• ${restoreRes.collectionsRestored} collections\n• ${restoreRes.sessionsRestored} sessions`,
+                    [
+                      {
+                        text: 'Go to Library',
+                        onPress: () => router.replace('/library'),
+                      },
+                    ]
+                  );
+                } else {
+                  Alert.alert('Restore Failed', restoreRes.error || 'Failed to import backup data.');
+                }
+              } catch (err: any) {
+                Alert.alert('Restore Error', err?.message || 'Unexpected error while restoring backup.');
+              } finally {
+                setLoading(false);
+              }
             },
           },
         ]

@@ -96,9 +96,9 @@ export const BookCard = React.memo<BookCardProps>(({
           <View style={styles.listFooter}>
             <Badge label={book.fileFormat.toUpperCase()} variant="secondary" />
             {book.rating && book.rating > 0 ? (
-              <View style={styles.ratingBadge}>
-                <Star size={11} color="#F59E0B" fill="#F59E0B" style={{ marginRight: 3 }} />
-                <Text style={[styles.ratingBadgeText, { color: colors.textSecondary }] as any}>{book.rating}</Text>
+              <View style={[styles.ratingBadge, colors.isMonochrome && { backgroundColor: colors.canvas, borderColor: colors.border, borderWidth: 1 }]}>
+                <Star size={11} color={colors.isMonochrome ? '#FFFFFF' : '#F59E0B'} fill={colors.isMonochrome ? '#FFFFFF' : '#F59E0B'} style={{ marginRight: 3 }} />
+                <Text style={[styles.ratingBadgeText, { color: colors.isMonochrome ? colors.textPrimary : '#F59E0B' }] as any}>{book.rating}</Text>
               </View>
             ) : null}
             <View style={styles.listProgressWrapper}>
@@ -199,9 +199,9 @@ export const BookCard = React.memo<BookCardProps>(({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Badge label={book.fileFormat.toUpperCase()} variant="secondary" />
             {book.rating && book.rating > 0 ? (
-              <View style={styles.ratingBadge}>
-                <Star size={10} color="#F59E0B" fill="#F59E0B" style={{ marginRight: 2 }} />
-                <Text style={[styles.ratingBadgeText, { color: colors.textSecondary }] as any}>{book.rating}</Text>
+              <View style={[styles.ratingBadge, colors.isMonochrome && { backgroundColor: colors.canvas, borderColor: colors.border, borderWidth: 1 }]}>
+                <Star size={10} color={colors.isMonochrome ? '#FFFFFF' : '#F59E0B'} fill={colors.isMonochrome ? '#FFFFFF' : '#F59E0B'} style={{ marginRight: 2 }} />
+                <Text style={[styles.ratingBadgeText, { color: colors.isMonochrome ? colors.textPrimary : '#F59E0B' }] as any}>{book.rating}</Text>
               </View>
             ) : null}
           </View>

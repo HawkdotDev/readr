@@ -84,13 +84,41 @@ export function GoalProgressRing({
         </View>
 
         {isGoalCompleted ? (
-          <View style={[styles.statusBadge, { backgroundColor: '#10B98118', borderColor: '#10B98135' }]}>
-            <CheckCircle2 size={13} color="#10B981" style={{ marginRight: 4 }} />
-            <Text style={[styles.statusBadgeText, { color: '#10B981' }]}>Completed 🎉</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: colors.isMonochrome ? '#27272A' : '#10B98118',
+                borderColor: colors.isMonochrome ? '#52525B' : '#10B98135',
+              },
+            ]}
+          >
+            <CheckCircle2
+              size={13}
+              color={colors.isMonochrome ? '#FAFAFA' : '#10B981'}
+              style={{ marginRight: 4 }}
+            />
+            <Text
+              style={[
+                styles.statusBadgeText,
+                { color: colors.isMonochrome ? '#FAFAFA' : '#10B981' },
+              ]}
+            >
+              Completed 🎉
+            </Text>
           </View>
         ) : (
-          <View style={[styles.statusBadge, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
-            <Flame size={13} color="#F59E0B" style={{ marginRight: 4 }} />
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: colors.canvas, borderColor: colors.border },
+            ]}
+          >
+            <Flame
+              size={13}
+              color={colors.isMonochrome ? colors.textPrimary : '#F59E0B'}
+              style={{ marginRight: 4 }}
+            />
             <Text style={[styles.statusBadgeText, { color: colors.textPrimary }]}>
               {minProgress}%
             </Text>
@@ -133,7 +161,7 @@ export function GoalProgressRing({
             <Text
               style={[
                 styles.tileMeta,
-                { color: minProgress >= 100 ? '#10B981' : colors.textSecondary },
+                { color: minProgress >= 100 ? (colors.isMonochrome ? colors.textPrimary : '#10B981') : colors.textSecondary },
               ]}
             >
               {minutesLeft > 0 ? `${minutesLeft}m left` : 'Met! 🎉'}
@@ -144,7 +172,11 @@ export function GoalProgressRing({
         {/* Pages Tile */}
         <View style={[styles.tile, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
           <View style={styles.tileHeader}>
-            <BookOpen size={14} color="#8B5CF6" style={{ marginRight: 5 }} />
+            <BookOpen
+              size={14}
+              color={colors.isMonochrome ? colors.textSecondary : '#8B5CF6'}
+              style={{ marginRight: 5 }}
+            />
             <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>Pages Read</Text>
           </View>
 
@@ -162,7 +194,10 @@ export function GoalProgressRing({
             <View
               style={[
                 styles.fill,
-                { width: `${pageProgress}%`, backgroundColor: '#8B5CF6' },
+                {
+                  width: `${pageProgress}%`,
+                  backgroundColor: colors.isMonochrome ? colors.textSecondary : '#8B5CF6',
+                },
               ]}
             />
           </View>
@@ -174,7 +209,7 @@ export function GoalProgressRing({
             <Text
               style={[
                 styles.tileMeta,
-                { color: pageProgress >= 100 ? '#10B981' : colors.textSecondary },
+                { color: pageProgress >= 100 ? (colors.isMonochrome ? colors.textPrimary : '#10B981') : colors.textSecondary },
               ]}
             >
               {pagesLeft > 0 ? `${pagesLeft}p left` : 'Met! 🎉'}
@@ -187,7 +222,11 @@ export function GoalProgressRing({
       <View style={[styles.statsStrip, { borderTopColor: colors.border }]}>
         {/* Pace */}
         <View style={styles.statStripItem}>
-          <Zap size={13} color="#F59E0B" style={{ marginRight: 4 }} />
+          <Zap
+            size={13}
+            color={colors.isMonochrome ? colors.textSecondary : '#F59E0B'}
+            style={{ marginRight: 4 }}
+          />
           <Text style={[styles.statStripValue, { color: colors.textPrimary }]}>
             {pagesPerHour > 0 ? `${pagesPerHour}` : '—'}
           </Text>
@@ -211,7 +250,11 @@ export function GoalProgressRing({
 
         {/* Streak */}
         <View style={styles.statStripItem}>
-          <Flame size={13} color="#EF4444" style={{ marginRight: 4 }} />
+          <Flame
+            size={13}
+            color={colors.isMonochrome ? colors.textSecondary : '#EF4444'}
+            style={{ marginRight: 4 }}
+          />
           <Text style={[styles.statStripValue, { color: colors.textPrimary }]}>
             {currentStreak}d
           </Text>

@@ -22,6 +22,12 @@ export function SpeedometerOverlay({
 
   // Pace label
   const getPaceCategory = (wpm: number) => {
+    if (colors.isMonochrome) {
+      if (wpm < 180) return { label: 'Relaxed', color: colors.textSecondary };
+      if (wpm < 280) return { label: 'Normal', color: colors.textPrimary };
+      if (wpm < 400) return { label: 'Fast', color: colors.textPrimary };
+      return { label: 'Speed Reader', color: '#FFFFFF' };
+    }
     if (wpm < 180) return { label: 'Relaxed', color: '#10B981' };
     if (wpm < 280) return { label: 'Normal', color: colors.accent };
     if (wpm < 400) return { label: 'Fast', color: '#F59E0B' };

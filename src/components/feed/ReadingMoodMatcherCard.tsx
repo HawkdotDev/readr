@@ -253,7 +253,7 @@ export const ReadingMoodMatcherCard: React.FC<ReadingMoodMatcherCardProps> = ({
             <ActivityIndicator size="small" color={colors.isDark ? '#000000' : '#FFFFFF'} />
           ) : inLibrary ? (
             <>
-              <CheckCircle2 size={13} color="#10B981" style={{ marginRight: 6 }} />
+              <CheckCircle2 size={13} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 6 }} />
               <Text style={[styles.moodActionBtnText, { color: colors.textPrimary }]}>
                 In Your Library · Read Now
               </Text>

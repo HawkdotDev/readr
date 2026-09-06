@@ -173,10 +173,23 @@ export const readingGoals = sqliteTable('reading_goals', {
   id: text('id').primaryKey(),
   targetDailyMinutes: integer('target_daily_minutes').default(30).notNull(),
   targetDailyPages: integer('target_daily_pages').default(20).notNull(),
+  targetAnnualBooks: integer('target_annual_books').default(24).notNull(),
   currentStreakDays: integer('current_streak_days').default(0).notNull(),
   longestStreakDays: integer('longest_streak_days').default(0).notNull(),
   lastActiveDate: text('last_active_date'),
 });
+
+// Reflections Journal
+export const reflections = sqliteTable('reflections', {
+  id: text('id').primaryKey(),
+  bookId: text('book_id').references(() => books.id, { onDelete: 'set null' }),
+  prompt: text('prompt').notNull(),
+  response: text('response').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => [
+  index('reflections_created_idx').on(table.createdAt),
+  index('reflections_book_idx').on(table.bookId),
+]);
 
 // 9. Custom OPDS Catalogs
 export const opdsServers = sqliteTable('opds_servers', {

@@ -165,7 +165,7 @@ export function TouchZoneConfigModal({ visible, onClose }: TouchZoneConfigModalP
                           style={[
                             styles.zoneActionLabel,
                             {
-                              color: isSelected ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.accent,
+                              color: isSelected ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.accent,
                             },
                           ]}
                         >

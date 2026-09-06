@@ -234,8 +234,13 @@ export const ServerHub: React.FC<ServerHubProps> = React.memo(({
 
       {/* Error Banner */}
       {catalogError && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>
+        <View
+          style={[
+            styles.errorBanner,
+            colors.isMonochrome && { backgroundColor: colors.canvas, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.errorText, colors.isMonochrome && { color: colors.textSecondary }]}>
             Feed connection failed. Displaying curated public domain catalog.
           </Text>
         </View>

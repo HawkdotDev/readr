@@ -11,3 +11,4 @@ export * from './SavedClippingsCard';
 export * from './ThisDayInLiteratureCard';
 export * from './LiteraryPollCard';
 export * from './PersonalizedRecommendationsCard';
+export * from './DailyBroadsheetSection';

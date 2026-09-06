@@ -149,7 +149,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
               accessibilityLabel="Copy quote text"
             >
               {hasCopied ? (
-                <Check size={16} color="#16A34A" />
+                <Check size={16} color={colors.isMonochrome ? colors.textPrimary : '#16A34A'} />
               ) : (
                 <Copy size={16} color={colors.textPrimary} />
               )}

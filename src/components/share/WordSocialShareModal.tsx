@@ -400,7 +400,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                   onPress={handlePostToWhatsApp}
                   style={[styles.socialPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}
                 >
-                  <WhatsAppIcon size={14} color="#25D366" />
+                  <WhatsAppIcon size={14} color={colors.isMonochrome ? colors.textPrimary : '#25D366'} />
                   <Text style={[styles.socialPillLabel, { color: colors.textPrimary }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -417,11 +417,11 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                   style={[styles.copyBtnSmall, { backgroundColor: colors.canvas, borderColor: colors.border }]}
                 >
                   {hasCopiedCaption ? (
-                    <Check size={12} color="#10B981" style={{ marginRight: 4 }} />
+                    <Check size={12} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 4 }} />
                   ) : (
                     <Copy size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
                   )}
-                  <Text style={[styles.copyBtnSmallText, { color: hasCopiedCaption ? '#10B981' : colors.textSecondary }]}>
+                  <Text style={[styles.copyBtnSmallText, { color: hasCopiedCaption ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.textSecondary }]}>
                     {hasCopiedCaption ? 'Copied' : 'Copy'}
                   </Text>
                 </TouchableOpacity>
@@ -449,7 +449,7 @@ export const WordSocialShareModal: React.FC<WordSocialShareModalProps> = ({
                       {p === 'whatsapp' && (
                         <WhatsAppIcon
                           size={11}
-                          color={isActive ? '#25D366' : colors.textSecondary}
+                          color={isActive ? (colors.isMonochrome ? colors.accent : '#25D366') : colors.textSecondary}
                           style={{ marginRight: 5 }}
                         />
                       )}

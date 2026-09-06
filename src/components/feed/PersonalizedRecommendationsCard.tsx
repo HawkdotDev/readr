@@ -95,13 +95,17 @@ export const PersonalizedRecommendationsCard: React.FC<PersonalizedRecommendatio
                     style={[
                       styles.recReasonBadge,
                       {
-                        backgroundColor: colors.isDark
+                        backgroundColor: colors.isMonochrome
+                          ? colors.canvas
+                          : colors.isDark
                           ? 'rgba(245, 158, 11, 0.15)'
                           : 'rgba(245, 158, 11, 0.1)',
+                        borderColor: colors.border,
+                        borderWidth: colors.isMonochrome ? 1 : 0,
                       },
                     ]}
                   >
-                    <Text style={[styles.recReasonText, { color: '#F59E0B' }]} numberOfLines={1}>
+                    <Text style={[styles.recReasonText, { color: colors.isMonochrome ? colors.textSecondary : '#F59E0B' }]} numberOfLines={1}>
                       {rec.recommendationReason}
                     </Text>
                   </View>
@@ -142,7 +146,7 @@ export const PersonalizedRecommendationsCard: React.FC<PersonalizedRecommendatio
                   <ActivityIndicator size="small" color={colors.isDark ? '#000000' : '#FFFFFF'} />
                 ) : isOwned ? (
                   <View style={styles.btnInnerRow}>
-                    <CheckCircle2 size={13} color="#10B981" style={{ marginRight: 5 }} />
+                    <CheckCircle2 size={13} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 5 }} />
                     <Text style={[styles.primaryActionBtnText, { color: colors.textPrimary }]}>
                       In Library · Read
                     </Text>

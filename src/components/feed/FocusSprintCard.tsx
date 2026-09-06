@@ -103,7 +103,7 @@ export const FocusSprintCard: React.FC<FocusSprintCardProps> = ({
       {/* Header Row */}
       <View style={styles.headerRow}>
         <View style={styles.eyebrowRow}>
-          <Zap size={14} color="#F59E0B" style={{ marginRight: 6 }} />
+          <Zap size={14} color={colors.isMonochrome ? colors.textSecondary : '#F59E0B'} style={{ marginRight: 6 }} />
           <Text style={[styles.eyebrowText, { color: colors.textSecondary }]}>
             FOCUS READING SPRINT
           </Text>
@@ -173,7 +173,7 @@ export const FocusSprintCard: React.FC<FocusSprintCardProps> = ({
                 styles.trackFill,
                 {
                   width: `${progressPct}%`,
-                  backgroundColor: isCompleted ? '#10B981' : colors.accent,
+                  backgroundColor: isCompleted ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.accent,
                 },
               ]}
             />
@@ -182,8 +182,8 @@ export const FocusSprintCard: React.FC<FocusSprintCardProps> = ({
 
         {/* Completion Notice */}
         {isCompleted && (
-          <View style={[styles.completionBox, { backgroundColor: colors.canvas, borderColor: '#10B981' }]}>
-            <CheckCircle2 size={16} color="#10B981" style={{ marginRight: 8 }} />
+          <View style={[styles.completionBox, { backgroundColor: colors.canvas, borderColor: colors.isMonochrome ? '#52525B' : '#10B981' }]}>
+            <CheckCircle2 size={16} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 8 }} />
             <Text style={[styles.completionText, { color: colors.textPrimary }]}>
               Brilliant work! {durationMinutes}m added to today's reading momentum.
             </Text>
@@ -197,7 +197,7 @@ export const FocusSprintCard: React.FC<FocusSprintCardProps> = ({
             style={[
               styles.primaryBtn,
               {
-                backgroundColor: isActive ? '#EF4444' : colors.accent,
+                backgroundColor: isActive ? (colors.isMonochrome ? '#52525B' : '#EF4444') : colors.accent,
               },
             ]}
             activeOpacity={0.8}

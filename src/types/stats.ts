@@ -13,6 +13,7 @@ export interface ReadingGoal {
   id: string;
   targetDailyMinutes: number;
   targetDailyPages: number;
+  targetAnnualBooks?: number;
   targetMinutesPerDay?: number;
   targetPagesPerDay?: number;
   currentStreakDays: number;

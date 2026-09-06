@@ -21,6 +21,8 @@ import { QuickHighlightMenu } from './QuickHighlightMenu';
 import { addHighlight, getHighlights } from '../../db/queries/books';
 import { Highlight, HighlightColor } from '../../types';
 import { ttsService } from '../../services/tts/ttsService';
+import { HardwareKeyService } from '../../services/hardware/hardwareKeyService';
+import { attachShakeSensorListener, attachTiltSensorListener } from '../../services/sensors/gestureSensors';
 import { FONTS } from '../../utils/typography';
 
 export interface ModernEpubReaderProps {
@@ -86,6 +88,11 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
     bionicReadingEnabled,
     bionicFixation,
     nameReplacements,
+    volumeKeysTurnPages,
+    invertVolumeKeys,
+    shakeToSpeechEnabled,
+    tiltToTurnEnabled,
+    tiltSensitivity,
     currentBook,
     setCurrentChapter,
     setLocation,
@@ -193,6 +200,61 @@ export const ModernEpubReader: React.FC<ModernEpubReaderProps> = ({
       animateToChapter(currentChapterIdx - 1, 'end');
     }
   };
+
+  // Hardware Volume Keys & Remote Clicker Navigation
+  useEffect(() => {
+    if (!volumeKeysTurnPages) return;
+
+    const cleanup = HardwareKeyService.attachListener({
+      enabled: volumeKeysTurnPages,
+      invert: invertVolumeKeys,
+      onNextPage: handleNextChapter,
+      onPrevPage: handlePrevChapter,
+    });
+
+    return cleanup;
+  }, [volumeKeysTurnPages, invertVolumeKeys, currentChapterIdx, chapters.length]);
+
+  // Shake-to-Speech Toggle
+  const handleToggleTTS = () => {
+    if (!currentChapter) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const state = ttsService.getState();
+    if (state.isPlaying) {
+      ttsService.stop();
+    } else {
+      const plainText = currentChapter.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (plainText) {
+        ttsService.setContent(plainText);
+        ttsService.play();
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!shakeToSpeechEnabled) return;
+
+    const cleanup = attachShakeSensorListener({
+      enabled: shakeToSpeechEnabled,
+      onShake: handleToggleTTS,
+    });
+
+    return cleanup;
+  }, [shakeToSpeechEnabled, currentChapter]);
+
+  // Tilt-to-Turn Navigation
+  useEffect(() => {
+    if (!tiltToTurnEnabled) return;
+
+    const cleanup = attachTiltSensorListener({
+      enabled: tiltToTurnEnabled,
+      threshold: tiltSensitivity || 25,
+      onNextPage: handleNextChapter,
+      onPrevPage: handlePrevChapter,
+    });
+
+    return cleanup;
+  }, [tiltToTurnEnabled, tiltSensitivity, currentChapterIdx, chapters.length]);
 
   // Generate self-contained, zero-FOUC HTML bundle
   const htmlContent = useMemo(() => {

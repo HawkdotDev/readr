@@ -42,3 +42,89 @@ export function evaluateTiltPageTurn(
   if (rollAngle < -threshold) return 'prev';
   return 'none';
 }
+
+export interface ShakeListenerOptions {
+  enabled: boolean;
+  onShake: () => void;
+  threshold?: number;
+  debounceMs?: number;
+}
+
+export interface TiltListenerOptions {
+  enabled: boolean;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  threshold?: number;
+  debounceMs?: number;
+}
+
+export function attachShakeSensorListener(options: ShakeListenerOptions): () => void {
+  if (!options.enabled) return () => {};
+
+  let lastVector: Vector3D = { x: 0, y: 0, z: 0 };
+  let lastTriggerTime = 0;
+  const threshold = options.threshold ?? 1.75;
+  const debounce = options.debounceMs ?? 1000;
+
+  const handleMotion = (event: any) => {
+    const acc = event.accelerationIncludingGravity || event.acceleration;
+    if (!acc) return;
+    const current: Vector3D = {
+      x: acc.x ?? 0,
+      y: acc.y ?? 0,
+      z: acc.z ?? 0,
+    };
+
+    if (detectShake(current, lastVector, threshold)) {
+      const now = Date.now();
+      if (now - lastTriggerTime > debounce) {
+        lastTriggerTime = now;
+        options.onShake();
+      }
+    }
+    lastVector = current;
+  };
+
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('devicemotion', handleMotion);
+    return () => {
+      window.removeEventListener('devicemotion', handleMotion);
+    };
+  }
+
+  return () => {};
+}
+
+export function attachTiltSensorListener(options: TiltListenerOptions): () => void {
+  if (!options.enabled) return () => {};
+
+  let lastTriggerTime = 0;
+  const threshold = options.threshold ?? 25;
+  const debounce = options.debounceMs ?? 600;
+
+  const handleOrientation = (event: any) => {
+    const rollAngle = event.gamma ?? 0;
+    const action = evaluateTiltPageTurn(rollAngle, threshold);
+    if (action === 'none') return;
+
+    const now = Date.now();
+    if (now - lastTriggerTime > debounce) {
+      lastTriggerTime = now;
+      if (action === 'next') {
+        options.onNextPage();
+      } else if (action === 'prev') {
+        options.onPrevPage();
+      }
+    }
+  };
+
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }
+
+  return () => {};
+}
+

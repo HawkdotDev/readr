@@ -112,7 +112,7 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
             style={[
               styles.directionCardSub,
               {
-                color: readingEngine === 'modern' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                color: readingEngine === 'modern' ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.textSecondary,
               },
             ]}
           >
@@ -152,7 +152,7 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
             style={[
               styles.directionCardSub,
               {
-                color: readingEngine === 'native' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                color: readingEngine === 'native' ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.textSecondary,
               },
             ]}
           >
@@ -196,7 +196,7 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
             style={[
               styles.directionCardSub,
               {
-                color: readingDirection === 'horizontal' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                color: readingDirection === 'horizontal' ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.textSecondary,
               },
             ]}
           >
@@ -236,7 +236,7 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
             style={[
               styles.directionCardSub,
               {
-                color: readingDirection === 'vertical' ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                color: readingDirection === 'vertical' ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.textSecondary,
               },
             ]}
           >
@@ -288,7 +288,7 @@ export function ExperienceTab({ onClose }: ExperienceTabProps) {
                 style={[
                   styles.navModeSub,
                   {
-                    color: isSel ? (colors.isDark ? '#1F2937' : '#E5E7EB') : colors.textSecondary,
+                    color: isSel ? (colors.isDark ? '#18181B' : '#E5E7EB') : colors.textSecondary,
                   },
                 ]}
               >

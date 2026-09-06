@@ -12,13 +12,30 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { runWhenIdle } from '../../src/utils/idle';
 import { useTheme } from '../../src/components/common/ThemeProvider';
 import {
-  ContinueReadingCard,
   ContinueStartedSection,
   YouMightLikeSection,
-  GenresSection,
   SpotlightBookCard,
   SpotlightAuthorCard,
+  ThisDayInLiteratureCard,
+  WordOfTheDayCard,
+  LiteraryLoreCard,
 } from '../../src/components/home';
+import {
+  getTodayInLiterature,
+  getRandomAlmanacEvent,
+  LiteraryAlmanacEvent,
+} from '../../src/services/editorial/literaryAlmanacService';
+import {
+  getWordOfTheDay,
+  getRandomLiteraryWord,
+  LiteraryWord,
+} from '../../src/services/editorial/literaryLexiconService';
+import {
+  getTodayLiteraryLore,
+  getRandomLiteraryLore,
+  LiteraryLoreItem,
+} from '../../src/services/editorial/literaryLoreService';
+import { ReadingMomentumCard } from '../../src/components/feed/ReadingMomentumCard';
 import {
   RadialOptionsMenu,
   EmptyLibrary,
@@ -32,7 +49,7 @@ import {
 } from '../../src/services/recommendations/recommendationService';
 import { updateBookStatus, deleteBook } from '../../src/db/queries/books';
 import { Book, ReadingGoal } from '../../src/types';
-import { Flame, BookOpen, Rss, Server, Globe, ChevronRight, Compass } from 'lucide-react-native';
+import { Flame } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 import {
@@ -40,7 +57,6 @@ import {
   DayActivity,
 } from '../../src/db/queries/stats';
 import { getReadingGoals } from '../../src/db/queries/settings';
-import { DEFAULT_OPDS_SERVERS } from '../../src/db/queries/opds';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -59,7 +75,6 @@ export default function HomeScreen() {
 
   const [selectedWheelBook, setSelectedWheelBook] = useState<Book | null>(null);
   const [loadingRecId, setLoadingRecId] = useState<string | null>(null);
-  const [feedMode, setFeedMode] = useState<'feed' | 'server'>('feed');
 
   // Reading Stats State
   const [activity, setActivity] = useState<DayActivity[]>([]);
@@ -70,6 +85,13 @@ export default function HomeScreen() {
     currentStreakDays: 0,
     longestStreakDays: 0,
   });
+
+  // Literary Almanac State (This Day in Literature)
+  const [almanacEvent, setAlmanacEvent] = useState<LiteraryAlmanacEvent>(() => getTodayInLiterature());
+  // Word of the Day State (Daily Lexicon)
+  const [literaryWord, setLiteraryWord] = useState<LiteraryWord>(() => getWordOfTheDay());
+  // Literary Lore State (Micro-Essay)
+  const [literaryLore, setLiteraryLore] = useState<LiteraryLoreItem>(() => getTodayLiteraryLore());
 
   const loadStats = useCallback(async () => {
     try {
@@ -95,6 +117,9 @@ export default function HomeScreen() {
   );
 
   const handleRefresh = async () => {
+    setAlmanacEvent(getRandomAlmanacEvent(almanacEvent.id));
+    setLiteraryWord(getRandomLiteraryWord(literaryWord.id));
+    setLiteraryLore(getRandomLiteraryLore(literaryLore.id));
     await Promise.all([onRefresh(), loadStats()]);
   };
 
@@ -158,20 +183,7 @@ export default function HomeScreen() {
   };
 
 
-  const handleGenrePress = (genreName: string) => {
-    const hasBookInLibrary = books.some(
-      (b) =>
-        b.tags?.some((t) => t.name.toLowerCase().includes(genreName.toLowerCase())) ||
-        b.description?.toLowerCase().includes(genreName.toLowerCase()) ||
-        b.title.toLowerCase().includes(genreName.toLowerCase())
-    );
-    if (hasBookInLibrary) {
-      useLibraryStore.getState().setSearchQuery(genreName);
-      router.push('/library');
-    } else {
-      router.push('/explore');
-    }
-  };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
@@ -180,80 +192,13 @@ export default function HomeScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Readr</Text>
 
         <View style={styles.headerActions}>
-          {/* Feed / Server Mode Toggle */}
-          <View
-            style={[
-              styles.feedServerToggle,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                setFeedMode('feed');
-              }}
-              style={[
-                styles.toggleSegment,
-                feedMode === 'feed' && [
-                  styles.toggleSegmentActive,
-                  {
-                    backgroundColor: colors.canvas,
-                    borderColor: colors.border,
-                  },
-                ],
-              ]}
-              accessible={true}
-              accessibilityLabel="Editorial Feed"
-            >
-              <Rss
-                size={15}
-                color={
-                  feedMode === 'feed'
-                    ? colors.accent
-                    : colors.textSecondary
-                }
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                setFeedMode('server');
-              }}
-              style={[
-                styles.toggleSegment,
-                feedMode === 'server' && [
-                  styles.toggleSegmentActive,
-                  {
-                    backgroundColor: colors.canvas,
-                    borderColor: colors.border,
-                  },
-                ],
-              ]}
-              accessible={true}
-              accessibilityLabel="OPDS Servers"
-            >
-              <Server
-                size={15}
-                color={
-                  feedMode === 'server'
-                    ? colors.accent
-                    : colors.textSecondary
-                }
-              />
-            </TouchableOpacity>
-          </View>
-
           <View
             style={[
               styles.streakPill,
               { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
           >
-            <Flame size={15} color="#F59E0B" style={{ marginRight: 4 }} />
+            <Flame size={15} color={colors.isMonochrome ? colors.textPrimary : '#F59E0B'} style={{ marginRight: 4 }} />
             <Text style={[styles.streakPillText, { color: colors.textPrimary }]}>
               {goals.currentStreakDays}d streak
             </Text>
@@ -273,95 +218,23 @@ export default function HomeScreen() {
           />
         }
       >
-        {feedMode === 'server' ? (
-          <View style={styles.serverSection}>
-            <View style={styles.serverHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Server size={17} color={colors.accent} style={{ marginRight: 8 }} />
-                <Text style={[styles.serverSectionTitle, { color: colors.textPrimary }]}>
-                  Connected OPDS Feeds
-                </Text>
-              </View>
-              <Text style={[styles.serverSectionSub, { color: colors.textSecondary }]}>
-                Public Domain
-              </Text>
-            </View>
-
-            {DEFAULT_OPDS_SERVERS.map((server) => (
-              <TouchableOpacity
-                key={server.id}
-                activeOpacity={0.88}
-                onPress={() => router.push('/explore')}
-                style={[
-                  styles.serverCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.serverIconBox,
-                    { backgroundColor: colors.canvas, borderColor: colors.border },
-                  ]}
-                >
-                  <Globe size={18} color={colors.accent} />
-                </View>
-                <View style={styles.serverCardContent}>
-                  <Text style={[styles.serverCardTitle, { color: colors.textPrimary }]}>
-                    {server.title}
-                  </Text>
-                  <Text
-                    style={[styles.serverCardUrl, { color: colors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {server.url}
-                  </Text>
-                </View>
-                <ChevronRight size={16} color={colors.textSecondary} />
-              </TouchableOpacity>
-            ))}
-
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => router.push('/explore')}
-              style={[
-                styles.browseAllBtn,
-                { backgroundColor: colors.accent },
-              ]}
-            >
-              <Compass
-                size={16}
-                color={colors.isDark ? '#000000' : '#FFFFFF'}
-                style={{ marginRight: 8 }}
-              />
-              <Text
-                style={[
-                  styles.browseAllBtnText,
-                  { color: colors.isDark ? '#000000' : '#FFFFFF' },
-                ]}
-              >
-                Browse Full Catalog in Explore
-              </Text>
-            </TouchableOpacity>
+        {/* Pick Up Where You Left Off Hero Card */}
+        {featuredBook && (
+          <View style={styles.heroSection}>
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+              CONTINUE READING
+            </Text>
+            <ReadingMomentumCard
+              todayMinutes={todayMinutes}
+              targetMinutes={goals.targetDailyMinutes}
+              todayPages={todayPages}
+              currentStreakDays={goals.currentStreakDays}
+              activeBook={featuredBook}
+              onResumePress={(bookId) => router.push(`/reader/${bookId}` as any)}
+              onExplorePress={() => router.push('/explore')}
+            />
           </View>
-        ) : (
-          <>
-            {/* Pick Up Where You Left Off Hero Card */}
-            {featuredBook && (
-              <View style={styles.heroSection}>
-                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-                  CONTINUE READING
-                </Text>
-                <ContinueReadingCard
-                  book={featuredBook}
-                  onPress={() => router.push(`/reader/${featuredBook.id}` as any)}
-                  onLongPress={() => setSelectedWheelBook(featuredBook)}
-                  onOptionsPress={() => setSelectedWheelBook(featuredBook)}
-                />
-              </View>
-            )}
+        )}
 
             {/* Continue Books You Started Section */}
             {inProgressBooks.length > 0 && (
@@ -371,6 +244,24 @@ export default function HomeScreen() {
                 onBookLongPress={(b) => setSelectedWheelBook(b)}
               />
             )}
+
+            {/* This Day in Literature (Daily Literary Almanac) */}
+            <ThisDayInLiteratureCard
+              almanacEvent={almanacEvent}
+              onShuffle={() => setAlmanacEvent(getRandomAlmanacEvent(almanacEvent.id))}
+            />
+
+            {/* Word of the Day (Daily Lexicon) */}
+            <WordOfTheDayCard
+              literaryWord={literaryWord}
+              onShuffle={() => setLiteraryWord(getRandomLiteraryWord(literaryWord.id))}
+            />
+
+            {/* Literary Lore (Daily Micro-Story) */}
+            <LiteraryLoreCard
+              literaryLore={literaryLore}
+              onShuffle={() => setLiteraryLore(getRandomLiteraryLore(literaryLore.id))}
+            />
 
             {/* Contemporary Editorial Spotlights: Spotlight Book & Spotlight Author */}
             <SpotlightBookCard />
@@ -383,12 +274,7 @@ export default function HomeScreen() {
               loadingBookId={loadingRecId}
             />
 
-            {/* Genres Section */}
-            <GenresSection
-              onGenrePress={handleGenrePress}
-              onBookPress={handleRecommendedBookPress}
-              loadingBookId={loadingRecId}
-            />
+
 
             {/* Empty State Prompt if no books in library */}
             {books.length === 0 && (
@@ -397,8 +283,6 @@ export default function HomeScreen() {
                 onExplorePress={() => router.push('/explore')}
               />
             )}
-          </>
-        )}
       </ScrollView>
 
       {/* Popover Options Menu with 5-Star Rating */}
@@ -474,37 +358,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: -0.2,
   },
-  feedServerToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
-    padding: 3,
-    gap: 3,
-  },
-  toggleSegment: {
-    width: 32,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleSegmentActive: {
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 110,
   },
   heroSection: {
-    marginBottom: 6,
+    marginBottom: 3,
   },
   sectionLabel: {
     fontFamily: FONTS.mono.bold,
@@ -512,79 +372,5 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 10,
-  },
-  serverSection: {
-    paddingTop: 8,
-  },
-  serverHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingHorizontal: 2,
-  },
-  serverSectionTitle: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 18,
-    letterSpacing: -0.4,
-  },
-  serverSectionSub: {
-    fontFamily: FONTS.mona.medium,
-    fontSize: 12,
-    letterSpacing: -0.1,
-  },
-  serverCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  serverIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  serverCardContent: {
-    flex: 1,
-    marginRight: 8,
-  },
-  serverCardTitle: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 14,
-    letterSpacing: -0.2,
-    marginBottom: 2,
-  },
-  serverCardUrl: {
-    fontFamily: FONTS.mono.regular,
-    fontSize: 11,
-  },
-  browseAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 16,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  browseAllBtnText: {
-    fontFamily: FONTS.mona.bold,
-    fontSize: 13,
-    letterSpacing: -0.2,
   },
 });

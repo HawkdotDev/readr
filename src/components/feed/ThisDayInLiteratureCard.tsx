@@ -57,35 +57,19 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
           </Text>
         </View>
 
-        <View style={styles.headerBtnGroup}>
-          <TouchableOpacity
-            onPress={handleShare}
-            style={[
-              styles.actionBtn,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            accessibilityLabel="Share Event"
-          >
-            <Share2 size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
-              Share
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleShuffle}
-            style={[
-              styles.actionBtn,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            accessibilityLabel="Other Eras"
-          >
-            <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
-              Other Eras
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={handleShuffle}
+          style={[
+            styles.actionBtn,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          accessibilityLabel="Other Eras"
+        >
+          <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+          <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+            Other Eras
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View
@@ -99,13 +83,22 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
             style={[
               styles.almanacCategoryPill,
               {
-                backgroundColor: colors.isDark
+                backgroundColor: colors.isMonochrome
+                  ? colors.canvas
+                  : colors.isDark
                   ? 'rgba(59, 130, 246, 0.15)'
                   : 'rgba(59, 130, 246, 0.1)',
+                borderColor: colors.isMonochrome ? colors.border : 'transparent',
+                borderWidth: colors.isMonochrome ? 1 : 0,
               },
             ]}
           >
-            <Text style={[styles.almanacCategoryText, { color: almanacEvent.accentColor }]}>
+            <Text
+              style={[
+                styles.almanacCategoryText,
+                { color: colors.isMonochrome ? colors.textPrimary : almanacEvent.accentColor },
+              ]}
+            >
               {almanacEvent.category.toUpperCase()} · {almanacEvent.year}
             </Text>
           </View>
@@ -128,7 +121,11 @@ export const ThisDayInLiteratureCard: React.FC<ThisDayInLiteratureCardProps> = (
             { backgroundColor: colors.canvas, borderColor: colors.border },
           ]}
         >
-          <Sparkles size={13} color={almanacEvent.accentColor} style={{ marginRight: 6 }} />
+          <Sparkles
+            size={13}
+            color={colors.isMonochrome ? colors.textPrimary : almanacEvent.accentColor}
+            style={{ marginRight: 6 }}
+          />
           <Text style={[styles.almanacSignificanceText, { color: colors.textPrimary }]}>
             {almanacEvent.significance}
           </Text>
@@ -180,11 +177,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
-  },
-  headerBtnGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   actionBtn: {
     flexDirection: 'row',

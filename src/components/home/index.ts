@@ -6,3 +6,6 @@ export * from './AuthorDetailModal';
 export * from './GenresSection';
 export * from './BookOfTheDayCard';
 export * from './AuthorOfTheDayCard';
+export * from '../feed/ThisDayInLiteratureCard';
+export * from '../feed/WordOfTheDayCard';
+export * from '../feed/LiteraryLoreCard';

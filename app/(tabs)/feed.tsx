@@ -18,50 +18,24 @@ import {
   LibraryAuthorsSection,
 } from '../../src/components/home';
 import {
-  ReadingMomentumCard,
   FocusSprintCard,
-  ReadingChallengeCard,
-  VelocityPredictorCard,
   ReflectionJournalCard,
   OpeningSentenceCard,
-  WordOfTheDayCard,
-  LiteraryLoreCard,
   ReadingMoodMatcherCard,
-  SavedClippingsCard,
-  ThisDayInLiteratureCard,
   LiteraryPollCard,
-  PersonalizedRecommendationsCard,
 } from '../../src/components/feed';
 import { useLibrary } from '../../src/hooks/useLibrary';
 import {
   getRecentHighlightsWithBooks,
   EnrichedHighlight,
 } from '../../src/db/queries/books';
-import { getTodayReadingActivity } from '../../src/db/queries/stats';
+import { getTodayReadingActivity, logReadingSession } from '../../src/db/queries/stats';
 import { getReadingGoals } from '../../src/db/queries/settings';
-import {
-  getPersonalizedRecommendations,
-} from '../../src/services/recommendations/recommendationService';
-import {
-  getTodayInLiterature,
-  getRandomAlmanacEvent,
-  LiteraryAlmanacEvent,
-} from '../../src/services/editorial/literaryAlmanacService';
-import {
-  getWordOfTheDay,
-  getRandomLiteraryWord,
-  LiteraryWord,
-} from '../../src/services/editorial/literaryLexiconService';
 import {
   getTodayOpeningSentence,
   getRandomOpeningSentence,
   OpeningSentenceItem,
 } from '../../src/services/editorial/openingLinesService';
-import {
-  getTodayLiteraryLore,
-  getRandomLiteraryLore,
-  LiteraryLoreItem,
-} from '../../src/services/editorial/literaryLoreService';
 import {
   downloadOPDSBook,
 } from '../../src/services/opds/opdsService';
@@ -72,35 +46,19 @@ import { FONTS } from '../../src/utils/typography';
 // ─── Filter Categories ─────────────────────────────────────────────────
 export type FeedCategory =
   | 'all'
-  | 'pulse'
   | 'sprint'
-  | 'challenge'
-  | 'velocity'
   | 'reflection'
   | 'firstLines'
-  | 'wordOfDay'
-  | 'lore'
   | 'moods'
-  | 'clippings'
-  | 'almanac'
-  | 'recommendations'
   | 'poll'
   | 'spotlights';
 
 const FEED_FILTERS: { key: FeedCategory; label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'pulse', label: 'Pulse' },
   { key: 'sprint', label: '⚡ Sprints' },
-  { key: 'challenge', label: '🎯 Challenge' },
-  { key: 'velocity', label: '⏱️ Velocity' },
   { key: 'reflection', label: '📝 Reflection' },
   { key: 'firstLines', label: 'First Lines' },
-  { key: 'wordOfDay', label: 'Lexicon' },
-  { key: 'lore', label: '60s Lore' },
   { key: 'moods', label: 'Vibes' },
-  { key: 'clippings', label: 'Clippings' },
-  { key: 'almanac', label: 'Almanac' },
-  { key: 'recommendations', label: 'For You' },
   { key: 'poll', label: 'Debate' },
   { key: 'spotlights', label: 'Spotlights' },
 ];
@@ -131,10 +89,6 @@ export default function FeedScreen() {
 
   // Editorial Dynamic States
   const [openingSentence, setOpeningSentence] = useState<OpeningSentenceItem>(() => getTodayOpeningSentence());
-  const [literaryWord, setLiteraryWord] = useState<LiteraryWord>(() => getWordOfTheDay());
-  const [literaryLore, setLiteraryLore] = useState<LiteraryLoreItem>(() => getTodayLiteraryLore());
-  const [almanacEvent, setAlmanacEvent] = useState<LiteraryAlmanacEvent>(() => getTodayInLiterature());
-  const [annualChallengeTarget, setAnnualChallengeTarget] = useState<number>(24);
 
   // ─── Data Loading ───────────────────────────────────────────────────
   const loadDynamicData = useCallback(async () => {
@@ -165,10 +119,7 @@ export default function FeedScreen() {
   const handleRefresh = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setRefreshing(true);
-    setAlmanacEvent(getRandomAlmanacEvent(almanacEvent.id));
     setOpeningSentence(getRandomOpeningSentence(openingSentence.id));
-    setLiteraryWord(getRandomLiteraryWord(literaryWord.id));
-    setLiteraryLore(getRandomLiteraryLore(literaryLore.id));
     await loadDynamicData();
     setRefreshing(false);
   };
@@ -186,10 +137,6 @@ export default function FeedScreen() {
     return books[0] || null;
   }, [books]);
 
-  // Personalized recommendations
-  const personalizedRecs = useMemo(() => {
-    return getPersonalizedRecommendations(books).slice(0, 4);
-  }, [books]);
 
   // Handlers
   const handleSprintComplete = useCallback((minutes: number) => {
@@ -198,6 +145,8 @@ export default function FeedScreen() {
       minutesRead: prev.minutesRead + minutes,
     }));
   }, []);
+
+
 
   const handleDownloadBook = async (title: string, author: string, downloadUrl: string, coverUrl?: string) => {
     const existing = books.find(
@@ -316,20 +265,7 @@ export default function FeedScreen() {
           />
         }
       >
-        {/* 1. DYNAMIC READING MOMENTUM */}
-        {(activeCategory === 'all' || activeCategory === 'pulse') && (
-          <ReadingMomentumCard
-            todayMinutes={todayActivity.minutesRead}
-            targetMinutes={goals.targetDailyMinutes}
-            todayPages={todayActivity.pagesRead}
-            currentStreakDays={goals.currentStreakDays}
-            activeBook={activeReadingBook}
-            onResumePress={(bookId) => router.push(`/reader/${bookId}` as any)}
-            onExplorePress={() => router.push('/explore')}
-          />
-        )}
-
-        {/* 2. FOCUS READING SPRINT WIDGET */}
+        {/* 1. FOCUS READING SPRINT WIDGET */}
         {(activeCategory === 'all' || activeCategory === 'sprint') && (
           <FocusSprintCard
             activeBook={activeReadingBook}
@@ -339,25 +275,7 @@ export default function FeedScreen() {
           />
         )}
 
-        {/* 3. 2026 READING CHALLENGE TRACKER */}
-        {(activeCategory === 'all' || activeCategory === 'challenge') && (
-          <ReadingChallengeCard
-            books={books}
-            targetAnnualBooks={annualChallengeTarget}
-            onTargetChange={setAnnualChallengeTarget}
-            onBookPress={(bookId) => router.push(`/reader/${bookId}` as any)}
-          />
-        )}
 
-        {/* 4. FINISH-DATE & READING PACE VELOCITY PREDICTOR */}
-        {(activeCategory === 'all' || activeCategory === 'velocity') && (
-          <VelocityPredictorCard
-            activeBook={activeReadingBook}
-            dailyGoalMinutes={goals.targetDailyMinutes || 30}
-            onOpenReader={(bookId) => router.push(`/reader/${bookId}` as any)}
-            onExplorePress={() => router.push('/explore')}
-          />
-        )}
 
         {/* 5. DAILY LITERARY REFLECTION & MEMORY RECALL */}
         {(activeCategory === 'all' || activeCategory === 'reflection') && (
@@ -376,21 +294,7 @@ export default function FeedScreen() {
           />
         )}
 
-        {/* 7. LITERARY LEXICON (WORD OF THE DAY) */}
-        {(activeCategory === 'all' || activeCategory === 'wordOfDay') && (
-          <WordOfTheDayCard
-            literaryWord={literaryWord}
-            onShuffle={() => setLiteraryWord(getRandomLiteraryWord(literaryWord.id))}
-          />
-        )}
 
-        {/* 8. LITERARY LORE (MICRO-ESSAY) */}
-        {(activeCategory === 'all' || activeCategory === 'lore') && (
-          <LiteraryLoreCard
-            literaryLore={literaryLore}
-            onShuffle={() => setLiteraryLore(getRandomLiteraryLore(literaryLore.id))}
-          />
-        )}
 
         {/* 9. LITERARY MOOD MATCHER */}
         {(activeCategory === 'all' || activeCategory === 'moods') && (
@@ -402,34 +306,9 @@ export default function FeedScreen() {
           />
         )}
 
-        {/* 10. SAVED CLIPPINGS & HIGHLIGHTS */}
-        {(activeCategory === 'all' || activeCategory === 'clippings') && (
-          <SavedClippingsCard
-            highlights={highlights}
-            onOpenReader={(bookId) => router.push(`/reader/${bookId}` as any)}
-            onExplorePress={() => router.push('/explore')}
-          />
-        )}
 
-        {/* 11. THIS DAY IN LITERATURE (ALMANAC) */}
-        {(activeCategory === 'all' || activeCategory === 'almanac') && (
-          <ThisDayInLiteratureCard
-            almanacEvent={almanacEvent}
-            onShuffle={() => setAlmanacEvent(getRandomAlmanacEvent(almanacEvent.id))}
-          />
-        )}
 
-        {/* 12. PERSONALIZED RECOMMENDATIONS */}
-        {(activeCategory === 'all' || activeCategory === 'recommendations') && (
-          <PersonalizedRecommendationsCard
-            recommendations={personalizedRecs}
-            books={books}
-            downloadingId={downloadingId}
-            onDownload={handleDownloadBook}
-            onOpenBook={(bookId) => router.push(`/reader/${bookId}` as any)}
-            onSeeAllPress={() => router.push('/explore')}
-          />
-        )}
+
 
         {/* 13. DAILY LITERARY POLL & DEBATE */}
         {(activeCategory === 'all' || activeCategory === 'poll') && (

@@ -8,6 +8,11 @@ export interface ThemeColors {
   textSecondary: string;
   accent: string;
   isDark: boolean;
+  isMonochrome: boolean;
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
 }
 
 export const THEME_PALETTES: Record<
@@ -33,6 +38,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#7A766D',
     accent: '#C2410C', // Warm Editorial Terracotta
     isDark: false,
+    isMonochrome: false,
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
   sepia: {
     canvas: '#F4EFE6',
@@ -42,6 +52,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#7A756D',
     accent: '#262421', // Charcoal Black
     isDark: false,
+    isMonochrome: false,
+    success: '#15803D',
+    warning: '#B45309',
+    error: '#B91C1C',
+    info: '#1D4ED8',
   },
   dark: {
     canvas: '#18181B',
@@ -49,8 +64,13 @@ export const THEME_PALETTES: Record<
     border: '#3F3F46',
     textPrimary: '#FAFAFA',
     textSecondary: '#A1A1AA',
-    accent: '#FB923C', // Soft Amber Flame
+    accent: '#FFFFFF', // Pure Crisp White (No color)
     isDark: true,
+    isMonochrome: true, // Strictly shades of white, grey, and black
+    success: '#FFFFFF',
+    warning: '#D4D4D8',
+    error: '#FAFAFA',
+    info: '#A1A1AA',
   },
   oled: {
     canvas: '#000000',
@@ -58,8 +78,13 @@ export const THEME_PALETTES: Record<
     border: '#27272A',
     textPrimary: '#F4F4F5',
     textSecondary: '#71717A',
-    accent: '#F97316', // High-Contrast Radiant Amber
+    accent: '#FFFFFF', // Pure Crisp White (No color)
     isDark: true,
+    isMonochrome: true, // Strictly shades of white, grey, and black
+    success: '#FFFFFF',
+    warning: '#D4D4D8',
+    error: '#FAFAFA',
+    info: '#A1A1AA',
   },
   forest: {
     canvas: '#121E17',
@@ -69,6 +94,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#8CA395',
     accent: '#10B981',
     isDark: true,
+    isMonochrome: false,
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
   slate: {
     canvas: '#0F172A',
@@ -78,6 +108,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#94A3B8',
     accent: '#38BDF8',
     isDark: true,
+    isMonochrome: false,
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#38BDF8',
   },
   solarizedDark: {
     canvas: '#002B36',
@@ -87,6 +122,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#657B83',
     accent: '#268BD2',
     isDark: true,
+    isMonochrome: false,
+    success: '#859900',
+    warning: '#B58900',
+    error: '#DC322F',
+    info: '#268BD2',
   },
   solarizedLight: {
     canvas: '#FDF6E3',
@@ -96,6 +136,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#839496',
     accent: '#268BD2',
     isDark: false,
+    isMonochrome: false,
+    success: '#859900',
+    warning: '#B58900',
+    error: '#DC322F',
+    info: '#268BD2',
   },
   rosePine: {
     canvas: '#191724',
@@ -105,6 +150,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#908CAA',
     accent: '#EBBCBA',
     isDark: true,
+    isMonochrome: false,
+    success: '#9CCFD8',
+    warning: '#F6C177',
+    error: '#EB6F92',
+    info: '#31748F',
   },
   nord: {
     canvas: '#2E3440',
@@ -114,6 +164,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#D8DEE9',
     accent: '#88C0D0',
     isDark: true,
+    isMonochrome: false,
+    success: '#A3BE8C',
+    warning: '#EBCB8B',
+    error: '#BF616A',
+    info: '#81A1C1',
   },
   parchment: {
     canvas: '#F5ECD7',
@@ -123,6 +178,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#7C6C53',
     accent: '#B45309',
     isDark: false,
+    isMonochrome: false,
+    success: '#15803D',
+    warning: '#B45309',
+    error: '#B91C1C',
+    info: '#1D4ED8',
   },
   amberGlow: {
     canvas: '#1A120B',
@@ -132,6 +192,11 @@ export const THEME_PALETTES: Record<
     textSecondary: '#D97706',
     accent: '#F59E0B',
     isDark: true,
+    isMonochrome: false,
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
 };
 

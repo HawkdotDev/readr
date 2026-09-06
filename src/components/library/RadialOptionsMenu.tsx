@@ -134,11 +134,11 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
       icon: (color: string) => (
         <Heart
           size={18}
-          color={book.isFavorite ? '#EF4444' : color}
-          fill={book.isFavorite ? '#EF4444' : 'transparent'}
+          color={book.isFavorite ? (colors.isMonochrome ? '#FFFFFF' : '#EF4444') : color}
+          fill={book.isFavorite ? (colors.isMonochrome ? '#FFFFFF' : '#EF4444') : 'transparent'}
         />
       ),
-      color: book.isFavorite ? '#EF4444' : colors.textPrimary,
+      color: book.isFavorite ? (colors.isMonochrome ? '#FFFFFF' : '#EF4444') : colors.textPrimary,
       onPress: () => {
         onToggleFavorite(book);
         onClose();
@@ -150,11 +150,11 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
       icon: (color: string) => (
         <CheckCircle2
           size={18}
-          color={book.status === 'finished' ? '#10B981' : color}
-          fill={book.status === 'finished' ? 'rgba(16, 185, 129, 0.15)' : 'transparent'}
+          color={book.status === 'finished' ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : color}
+          fill={book.status === 'finished' ? (colors.isMonochrome ? '#27272A' : 'rgba(16, 185, 129, 0.15)') : 'transparent'}
         />
       ),
-      color: book.status === 'finished' ? '#10B981' : colors.textPrimary,
+      color: book.status === 'finished' ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.textPrimary,
       onPress: () => {
         onToggleStatus(book);
         onClose();
@@ -173,8 +173,8 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
     {
       id: 'delete',
       label: 'Remove from Library',
-      icon: () => <Trash2 size={18} color="#EF4444" />,
-      color: '#EF4444',
+      icon: () => <Trash2 size={18} color={colors.isMonochrome ? colors.textPrimary : '#EF4444'} />,
+      color: colors.isMonochrome ? colors.textPrimary : '#EF4444',
       isDestructive: true,
       onPress: () => {
         handleDeletePrompt();
@@ -270,8 +270,8 @@ export const RadialOptionsMenu: React.FC<RadialOptionsMenuProps> = ({
                       >
                         <Star
                           size={18}
-                          color={isFilled ? '#F59E0B' : colors.border}
-                          fill={isFilled ? '#F59E0B' : 'transparent'}
+                          color={isFilled ? (colors.isMonochrome ? '#FFFFFF' : '#F59E0B') : colors.border}
+                          fill={isFilled ? (colors.isMonochrome ? '#FFFFFF' : '#F59E0B') : 'transparent'}
                         />
                       </TouchableOpacity>
                     );

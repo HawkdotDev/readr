@@ -78,7 +78,7 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = React.memo(({
           accessible={true}
           accessibilityLabel="Delete selected"
         >
-          <Trash2 size={15} color="#EF4444" />
+          <Trash2 size={15} color={colors.isMonochrome ? colors.textPrimary : '#EF4444'} />
         </TouchableOpacity>
       </View>
     </View>

@@ -38,12 +38,16 @@ export function StorageBackupSection() {
             style={[
               styles.privacyIconCircle,
               {
-                backgroundColor: colors.isDark ? '#14291E' : '#DCFCE7',
-                borderColor: colors.isDark ? '#1F4D36' : '#86EFAC',
+                backgroundColor: colors.isMonochrome
+                  ? colors.canvas
+                  : colors.isDark ? '#14291E' : '#DCFCE7',
+                borderColor: colors.isMonochrome
+                  ? colors.border
+                  : colors.isDark ? '#1F4D36' : '#86EFAC',
               },
             ]}
           >
-            <ShieldCheck size={18} color="#16A34A" />
+            <ShieldCheck size={18} color={colors.isMonochrome ? colors.textPrimary : '#16A34A'} />
           </View>
           <View style={styles.privacyTextCol}>
             <Text style={[styles.privacyTitle, { color: colors.textPrimary }]}>

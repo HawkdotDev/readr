@@ -16,12 +16,14 @@ import { useTheme } from '../common/ThemeProvider';
 import { Badge } from '../common/Badge';
 import { FONTS } from '../../utils/typography';
 import { formatDurationSeconds, formatRelativeDate } from '../../utils/time';
+import { BookFinishDatePredictor } from './BookFinishDatePredictor';
 
 export interface BookDetailsModalProps {
   visible: boolean;
   book: Book | null;
   onClose: () => void;
   onOpenReader: (bookId: string) => void;
+  dailyGoalMinutes?: number;
 }
 
 export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
@@ -29,6 +31,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
   book,
   onClose,
   onOpenReader,
+  dailyGoalMinutes = 30,
 }) => {
   const { colors } = useTheme();
 
@@ -103,6 +106,12 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
                 </View>
               </View>
             </View>
+
+            {/* Finish-Date Predictor */}
+            <BookFinishDatePredictor
+              book={book}
+              dailyGoalMinutes={dailyGoalMinutes}
+            />
 
             {/* Metadata Properties Table */}
             <View
@@ -180,6 +189,35 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = React.memo(({
                 <Text style={[styles.descriptionText, { color: colors.textPrimary }]}>
                   {book.description}
                 </Text>
+              </View>
+            ) : null}
+
+            {book.tags && book.tags.length > 0 ? (
+              <View style={{ marginTop: 14 }}>
+                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                  Tags
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                  {book.tags.map((t) => (
+                    <View
+                      key={t.id}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      <Text style={{ fontFamily: FONTS.mona.medium, fontSize: 12, color: colors.textPrimary }}>
+                        #{t.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             ) : null}
 

@@ -15,6 +15,7 @@ import { useBook } from '../../src/hooks/useBook';
 import { formatDurationSeconds, formatRelativeDate } from '../../src/utils/time';
 import { Badge } from '../../src/components/common/Badge';
 import { Button } from '../../src/components/common/Button';
+import { BookFinishDatePredictor } from '../../src/components/library/BookFinishDatePredictor';
 import {
   ArrowLeft,
   BookOpen,
@@ -97,8 +98,8 @@ export default function BookDetailsScreen() {
         <TouchableOpacity onPress={toggleBookFavorite} style={styles.favBtn}>
           <Heart
             size={22}
-            color={book.isFavorite ? '#EF4444' : colors.textSecondary}
-            fill={book.isFavorite ? '#EF4444' : 'transparent'}
+            color={book.isFavorite ? (colors.isMonochrome ? '#FFFFFF' : '#EF4444') : colors.textSecondary}
+            fill={book.isFavorite ? (colors.isMonochrome ? '#FFFFFF' : '#EF4444') : 'transparent'}
           />
         </TouchableOpacity>
       </View>
@@ -139,8 +140,8 @@ export default function BookDetailsScreen() {
                 >
                   <Star
                     size={24}
-                    color={isFilled ? '#F59E0B' : colors.border}
-                    fill={isFilled ? '#F59E0B' : 'transparent'}
+                    color={isFilled ? (colors.isMonochrome ? '#FFFFFF' : '#F59E0B') : colors.border}
+                    fill={isFilled ? (colors.isMonochrome ? '#FFFFFF' : '#F59E0B') : 'transparent'}
                   />
                 </TouchableOpacity>
               );
@@ -245,6 +246,108 @@ export default function BookDetailsScreen() {
           </View>
         </View>
 
+        {/* Finish-Date Predictor */}
+        <BookFinishDatePredictor book={book} />
+
+        {/* Tags Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>TAGS</Text>
+          <TouchableOpacity
+            onPress={() => setIsAddingTag(!isAddingTag)}
+            style={styles.addTagTrigger}
+          >
+            <Plus size={13} color={colors.accent} style={{ marginRight: 4 }} />
+            <Text style={[styles.addTagTriggerText, { color: colors.accent }]}>
+              {isAddingTag ? 'Cancel' : 'Add Tag'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {isAddingTag && (
+          <View
+            style={[
+              styles.addTagForm,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <TextInput
+              value={newTagName}
+              onChangeText={setNewTagName}
+              placeholder="Tag name (e.g. Philosophy, Sci-Fi)..."
+              placeholderTextColor={colors.textSecondary}
+              style={[
+                styles.tagInput,
+                {
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.canvas,
+                },
+              ]}
+              autoFocus={true}
+              onSubmitEditing={handleAddTagSubmit}
+            />
+            <View style={styles.tagFormActions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setIsAddingTag(false);
+                  setNewTagName('');
+                }}
+                style={[styles.tagFormBtn, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.tagFormBtnText, { color: colors.textSecondary }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleAddTagSubmit}
+                style={[
+                  styles.tagFormBtn,
+                  { backgroundColor: colors.accent, borderColor: colors.accent },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.tagFormBtnText,
+                    { color: colors.isDark ? '#000000' : '#FFFFFF' },
+                  ]}
+                >
+                  Save Tag
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.tagChipsWrap}>
+          {tags && tags.length > 0 ? (
+            tags.map((t) => (
+              <View
+                key={t.id}
+                style={[
+                  styles.tagChip,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                ]}
+              >
+                <TagIcon size={12} color={t.color || colors.accent} style={{ marginRight: 5 }} />
+                <Text style={[styles.tagChipText, { color: colors.textPrimary }]}>
+                  {t.name}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => removeTag(t.id)}
+                  style={styles.tagRemoveBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <X size={12} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={[styles.noTagsText, { color: colors.textSecondary }]}>
+              No tags added yet. Tap "Add Tag" to categorize this book.
+            </Text>
+          )}
+        </View>
+
         {/* Description / Summary */}
         {book.description && (
           <>
@@ -260,10 +363,15 @@ export default function BookDetailsScreen() {
         {/* Danger Action */}
         <TouchableOpacity
           onPress={handleDelete}
-          style={[styles.deleteBtn, { borderColor: 'rgba(239, 68, 68, 0.3)' }]}
+          style={[
+            styles.deleteBtn,
+            { borderColor: colors.isMonochrome ? colors.border : 'rgba(239, 68, 68, 0.3)' },
+          ]}
         >
-          <Trash2 size={16} color="#EF4444" style={{ marginRight: 6 }} />
-          <Text style={styles.deleteBtnText}>Remove Book from Library</Text>
+          <Trash2 size={16} color={colors.isMonochrome ? colors.textPrimary : '#EF4444'} style={{ marginRight: 6 }} />
+          <Text style={[styles.deleteBtnText, { color: colors.isMonochrome ? colors.textPrimary : '#EF4444' }]}>
+            Remove Book from Library
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

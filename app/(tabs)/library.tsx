@@ -11,6 +11,7 @@ import {
   ScrollView,
   TextInput,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { runWhenIdle } from '../../src/utils/idle';
@@ -18,6 +19,8 @@ import { useTheme } from '../../src/components/common/ThemeProvider';
 import { Book } from '../../src/types';
 import {
   getAllBooks,
+  getRecentHighlightsWithBooks,
+  EnrichedHighlight,
   deleteBook as deleteBookQuery,
   toggleBookFavorite as toggleBookFavoriteQuery,
   updateBookStatus as updateBookStatusQuery,
@@ -48,11 +51,28 @@ import {
   FileText,
   ChevronDown,
   FolderOpen,
+  BookMarked,
+  Layers,
+  Bookmark as BookmarkIcon,
+  Tag as TagIcon,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { FONTS } from '../../src/utils/typography';
 import { pickAndImportBook } from '../../src/services/storage/fileManager';
-import { Book as BookType } from '../../src/types';
+import { downloadOPDSBook } from '../../src/services/opds/opdsService';
+import { logReadingSession } from '../../src/db/queries/stats';
+import {
+  getPersonalizedRecommendations,
+} from '../../src/services/recommendations/recommendationService';
+import {
+  PersonalizedRecommendationsCard,
+  DailyBroadsheetSection,
+  SavedClippingsCard,
+  VelocityPredictorCard,
+} from '../../src/components/feed';
+import { Book as BookType, Tag, Collection } from '../../src/types';
+import { getAllTags } from '../../src/db/queries/tags';
+import { getAllCollections, createCollection } from '../../src/db/queries/collections';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
@@ -74,6 +94,63 @@ export default function LibraryScreen() {
   const [shelfSortBy, setShelfSortBy] = useState<ShelfSortField>('recent_read');
   const [shelfSortDirection, setShelfSortDirection] = useState<'asc' | 'desc'>('desc');
 
+  // Tags and Collections
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [collections, setCollections] = useState<Collection[]>([]);
+
+  // Shelf vs Drawers View State
+  const [libraryTab, setLibraryTab] = useState<'shelf' | 'drawers'>('shelf');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [highlights, setHighlights] = useState<EnrichedHighlight[]>([]);
+
+  // Recommendations for Drawers
+  const personalizedRecs = useMemo(() => {
+    return getPersonalizedRecommendations(deviceBooks).slice(0, 4);
+  }, [deviceBooks]);
+
+  const handleDownloadBook = async (
+    title: string,
+    author: string,
+    downloadUrl: string,
+    coverUrl?: string
+  ) => {
+    const existing = deviceBooks.find(
+      (b) => b.title.toLowerCase().trim() === title.toLowerCase().trim()
+    );
+    if (existing) {
+      router.push(`/reader/${existing.id}` as any);
+      return;
+    }
+
+    try {
+      setDownloadingId(title);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const res = await downloadOPDSBook({
+        id: `opds_${Date.now()}`,
+        title,
+        author,
+        summary: title,
+        downloadUrl,
+        coverUrl,
+        fileFormat: 'epub',
+      });
+      if (res.success && res.bookId) {
+        await loadDeviceBooks();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        router.push(`/reader/${res.bookId}` as any);
+      } else if (res.isDuplicate && res.bookId) {
+        router.push(`/reader/${res.bookId}` as any);
+      } else if (res.error) {
+        Alert.alert('Notice', res.error);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to download book.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   // Modals State
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
   const [isFormatModalOpen, setIsFormatModalOpen] = useState(false);
@@ -85,12 +162,20 @@ export default function LibraryScreen() {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
 
-  // Load books from SQLite
+  // Load books & highlights from SQLite
   const loadDeviceBooks = useCallback(async () => {
     try {
       setIsLoadingBooks(true);
-      const books = await getAllBooks();
+      const [books, hls, tgs, cols] = await Promise.all([
+        getAllBooks(),
+        getRecentHighlightsWithBooks(10),
+        getAllTags(),
+        getAllCollections(),
+      ]);
       setDeviceBooks(books);
+      setHighlights(hls);
+      setAvailableTags(tgs);
+      setCollections(cols);
     } catch (e) {
       console.warn('Failed to load books in library:', e);
     } finally {
@@ -120,6 +205,11 @@ export default function LibraryScreen() {
       list = list.filter((b) => b.status === 'finished');
     } else if (shelfStatusFilter === 'favorite') {
       list = list.filter((b) => b.isFavorite);
+    }
+
+    // Tag filter
+    if (selectedTagId) {
+      list = list.filter((b) => b.tags?.some((t) => t.id === selectedTagId));
     }
 
     // Format filter
@@ -169,7 +259,7 @@ export default function LibraryScreen() {
     });
 
     return list;
-  }, [deviceBooks, shelfStatusFilter, shelfFormatFilter, query, shelfSortBy, shelfSortDirection]);
+  }, [deviceBooks, shelfStatusFilter, shelfFormatFilter, selectedTagId, query, shelfSortBy, shelfSortDirection]);
 
   // Continue Reading data (reuses same logic as Home)
   const featuredBook = useMemo(() => {
@@ -179,6 +269,18 @@ export default function LibraryScreen() {
       null
     );
   }, [deviceBooks]);
+
+  const handleBroadsheetLogMinute = useCallback(async (minutes: number) => {
+    try {
+      const now = new Date();
+      const startTime = new Date(now.getTime() - minutes * 60 * 1000);
+      const bookId = featuredBook?.id || (deviceBooks[0]?.id || 'broadsheet_dispatch');
+      await logReadingSession(bookId, startTime, now, undefined, undefined, 1);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (e) {
+      console.warn('Failed to log broadsheet minute:', e);
+    }
+  }, [featuredBook, deviceBooks]);
 
   // Total Shelf Metrics
   const totalSizeFormatted = useMemo(() => {
@@ -435,7 +537,7 @@ export default function LibraryScreen() {
 
       {/* Main FlatList */}
       <FlatList
-        data={renderedListData as any}
+        data={libraryTab === 'shelf' ? (renderedListData as any) : []}
         keyExtractor={(item) =>
           Array.isArray(item) ? item.map((b: any) => b.id).join('_') : item.id
         }
@@ -444,6 +546,13 @@ export default function LibraryScreen() {
         windowSize={7}
         removeClippedSubviews={Platform.OS === 'android'}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoadingBooks}
+            onRefresh={loadDeviceBooks}
+            tintColor={colors.accent}
+          />
+        }
         ListHeaderComponent={
           <View style={styles.searchHeader}>
             {/* Continue Reading Hero Card */}
@@ -461,33 +570,144 @@ export default function LibraryScreen() {
               </View>
             )}
 
-            {/* Shelf Summary Banner */}
-            <ShelfSummaryBanner
-              total={deviceBooks.length}
-              reading={readingCount}
-              completed={completedCount}
-              totalSizeFormatted={totalSizeFormatted}
-              isSelectMode={isSelectMode}
-              onToggleSelectMode={() => {
-                setIsSelectMode((prev) => {
-                  const next = !prev;
-                  if (!next) setSelectedBookIds([]);
-                  return next;
-                });
-              }}
-            />
+            {/* Shelf / Drawers Segmented Switcher */}
+            <View style={styles.viewToggleContainer}>
+              <View
+                style={[
+                  styles.viewToggleTrack,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setLibraryTab('shelf');
+                  }}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.viewToggleSegment,
+                    libraryTab === 'shelf' && [
+                      styles.viewToggleSegmentActive,
+                      {
+                        backgroundColor: colors.accent,
+                      },
+                    ],
+                  ]}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: libraryTab === 'shelf' }}
+                  accessibilityLabel="Library Shelf View"
+                >
+                  <BookMarked
+                    size={14}
+                    color={
+                      libraryTab === 'shelf'
+                        ? colors.isDark
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : colors.textSecondary
+                    }
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.viewToggleSegmentText,
+                      {
+                        color:
+                          libraryTab === 'shelf'
+                            ? colors.isDark
+                              ? '#000000'
+                              : '#FFFFFF'
+                            : colors.textSecondary,
+                        fontFamily:
+                          libraryTab === 'shelf' ? FONTS.mona.bold : FONTS.mona.medium,
+                      },
+                    ]}
+                  >
+                    Shelf
+                  </Text>
+                </TouchableOpacity>
 
-            {/* Batch Action Bar */}
-            {isSelectMode && (
-              <BatchActionBar
-                selectedCount={selectedBookIds.length}
-                totalFilteredCount={filteredDeviceBooks.length}
-                onSelectAll={handleSelectAll}
-                onBatchFavorite={handleBatchFavorite}
-                onBatchMarkStatus={handleBatchMarkStatus}
-                onBatchDelete={handleBatchDelete}
-              />
-            )}
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setLibraryTab('drawers');
+                  }}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.viewToggleSegment,
+                    libraryTab === 'drawers' && [
+                      styles.viewToggleSegmentActive,
+                      {
+                        backgroundColor: colors.accent,
+                      },
+                    ],
+                  ]}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: libraryTab === 'drawers' }}
+                  accessibilityLabel="Library Drawers View"
+                >
+                  <Layers
+                    size={14}
+                    color={
+                      libraryTab === 'drawers'
+                        ? colors.isDark
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : colors.textSecondary
+                    }
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.viewToggleSegmentText,
+                      {
+                        color:
+                          libraryTab === 'drawers'
+                            ? colors.isDark
+                              ? '#000000'
+                              : '#FFFFFF'
+                            : colors.textSecondary,
+                        fontFamily:
+                          libraryTab === 'drawers' ? FONTS.mona.bold : FONTS.mona.medium,
+                      },
+                    ]}
+                  >
+                    Drawers
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* ─── SHELF VIEW ─── */}
+            {libraryTab === 'shelf' ? (
+              <>
+                {/* Shelf Summary Banner */}
+                <ShelfSummaryBanner
+                  total={deviceBooks.length}
+                  reading={readingCount}
+                  completed={completedCount}
+                  totalSizeFormatted={totalSizeFormatted}
+                  isSelectMode={isSelectMode}
+                  onToggleSelectMode={() => {
+                    setIsSelectMode((prev) => {
+                      const next = !prev;
+                      if (!next) setSelectedBookIds([]);
+                      return next;
+                    });
+                  }}
+                />
+
+                {/* Batch Action Bar */}
+                {isSelectMode && (
+                  <BatchActionBar
+                    selectedCount={selectedBookIds.length}
+                    totalFilteredCount={filteredDeviceBooks.length}
+                    onSelectAll={handleSelectAll}
+                    onBatchFavorite={handleBatchFavorite}
+                    onBatchMarkStatus={handleBatchMarkStatus}
+                    onBatchDelete={handleBatchDelete}
+                  />
+                )}
 
             {/* Collapsible Search Bar */}
             {isSearchOpen && (
@@ -563,6 +783,43 @@ export default function LibraryScreen() {
                       ]}
                     >
                       {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {availableTags.map((tag) => {
+                const isSelected = selectedTagId === tag.id;
+                return (
+                  <TouchableOpacity
+                    key={tag.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      setSelectedTagId(isSelected ? null : tag.id);
+                    }}
+                    style={[
+                      styles.filterChip,
+                      {
+                        backgroundColor: isSelected ? (tag.color || colors.accent) : colors.surface,
+                        borderColor: isSelected ? (tag.color || colors.accent) : colors.border,
+                      },
+                    ]}
+                  >
+                    <TagIcon
+                      size={11}
+                      color={isSelected ? '#FFFFFF' : (tag.color || colors.textSecondary)}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        {
+                          color: isSelected ? '#FFFFFF' : colors.textPrimary,
+                          fontFamily: isSelected ? FONTS.mona.bold : FONTS.mona.medium,
+                        },
+                      ]}
+                    >
+                      {tag.name}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -688,6 +945,126 @@ export default function LibraryScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+              </>
+            ) : (
+              /* ─── DRAWERS VIEW ─── */
+              <View style={styles.drawersContainer}>
+                {/* Recommended for Your Shelf */}
+                <PersonalizedRecommendationsCard
+                  recommendations={personalizedRecs}
+                  books={deviceBooks}
+                  downloadingId={downloadingId}
+                  onDownload={handleDownloadBook}
+                  onOpenBook={(bookId) => router.push(`/reader/${bookId}` as any)}
+                  onSeeAllPress={() => router.push('/explore')}
+                />
+
+                {/* My Collections Drawer */}
+                <View style={styles.collectionsSection}>
+                  <View style={styles.collectionsHeaderRow}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <BookmarkIcon size={16} color={colors.accent} style={{ marginRight: 6 }} />
+                      <Text style={[styles.drawersSectionTitle, { color: colors.textPrimary }]}>
+                        MY COLLECTIONS
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={async () => {
+                        const name = `Collection ${collections.length + 1}`;
+                        await createCollection(name);
+                        await loadDeviceBooks();
+                      }}
+                      style={[styles.createColBtn, { borderColor: colors.border }]}
+                    >
+                      <Plus size={13} color={colors.accent} style={{ marginRight: 4 }} />
+                      <Text style={[styles.createColBtnText, { color: colors.accent }]}>New</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {collections.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.collectionsScroll}
+                    >
+                      {collections.map((col) => (
+                        <TouchableOpacity
+                          key={col.id}
+                          onPress={() =>
+                            router.push({
+                              pathname: '/collection/[id]',
+                              params: { id: col.id, title: col.name },
+                            } as any)
+                          }
+                          style={[
+                            styles.collectionCard,
+                            { backgroundColor: colors.surface, borderColor: colors.border },
+                          ]}
+                          activeOpacity={0.75}
+                        >
+                          <View
+                            style={[
+                              styles.collectionIconBox,
+                              {
+                                backgroundColor: colors.isDark
+                                  ? 'rgba(255,255,255,0.08)'
+                                  : 'rgba(0,0,0,0.04)',
+                              },
+                            ]}
+                          >
+                            <BookmarkIcon size={18} color={colors.accent} />
+                          </View>
+                          <Text
+                            style={[styles.collectionCardTitle, { color: colors.textPrimary }]}
+                            numberOfLines={1}
+                          >
+                            {col.name}
+                          </Text>
+                          <Text
+                            style={[styles.collectionCardCount, { color: colors.textSecondary }]}
+                          >
+                            {col.bookCount ?? 0} {col.bookCount === 1 ? 'book' : 'books'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <View
+                      style={[
+                        styles.emptyCollectionsBox,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.emptyCollectionsText, { color: colors.textSecondary }]}
+                      >
+                        Organize your library into thematic shelves and curated lists. Tap "+ New" to begin.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Velocity & Finish-Date Predictor */}
+                <VelocityPredictorCard
+                  activeBook={featuredBook}
+                  dailyGoalMinutes={30}
+                  onOpenReader={(bookId) => router.push(`/reader/${bookId}` as any)}
+                  onExplorePress={() => router.push('/explore')}
+                />
+
+                {/* Reading Passage (Saved Clippings & Highlights) */}
+                <SavedClippingsCard
+                  highlights={highlights}
+                  onOpenReader={(bookId) => router.push(`/reader/${bookId}` as any)}
+                  onExplorePress={() => router.push('/explore')}
+                />
+
+                {/* The Daily Broadsheet */}
+                <DailyBroadsheetSection
+                  onLogMinute={handleBroadsheetLogMinute}
+                />
+              </View>
+            )}
           </View>
         }
         renderItem={({ item }) => {
@@ -730,28 +1107,30 @@ export default function LibraryScreen() {
           );
         }}
         ListEmptyComponent={
-          isLoadingBooks ? (
-            <View style={styles.emptyContainer}>
-              <ActivityIndicator size="large" color={colors.accent} />
-              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                Loading your library...
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <BookOpen size={48} color={colors.accent} style={{ marginBottom: 12 }} />
-              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                No Books Found
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                {query.trim()
-                  ? 'No books match your search.'
-                  : shelfStatusFilter !== 'all' || shelfFormatFilter !== 'all'
-                    ? 'No books match your current filters.'
-                    : 'Your library is empty. Tap the + icon to import books.'}
-              </Text>
-            </View>
-          )
+          libraryTab === 'shelf' ? (
+            isLoadingBooks ? (
+              <View style={styles.emptyContainer}>
+                <ActivityIndicator size="large" color={colors.accent} />
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  Loading your library...
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <BookOpen size={48} color={colors.accent} style={{ marginBottom: 12 }} />
+                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                  No Books Found
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  {query.trim()
+                    ? 'No books match your search.'
+                    : shelfStatusFilter !== 'all' || shelfFormatFilter !== 'all'
+                      ? 'No books match your current filters.'
+                      : 'Your library is empty. Tap the + icon to import books.'}
+                </Text>
+              </View>
+            )
+          ) : null
         }
       />
 
@@ -864,6 +1243,38 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
     marginBottom: 10,
     marginLeft: 2,
+  },
+  viewToggleContainer: {
+    marginBottom: 14,
+  },
+  viewToggleTrack: {
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  viewToggleSegment: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 11,
+  },
+  viewToggleSegmentActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  viewToggleSegmentText: {
+    fontSize: 13,
+    letterSpacing: -0.2,
+  },
+  drawersContainer: {
+    paddingTop: 4,
+    paddingBottom: 20,
   },
   searchBarBox: {
     flexDirection: 'row',
@@ -997,5 +1408,72 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     textAlign: 'center',
     maxWidth: 280,
+  },
+  collectionsSection: {
+    marginBottom: 24,
+  },
+  collectionsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  drawersSectionTitle: {
+    fontFamily: FONTS.mono.bold,
+    fontSize: 11,
+    letterSpacing: 1.2,
+  },
+  createColBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  createColBtnText: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 12,
+  },
+  collectionsScroll: {
+    gap: 12,
+    paddingRight: 16,
+  },
+  collectionCard: {
+    width: 140,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  collectionIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  collectionCardTitle: {
+    fontFamily: FONTS.mona.bold,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  collectionCardCount: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 12,
+  },
+  emptyCollectionsBox: {
+    padding: 18,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyCollectionsText: {
+    fontFamily: FONTS.mona.regular,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

@@ -163,9 +163,18 @@ export const TABLE_CREATION_STATEMENTS = [
     id TEXT PRIMARY KEY,
     target_daily_minutes INTEGER DEFAULT 30 NOT NULL,
     target_daily_pages INTEGER DEFAULT 20 NOT NULL,
+    target_annual_books INTEGER DEFAULT 24 NOT NULL,
     current_streak_days INTEGER DEFAULT 0 NOT NULL,
     longest_streak_days INTEGER DEFAULT 0 NOT NULL,
     last_active_date TEXT
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS reflections (
+    id TEXT PRIMARY KEY,
+    book_id TEXT REFERENCES books(id) ON DELETE SET NULL,
+    prompt TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
   );`,
 
   `CREATE TABLE IF NOT EXISTS opds_servers (
@@ -218,6 +227,7 @@ export const TABLE_CREATION_STATEMENTS = [
 
 export const MIGRATION_STATEMENTS = [
   'ALTER TABLE books ADD COLUMN rating INTEGER DEFAULT 0 NOT NULL;',
+  'ALTER TABLE reading_goals ADD COLUMN target_annual_books INTEGER DEFAULT 24;',
   'ALTER TABLE book_settings ADD COLUMN bionic_reading_enabled INTEGER;',
   'ALTER TABLE book_settings ADD COLUMN bionic_fixation TEXT;',
   'ALTER TABLE book_settings ADD COLUMN reading_direction TEXT;',
@@ -245,13 +255,15 @@ export const INDEX_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_highlights_book ON highlights (book_id);`,
   `CREATE INDEX IF NOT EXISTS idx_notes_highlight ON notes (highlight_id);`,
   `CREATE INDEX IF NOT EXISTS idx_book_name_replacements_book ON book_name_replacements (book_id, is_active);`,
+  `CREATE INDEX IF NOT EXISTS idx_reflections_created ON reflections (created_at);`,
+  `CREATE INDEX IF NOT EXISTS idx_reflections_book ON reflections (book_id);`,
 ];
 
 export const SEED_STATEMENTS = [
   `INSERT OR IGNORE INTO user_settings (id, active_theme, warmth_level, font_family, font_size, line_height, margin_horizontal, text_align, keep_awake, haptic_feedback, tts_rate, tts_pitch, online_metadata_enabled)
    VALUES ('default_user', 'light', 0.0, 'Literata', 18, 1.5, 20, 'left', 1, 1, 1.0, 1.0, 0);`,
-  `INSERT OR IGNORE INTO reading_goals (id, target_daily_minutes, target_daily_pages, current_streak_days, longest_streak_days)
-   VALUES ('default_user', 30, 20, 0, 0);`,
+  `INSERT OR IGNORE INTO reading_goals (id, target_daily_minutes, target_daily_pages, target_annual_books, current_streak_days, longest_streak_days)
+   VALUES ('default_user', 30, 20, 24, 0, 0);`,
 ];
 
 export const TABLE_STATEMENTS = [

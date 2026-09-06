@@ -127,7 +127,7 @@ export const WordOfTheDayCard: React.FC<WordOfTheDayCardProps> = ({
               accessibilityLabel="Copy Word"
             >
               {copied ? (
-                <Check size={13} color="#10B981" />
+                <Check size={13} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} />
               ) : (
                 <Copy size={13} color={colors.textSecondary} />
               )}

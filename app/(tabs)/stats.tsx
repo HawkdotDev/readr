@@ -7,6 +7,8 @@ import { StreakHeatmap } from '../../src/components/stats/StreakHeatmap';
 import { StatCard } from '../../src/components/stats/StatCard';
 import { GoalProgressRing } from '../../src/components/stats/GoalProgressRing';
 import { RecentSessionsList } from '../../src/components/stats/RecentSessionsList';
+import { ReadingChallengeCard } from '../../src/components/feed/ReadingChallengeCard';
+import { useLibrary } from '../../src/hooks/useLibrary';
 import {
   getLifetimeStats,
   getActivityHistory,
@@ -15,7 +17,7 @@ import {
   DayActivity,
   EnrichedReadingSession,
 } from '../../src/db/queries/stats';
-import { getReadingGoals } from '../../src/db/queries/settings';
+import { getReadingGoals, updateAnnualTarget } from '../../src/db/queries/settings';
 import { ReadingGoal } from '../../src/types';
 import { formatDurationSeconds } from '../../src/utils/time';
 import { BookOpen, Clock, FileText, Bookmark, Flame } from 'lucide-react-native';
@@ -24,6 +26,9 @@ import { FONTS } from '../../src/utils/typography';
 export default function StatsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { books, loadBooks } = useLibrary();
+
+  const [annualChallengeTarget, setAnnualChallengeTarget] = useState<number>(24);
 
   const [lifetime, setLifetime] = useState<LifetimeStats>({
     totalBooksRead: 0,
@@ -39,6 +44,7 @@ export default function StatsScreen() {
     id: 'default_user',
     targetDailyMinutes: 30,
     targetDailyPages: 20,
+    targetAnnualBooks: 24,
     currentStreakDays: 0,
     longestStreakDays: 0,
   });
@@ -57,9 +63,21 @@ export default function StatsScreen() {
       setLifetime(lStats);
       setActivity(act);
       setGoals(g);
+      if (g.targetAnnualBooks) {
+        setAnnualChallengeTarget(g.targetAnnualBooks);
+      }
       setRecentSessions(sess);
     } catch (e) {
       console.warn('Failed to load stats:', e);
+    }
+  };
+
+  const handleAnnualTargetChange = async (newTarget: number) => {
+    setAnnualChallengeTarget(newTarget);
+    try {
+      await updateAnnualTarget(newTarget);
+    } catch (err) {
+      console.warn('Failed to persist annual challenge target:', err);
     }
   };
 
@@ -67,14 +85,15 @@ export default function StatsScreen() {
     useCallback(() => {
       const task = runWhenIdle(() => {
         loadData();
+        loadBooks();
       });
       return () => task.cancel();
-    }, [])
+    }, [loadBooks])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    await Promise.all([loadData(), loadBooks()]);
     setRefreshing(false);
   };
 
@@ -92,7 +111,7 @@ export default function StatsScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Stats</Text>
 
         <View style={[styles.streakPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Flame size={16} color="#F59E0B" style={{ marginRight: 4 }} />
+          <Flame size={16} color={colors.isMonochrome ? colors.textPrimary : '#F59E0B'} style={{ marginRight: 4 }} />
           <Text style={[styles.streakPillText, { color: colors.textPrimary }]}>
             {goals.currentStreakDays}d streak
           </Text>
@@ -121,6 +140,14 @@ export default function StatsScreen() {
           todaySessionsCount={todaySessions}
         />
 
+        {/* Annual Reading Challenge */}
+        <ReadingChallengeCard
+          books={books}
+          targetAnnualBooks={annualChallengeTarget}
+          onTargetChange={handleAnnualTargetChange}
+          onBookPress={(bookId) => router.push(`/reader/${bookId}` as any)}
+        />
+
         {/* 16-Week Consistency & Habit Graph */}
         <StreakHeatmap
           activity={activity}
@@ -140,7 +167,7 @@ export default function StatsScreen() {
               label="Completed"
               value={lifetime.totalBooksRead}
               subtitle="books finished"
-              icon={<BookOpen size={16} color="#16A34A" />}
+              icon={<BookOpen size={16} color={colors.isMonochrome ? colors.textPrimary : '#16A34A'} />}
             />
           </View>
 
@@ -149,13 +176,13 @@ export default function StatsScreen() {
               label="Highlights"
               value={lifetime.totalHighlights}
               subtitle="saved passages"
-              icon={<Bookmark size={16} color="#F59E0B" />}
+              icon={<Bookmark size={16} color={colors.isMonochrome ? colors.textSecondary : '#F59E0B'} />}
             />
             <StatCard
               label="Pages Read"
               value={lifetime.totalPages}
               subtitle="total pages"
-              icon={<FileText size={16} color="#8B5CF6" />}
+              icon={<FileText size={16} color={colors.isMonochrome ? colors.textSecondary : '#8B5CF6'} />}
             />
           </View>
         </View>

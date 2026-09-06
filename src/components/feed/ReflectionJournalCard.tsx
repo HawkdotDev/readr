@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   selectMemoryRecallHighlight,
   ReflectionPrompt,
 } from '../../services/editorial/reflectionJournalService';
+import { saveReflection, getTodayReflection } from '../../db/queries/reflections';
 import {
   NotebookPen,
   Shuffle,
@@ -55,6 +56,20 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
   });
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  useEffect(() => {
+    let isMounted = true;
+    getTodayReflection()
+      .then((refl) => {
+        if (isMounted && refl) {
+          setSavedNote(refl.response);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleShufflePrompt = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setPrompt(getRandomReflectionPrompt(prompt.id));
@@ -67,11 +82,17 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
     if (next) setMemoryHighlight(next);
   };
 
-  const handleSaveReflection = () => {
+  const handleSaveReflection = async () => {
     if (!inputText.trim()) return;
+    const text = inputText.trim();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    setSavedNote(inputText.trim());
+    setSavedNote(text);
     setInputText('');
+    try {
+      await saveReflection(prompt.prompt, text, activeBook?.id);
+    } catch (e) {
+      console.warn('Failed to persist reflection:', e);
+    }
   };
 
   const handleCopy = async (text: string, key: string) => {
@@ -207,7 +228,7 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
               <View style={[styles.savedNoteBox, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
                 <View style={styles.savedNoteHeader}>
                   <View style={styles.savedMetaRow}>
-                    <Sparkles size={12} color="#10B981" style={{ marginRight: 4 }} />
+                    <Sparkles size={12} color={colors.isMonochrome ? colors.textPrimary : '#10B981'} style={{ marginRight: 4 }} />
                     <Text style={[styles.savedMetaText, { color: colors.textSecondary }]}>
                       Saved Reflection {activeBook ? `· ${activeBook.title}` : ''}
                     </Text>
@@ -218,7 +239,7 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
                       style={styles.iconBtn}
                     >
                       {copiedKey === 'saved_note' ? (
-                        <Check size={14} color="#10B981" />
+                        <Check size={14} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} />
                       ) : (
                         <Copy size={14} color={colors.textSecondary} />
                       )}
@@ -314,7 +335,7 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
           <>
             <View style={styles.promptHeader}>
               <View style={[styles.categoryPill, { backgroundColor: colors.canvas, borderColor: colors.border }]}>
-                <Text style={[styles.categoryText, { color: '#F59E0B' }]}>
+                <Text style={[styles.categoryText, { color: colors.isMonochrome ? colors.textSecondary : '#F59E0B' }]}>
                   MEMORY RECALL
                 </Text>
               </View>
@@ -347,7 +368,7 @@ export const ReflectionJournalCard: React.FC<ReflectionJournalCardProps> = ({
                     style={[styles.recallActionBtn, { borderColor: colors.border }]}
                   >
                     {copiedKey === 'recall_quote' ? (
-                      <Check size={12} color="#10B981" style={{ marginRight: 4 }} />
+                      <Check size={12} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 4 }} />
                     ) : (
                       <Copy size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
                     )}

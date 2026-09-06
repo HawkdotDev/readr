@@ -35,6 +35,14 @@ const HIGHLIGHT_PALETTE: Array<{ color: HighlightColor; hex: string; label: stri
   { color: 'charcoal', hex: '#3F3F46', label: 'Slate Charcoal' },
 ];
 
+const MONOCHROME_HIGHLIGHT_PALETTE: Array<{ color: HighlightColor; hex: string; label: string }> = [
+  { color: 'yellow', hex: '#FFFFFF', label: 'White' },
+  { color: 'mint', hex: '#D4D4D8', label: 'Light Grey' },
+  { color: 'sky', hex: '#A1A1AA', label: 'Medium Grey' },
+  { color: 'coral', hex: '#71717A', label: 'Dark Grey' },
+  { color: 'charcoal', hex: '#3F3F46', label: 'Charcoal' },
+];
+
 export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
   visible,
   selectedText,
@@ -98,7 +106,7 @@ export const QuickHighlightMenu: React.FC<QuickHighlightMenuProps> = ({
 
           {/* 5 Color Circles */}
           <View style={styles.colorRow}>
-            {HIGHLIGHT_PALETTE.map((item) => (
+            {(colors.isMonochrome ? MONOCHROME_HIGHLIGHT_PALETTE : HIGHLIGHT_PALETTE).map((item) => (
               <TouchableOpacity
                 key={item.color}
                 onPress={() => {

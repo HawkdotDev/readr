@@ -13,7 +13,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../../src/components/common/ThemeProvider';
-import { Home, BookOpen, Compass, BarChart2, Settings, Rss } from 'lucide-react-native';
+import { Home, LibraryBig, Compass, BarChart2, Settings, Rss } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 // ─── Constants & Physics ───────────────────────────────────────────────
@@ -57,10 +57,9 @@ function renderIcon(name: string, color: string, isFocused: boolean) {
       );
     case 'library':
       return (
-        <BookOpen
+        <LibraryBig
           size={ICON_SIZE}
           color={color}
-          fill={isFocused ? color : 'transparent'}
           strokeWidth={strokeW}
         />
       );

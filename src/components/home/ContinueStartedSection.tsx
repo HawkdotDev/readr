@@ -153,7 +153,7 @@ export const ContinueStartedSection = React.memo<ContinueStartedSectionProps>(({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
-    marginTop: 7,
+    marginTop: 3,
   },
   headerRow: {
     flexDirection: 'row',

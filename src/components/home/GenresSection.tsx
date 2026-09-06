@@ -469,6 +469,10 @@ export const GenresSection = React.memo<GenresSectionProps>(({
   const cardWidth = Math.max(280, screenWidth - 32);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const getGenreColor = (rawColor: string) => {
+    return colors.isMonochrome ? colors.textPrimary : rawColor;
+  };
+
   const cardListRef = useRef<FlatList>(null);
   const tabListRef = useRef<FlatList>(null);
 
@@ -579,6 +583,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
         contentContainerStyle={styles.tabScrollList}
         renderItem={({ item, index }) => {
           const isActive = index === activeIndex;
+          const genreColor = getGenreColor(item.color);
           return (
             <TouchableOpacity
               activeOpacity={0.8}
@@ -586,21 +591,23 @@ export const GenresSection = React.memo<GenresSectionProps>(({
               style={[
                 styles.tabPill,
                 {
-                  backgroundColor: isActive ? `${item.color}1E` : colors.surface,
-                  borderColor: isActive ? item.color : colors.border,
+                  backgroundColor: isActive
+                    ? (colors.isMonochrome ? colors.canvas : `${item.color}1E`)
+                    : colors.surface,
+                  borderColor: isActive ? genreColor : colors.border,
                 },
               ]}
               accessible={true}
               accessibilityLabel={`Genre ${item.name}`}
             >
               <View style={styles.tabIcon}>
-                {renderIcon(item.iconName, isActive ? item.color : colors.textSecondary, 14)}
+                {renderIcon(item.iconName, isActive ? genreColor : colors.textSecondary, 14)}
               </View>
               <Text
                 style={[
                   styles.tabText,
                   {
-                    color: isActive ? item.color : colors.textSecondary,
+                    color: isActive ? genreColor : colors.textSecondary,
                     fontFamily: isActive ? FONTS.mona.bold : FONTS.mona.medium,
                   },
                 ]}
@@ -632,6 +639,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
         renderItem={({ item }) => {
           const topBook = item.topBook;
           const isTopLoading = loadingBookId === topBook.id;
+          const genreColor = getGenreColor(item.color);
 
           return (
             <View
@@ -653,12 +661,12 @@ export const GenresSection = React.memo<GenresSectionProps>(({
                     style={[
                       styles.genreIconCircle,
                       {
-                        backgroundColor: `${item.color}1C`,
-                        borderColor: `${item.color}35`,
+                        backgroundColor: colors.isMonochrome ? colors.canvas : `${item.color}1C`,
+                        borderColor: colors.isMonochrome ? colors.border : `${item.color}35`,
                       },
                     ]}
                   >
-                    {renderIcon(item.iconName, item.color, 16)}
+                    {renderIcon(item.iconName, genreColor, 16)}
                   </View>
                   <View style={{ marginLeft: 9 }}>
                     <Text style={[styles.genreCardTitle, { color: colors.textPrimary }]}>
@@ -715,7 +723,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
                       resizeMode="cover"
                     />
                   ) : (
-                    <View style={[styles.placeholderCover, { backgroundColor: item.color }]}>
+                    <View style={[styles.placeholderCover, { backgroundColor: colors.isMonochrome ? colors.canvas : item.color }]}>
                       <BookOpen size={28} color="#FFFFFF" />
                     </View>
                   )}
@@ -734,12 +742,12 @@ export const GenresSection = React.memo<GenresSectionProps>(({
                         style={[
                           styles.categoryBadge,
                           {
-                            backgroundColor: `${item.color}18`,
-                            borderColor: `${item.color}35`,
+                            backgroundColor: colors.isMonochrome ? colors.surface : `${item.color}18`,
+                            borderColor: colors.isMonochrome ? colors.border : `${item.color}35`,
                           },
                         ]}
                       >
-                        <Text style={[styles.categoryBadgeText, { color: item.color }]}>
+                        <Text style={[styles.categoryBadgeText, { color: genreColor }]}>
                           {item.name}
                         </Text>
                       </View>
@@ -850,7 +858,7 @@ export const GenresSection = React.memo<GenresSectionProps>(({
                               resizeMode="cover"
                             />
                           ) : (
-                            <View style={[styles.placeholderMiniCover, { backgroundColor: item.color }]}>
+                            <View style={[styles.placeholderMiniCover, { backgroundColor: colors.isMonochrome ? colors.canvas : item.color }]}>
                               <BookOpen size={16} color="#FFFFFF" />
                             </View>
                           )}

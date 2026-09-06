@@ -33,6 +33,7 @@ describe('Database Schema & DDL Statements Integrity', () => {
       'book_tags',
       'user_settings',
       'reading_goals',
+      'reflections',
       'opds_servers',
       'book_settings',
       'book_name_replacements',
@@ -62,6 +63,8 @@ describe('Database Schema & DDL Statements Integrity', () => {
       'idx_highlights_book',
       'idx_notes_highlight',
       'idx_book_name_replacements_book',
+      'idx_reflections_created',
+      'idx_reflections_book',
     ];
 
     const joinedIndexes = INDEX_STATEMENTS.join('\n');
@@ -74,6 +77,7 @@ describe('Database Schema & DDL Statements Integrity', () => {
   it('contains safe column migration statements', () => {
     const joinedMigrations = MIGRATION_STATEMENTS.join('\n');
     expect(joinedMigrations).toContain('ALTER TABLE books ADD COLUMN rating');
+    expect(joinedMigrations).toContain('ALTER TABLE reading_goals ADD COLUMN target_annual_books');
     expect(joinedMigrations).toContain('ALTER TABLE book_settings ADD COLUMN bionic_reading_enabled');
     expect(joinedMigrations).toContain('ALTER TABLE book_settings ADD COLUMN reading_direction');
     expect(joinedMigrations).toContain('ALTER TABLE book_settings ADD COLUMN auto_scroll_mode');
@@ -100,6 +104,7 @@ describe('Database Schema & DDL Statements Integrity', () => {
     expect(schema.bookTags).toBeDefined();
     expect(schema.userSettings).toBeDefined();
     expect(schema.readingGoals).toBeDefined();
+    expect(schema.reflections).toBeDefined();
     expect(schema.opdsServers).toBeDefined();
     expect(schema.bookSettings).toBeDefined();
     expect(schema.bookNameReplacements).toBeDefined();

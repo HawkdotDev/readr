@@ -6,6 +6,7 @@ export * from './BookCard';
 export * from './ShelfSummaryBanner';
 export * from './BatchActionBar';
 export * from './BookDetailsModal';
+export * from './BookFinishDatePredictor';
 export * from './BookContextMenuModal';
 export * from './SortModal';
 export * from './EmptyLibrary';

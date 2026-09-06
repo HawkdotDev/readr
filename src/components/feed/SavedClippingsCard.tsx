@@ -72,7 +72,7 @@ export const SavedClippingsCard: React.FC<SavedClippingsCardProps> = ({
         <View style={styles.eyebrowRow}>
           <Bookmark size={13} color={colors.accent} style={{ marginRight: 6 }} />
           <Text style={[styles.sectionEyebrow, { color: colors.textSecondary }]}>
-            {highlights.length > 0 ? 'YOUR SAVED CLIPPINGS' : 'READING PASSAGE'}
+            READING PASSAGE
           </Text>
         </View>
 
@@ -99,16 +99,17 @@ export const SavedClippingsCard: React.FC<SavedClippingsCardProps> = ({
             {
               backgroundColor: colors.surface,
               borderColor: colors.border,
-              borderLeftColor:
-                activeHighlight.color === 'amber'
-                  ? '#F59E0B'
-                  : activeHighlight.color === 'mint'
-                  ? '#10B981'
-                  : activeHighlight.color === 'sky'
-                  ? '#0EA5E9'
-                  : activeHighlight.color === 'coral'
-                  ? '#F43F5E'
-                  : '#EAB308',
+              borderLeftColor: colors.isMonochrome
+                ? colors.textPrimary
+                : activeHighlight.color === 'amber'
+                ? '#F59E0B'
+                : activeHighlight.color === 'mint'
+                ? '#10B981'
+                : activeHighlight.color === 'sky'
+                ? '#0EA5E9'
+                : activeHighlight.color === 'coral'
+                ? '#F43F5E'
+                : '#EAB308',
               borderLeftWidth: 4,
             },
           ]}
@@ -135,7 +136,7 @@ export const SavedClippingsCard: React.FC<SavedClippingsCardProps> = ({
                 accessibilityLabel="Copy Highlight"
               >
                 {copiedId === activeHighlight.id ? (
-                  <Check size={13} color="#10B981" />
+                  <Check size={13} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} />
                 ) : (
                   <Copy size={13} color={colors.textSecondary} />
                 )}
@@ -185,10 +186,10 @@ export const SavedClippingsCard: React.FC<SavedClippingsCardProps> = ({
         >
           <BookOpen size={20} color={colors.accent} style={{ marginBottom: 6 }} />
           <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-            No Clippings Saved Yet
+            No Reading Passages Saved Yet
           </Text>
           <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-            Select and highlight sentences while reading to preserve memorable quotes here.
+            Select and highlight sentences while reading to preserve memorable passages here.
           </Text>
         </TouchableOpacity>
       )}

@@ -149,8 +149,8 @@ export const ReadingRuler: React.FC<ReadingRulerProps> = ({
               style={[
                 styles.laserLine,
                 {
-                  backgroundColor: '#EF4444',
-                  shadowColor: '#EF4444',
+                  backgroundColor: colors.isMonochrome ? '#FFFFFF' : '#EF4444',
+                  shadowColor: colors.isMonochrome ? '#FFFFFF' : '#EF4444',
                   opacity: Math.max(0.7, opacity),
                 },
               ]}

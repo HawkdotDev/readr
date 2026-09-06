@@ -379,8 +379,8 @@ export function NameReplacementModal({
             </Text>
             {nameReplacements.length > 0 && (
               <TouchableOpacity onPress={handleClearAll} style={styles.clearBtn}>
-                <Trash2 size={13} color="#EF4444" style={{ marginRight: 4 }} />
-                <Text style={styles.clearBtnText}>Clear All</Text>
+                <Trash2 size={13} color={colors.isMonochrome ? colors.textPrimary : '#EF4444'} style={{ marginRight: 4 }} />
+                <Text style={[styles.clearBtnText, { color: colors.isMonochrome ? colors.textPrimary : '#EF4444' }]}>Clear All</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -446,7 +446,7 @@ export function NameReplacementModal({
                   accessible={true}
                   accessibilityLabel={`Delete rule ${rule.findText}`}
                 >
-                  <Trash2 size={16} color="#EF4444" />
+                  <Trash2 size={16} color={colors.isMonochrome ? colors.textPrimary : '#EF4444'} />
                 </TouchableOpacity>
               </View>
             ))

@@ -91,6 +91,7 @@ export async function getReadingGoals(): Promise<ReadingGoal> {
     id: 'default_user',
     targetDailyMinutes: 30,
     targetDailyPages: 20,
+    targetAnnualBooks: 24,
     currentStreakDays: 0,
     longestStreakDays: 0,
     lastActiveDate: null,
@@ -105,8 +106,13 @@ export async function getReadingGoals(): Promise<ReadingGoal> {
       cachedReadingGoals = defaultGoals;
       return defaultGoals;
     }
-    cachedReadingGoals = rows[0];
-    return rows[0];
+    const r = rows[0];
+    const resolved: ReadingGoal = {
+      ...r,
+      targetAnnualBooks: (r as any).targetAnnualBooks ?? 24,
+    };
+    cachedReadingGoals = resolved;
+    return resolved;
   } catch {
     return defaultGoals;
   }
@@ -122,14 +128,25 @@ export async function updateReadingGoals(partial: Partial<ReadingGoal>): Promise
 
   await sqlite.runAsync(
     `INSERT OR REPLACE INTO reading_goals (
-      id, target_daily_minutes, target_daily_pages, current_streak_days, longest_streak_days, last_active_date
-    ) VALUES ('default_user', ?, ?, ?, ?, ?);`,
+      id, target_daily_minutes, target_daily_pages, target_annual_books, current_streak_days, longest_streak_days, last_active_date
+    ) VALUES ('default_user', ?, ?, ?, ?, ?, ?);`,
     [
       next.targetDailyMinutes ?? 30,
       next.targetDailyPages ?? 20,
+      next.targetAnnualBooks ?? 24,
       next.currentStreakDays ?? 0,
       next.longestStreakDays ?? 0,
       next.lastActiveDate ?? null,
     ]
   );
 }
+
+export async function getAnnualTarget(): Promise<number> {
+  const goals = await getReadingGoals();
+  return goals.targetAnnualBooks ?? 24;
+}
+
+export async function updateAnnualTarget(target: number): Promise<void> {
+  await updateReadingGoals({ targetAnnualBooks: target });
+}
+

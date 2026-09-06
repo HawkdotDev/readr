@@ -424,8 +424,8 @@ export function CustomOPDSModal({
                             <ActivityIndicator size="small" color={colors.isDark ? '#000000' : '#FFFFFF'} />
                           ) : isDownloaded ? (
                             <>
-                              <Check size={14} color="#10B981" style={{ marginRight: 4 }} />
-                              <Text style={[styles.downloadBtnText, { color: '#10B981' }]}>In Library</Text>
+                              <Check size={14} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 4 }} />
+                              <Text style={[styles.downloadBtnText, { color: colors.isMonochrome ? '#FFFFFF' : '#10B981' }]}>In Library</Text>
                             </>
                           ) : (
                             <>

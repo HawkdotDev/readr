@@ -127,6 +127,12 @@ export function StreakHeatmap({
   const getCellColor = (minutes: number, isFuture: boolean): string => {
     if (isFuture) return 'transparent';
     if (minutes === 0) return colors.isDark ? '#27272A' : '#E4E4E7';
+    if (colors.isMonochrome) {
+      if (minutes < 15) return '#52525B';
+      if (minutes < 30) return '#71717A';
+      if (minutes < 60) return '#A1A1AA';
+      return '#FAFAFA';
+    }
     if (minutes < 15) return colors.isDark ? '#064E3B' : '#BBF7D0';
     if (minutes < 30) return colors.isDark ? '#047857' : '#4ADE80';
     if (minutes < 60) return colors.isDark ? '#10B981' : '#22C55E';
@@ -156,7 +162,7 @@ export function StreakHeatmap({
         </View>
 
         <View style={[styles.bestPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Trophy size={13} color="#F59E0B" style={{ marginRight: 5 }} />
+          <Trophy size={13} color={colors.isMonochrome ? colors.textPrimary : '#F59E0B'} style={{ marginRight: 5 }} />
           <Text style={[styles.bestLabel, { color: colors.textSecondary }]}>Best streak: </Text>
           <Text style={[styles.bestValue, { color: colors.textPrimary }]}>{longestStreak}d</Text>
         </View>
@@ -234,7 +240,9 @@ export function StreakHeatmap({
               {
                 color:
                   selectedDayInfo.minutes > 0
-                    ? colors.isDark
+                    ? colors.isMonochrome
+                      ? colors.textPrimary
+                      : colors.isDark
                       ? '#34D399'
                       : '#15803D'
                     : colors.textSecondary,

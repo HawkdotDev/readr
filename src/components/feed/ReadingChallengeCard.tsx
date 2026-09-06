@@ -54,8 +54,9 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
     onTargetChange(preset);
   };
 
-  const pacingColor =
-    challenge.pacing.status === 'ahead'
+  const pacingColor = colors.isMonochrome
+    ? colors.textPrimary
+    : challenge.pacing.status === 'ahead'
       ? '#10B981'
       : challenge.pacing.status === 'behind'
         ? '#F59E0B'
@@ -78,12 +79,12 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
             style={[
               styles.trophyIconCircle,
               {
-                backgroundColor: '#F59E0B16',
-                borderColor: '#F59E0B36',
+                backgroundColor: colors.isMonochrome ? `${colors.accent}16` : '#F59E0B16',
+                borderColor: colors.isMonochrome ? `${colors.accent}36` : '#F59E0B36',
               },
             ]}
           >
-            <Trophy size={14} color="#F59E0B" />
+            <Trophy size={14} color={colors.isMonochrome ? colors.textPrimary : '#F59E0B'} />
           </View>
           <View style={styles.headerTitleCol}>
             <View style={styles.titleWithYearRow}>
@@ -168,7 +169,7 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
             style={[
               styles.percentageRing,
               {
-                borderColor: challenge.isCompleted ? '#10B981' : colors.accent,
+                borderColor: challenge.isCompleted ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.accent,
                 backgroundColor: colors.canvas,
               },
             ]}
@@ -192,7 +193,7 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
                   styles.segmentFill,
                   {
                     width: `${q1Fill}%`,
-                    backgroundColor: challenge.isCompleted ? '#10B981' : colors.accent,
+                    backgroundColor: challenge.isCompleted ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.accent,
                   },
                 ]}
               />
@@ -205,7 +206,7 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
                   styles.segmentFill,
                   {
                     width: `${q2Fill}%`,
-                    backgroundColor: challenge.isCompleted ? '#10B981' : colors.accent,
+                    backgroundColor: challenge.isCompleted ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.accent,
                   },
                 ]}
               />
@@ -218,7 +219,7 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
                   styles.segmentFill,
                   {
                     width: `${q3Fill}%`,
-                    backgroundColor: challenge.isCompleted ? '#10B981' : colors.accent,
+                    backgroundColor: challenge.isCompleted ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.accent,
                   },
                 ]}
               />
@@ -231,7 +232,7 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
                   styles.segmentFill,
                   {
                     width: `${q4Fill}%`,
-                    backgroundColor: '#10B981',
+                    backgroundColor: colors.isMonochrome ? '#FFFFFF' : '#10B981',
                   },
                 ]}
               />
@@ -293,13 +294,13 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
 
             <View style={styles.milestoneItem}>
               {challenge.milestones.q4 ? (
-                <Sparkles size={9} color="#10B981" style={{ marginRight: 2 }} />
+                <Sparkles size={9} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 2 }} />
               ) : null}
               <Text
                 style={[
                   styles.milestoneText,
                   {
-                    color: challenge.milestones.q4 ? '#10B981' : colors.textSecondary,
+                    color: challenge.milestones.q4 ? (colors.isMonochrome ? '#FFFFFF' : '#10B981') : colors.textSecondary,
                     fontFamily: challenge.milestones.q4 ? FONTS.mono.bold : FONTS.mono.medium,
                   },
                 ]}
@@ -412,8 +413,8 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
             </View>
             {challenge.isCompleted ? (
               <View style={styles.completedBadge}>
-                <Sparkles size={11} color="#10B981" style={{ marginRight: 4 }} />
-                <Text style={styles.completedBadgeText}>Challenge Met!</Text>
+                <Sparkles size={11} color={colors.isMonochrome ? '#FFFFFF' : '#10B981'} style={{ marginRight: 4 }} />
+                <Text style={[styles.completedBadgeText, { color: colors.isMonochrome ? '#FFFFFF' : '#10B981' }]}>Challenge Met!</Text>
               </View>
             ) : (
               <Text style={[styles.shelfCounterText, { color: colors.textSecondary }]}>
@@ -476,7 +477,11 @@ export const ReadingChallengeCard: React.FC<ReadingChallengeCardProps> = ({
 
                       {/* Completion laurel stamp */}
                       <View style={styles.checkBadge}>
-                        <CheckCircle2 size={13} color="#FFFFFF" fill="#10B981" />
+                        <CheckCircle2
+                          size={13}
+                          color={colors.isMonochrome ? '#000000' : '#FFFFFF'}
+                          fill={colors.isMonochrome ? '#FFFFFF' : '#10B981'}
+                        />
                       </View>
                     </View>
 

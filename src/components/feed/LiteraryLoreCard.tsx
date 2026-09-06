@@ -64,35 +64,19 @@ export const LiteraryLoreCard: React.FC<LiteraryLoreCardProps> = ({
           </Text>
         </View>
 
-        <View style={styles.headerBtnGroup}>
-          <TouchableOpacity
-            onPress={handleShare}
-            style={[
-              styles.actionBtn,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            accessibilityLabel="Share Literary Lore"
-          >
-            <Share2 size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
-              Share
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleShuffle}
-            style={[
-              styles.actionBtn,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            accessibilityLabel="Other Literary Lore"
-          >
-            <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
-              Other Lore
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={handleShuffle}
+          style={[
+            styles.actionBtn,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          accessibilityLabel="Other Literary Lore"
+        >
+          <Shuffle size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+          <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>
+            Other Lore
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View
@@ -106,13 +90,17 @@ export const LiteraryLoreCard: React.FC<LiteraryLoreCardProps> = ({
             style={[
               styles.loreTagBadge,
               {
-                backgroundColor: colors.isDark
+                backgroundColor: colors.isMonochrome
+                  ? colors.canvas
+                  : colors.isDark
                   ? 'rgba(236, 72, 153, 0.15)'
                   : 'rgba(236, 72, 153, 0.1)',
+                borderColor: colors.border,
+                borderWidth: colors.isMonochrome ? 1 : 0,
               },
             ]}
           >
-            <Text style={[styles.loreTagText, { color: '#EC4899' }]}>
+            <Text style={[styles.loreTagText, { color: colors.isMonochrome ? colors.textSecondary : '#EC4899' }]}>
               {literaryLore.tag.toUpperCase()} · {literaryLore.era}
             </Text>
           </View>
@@ -204,11 +192,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
-  },
-  headerBtnGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   actionBtn: {
     flexDirection: 'row',
